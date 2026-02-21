@@ -197,7 +197,7 @@ const searchOtherBtn = document.getElementById('searchOtherBtn');
 
 // App constants
 const BASE_APPS_SCRIPT_URL = GAS_API_URL;
-
+const WEB_LINK = "https://panel.grouvex.com/";
 // State variables
 let currentUser = null;
 let isStaff = false;
@@ -692,14 +692,14 @@ function handleRegistrationError(error) {
 function openMemberPortal() {
     if (!currentUser) return;
     
-    const url = `${BASE_APPS_SCRIPT_URL}?id=GS-${encodeURIComponent(currentUser.uid)}`;
+    const url = `${WEB_LINK}member?id=GS-${encodeURIComponent(currentUser.uid)}`;
     window.open(url, '_blank');
 }
 
 function openStaffPortal() {
     if (!currentUser || !(isStaff || isVerifiedTeam)) return;
     
-    const url = `${BASE_APPS_SCRIPT_URL}?staffid=GS-${encodeURIComponent(currentUser.uid)}&isStaff=true`;
+    const url = `${WEB_LINK}staff?staffid=GS-${encodeURIComponent(currentUser.uid)}&isStaff=true`;
     window.open(url, '_blank');
 }
 
@@ -708,7 +708,7 @@ function searchOtherMember() {
     
     const targetId = prompt("Ingresa el GS-ID del miembro que deseas buscar:");
     if (targetId) {
-        const url = `${BASE_APPS_SCRIPT_URL}?id=GS-${encodeURIComponent(currentUser.uid)}&targetId=${encodeURIComponent(targetId)}&isStaff=true`;
+        const url = `${WEB_LINK}member?id=GS-${encodeURIComponent(currentUser.uid)}&targetId=${encodeURIComponent(targetId)}&isStaff=true`;
         window.open(url, '_blank');
     }
 }
