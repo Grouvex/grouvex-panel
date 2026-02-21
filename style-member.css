@@ -1,0 +1,689 @@
+/* ============================================
+   ESTILOS ESPECÍFICOS PARA MEMBER.HTML
+   ============================================ */
+
+/* Particles Intro */
+.particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+main {
+    transition: opacity 1.5s ease-in-out;
+}
+
+.content-visible {
+    opacity: 1;
+}
+
+.final-logo {
+    filter: drop-shadow(0 0 40px rgba(255, 20, 147, 0.9));
+    transform: scale(0.7);
+    transition: all 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 300px;
+    height: auto;
+    border-radius: 8px;
+}
+
+.logo-visible {
+    transform: scale(1);
+    filter: drop-shadow(0 0 60px rgba(255, 20, 147, 1)) 
+            drop-shadow(0 0 30px rgba(0, 255, 255, 0.7));
+}
+
+.welcome-title {
+    font-size: 4rem;
+    background: linear-gradient(45deg, #ff1493, #00ffff, #ff69b4, #00bfff);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 25px;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: all 1.2s ease 0.8s;
+    text-align: center;
+    animation: gradientShift 3s ease-in-out infinite;
+}
+
+.welcome-subtitle {
+    font-size: 1.8rem;
+    color: #00ffff;
+    margin-bottom: 50px;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1.2s ease 1.2s;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.7),
+                 0 0 40px rgba(0, 255, 255, 0.4);
+    text-align: center;
+    font-weight: 300;
+    letter-spacing: 2px;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.title-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.subtitle-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ============================================ */
+/* BANNER DE OFERTAS */
+/* ============================================ */
+
+.offer-banner {
+    position: fixed;
+    display: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #8A2BE2 0%, #4B0082 100%);
+    color: white;
+    padding: 12px 20px;
+    text-align: center;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    border-bottom: 3px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.offer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.offer-text {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.offer-icon {
+    font-size: 1.8rem;
+    animation: pulse 2s infinite;
+}
+
+.offer-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 3px;
+}
+
+.offer-subtitle {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.offer-badge {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #333;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-weight: 800;
+    font-size: 0.9rem;
+    box-shadow: 0 3px 10px rgba(255, 215, 0, 0.4);
+    white-space: nowrap;
+    animation: shake 2s infinite;
+}
+
+.offer-cta {
+    background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%);
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(0, 201, 255, 0.3);
+}
+
+.offer-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 201, 255, 0.5);
+    text-decoration: none;
+    color: #333;
+}
+
+.offer-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.offer-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-2deg); }
+    75% { transform: rotate(2deg); }
+}
+
+/* ============================================ */
+/* PERFILES RELACIONADOS */
+/* ============================================ */
+
+.related-profiles-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(108, 92, 231, 0.08);
+    border-radius: 12px;
+    border-left: 4px solid #6c5ce7;
+}
+
+.search-profiles {
+    margin: 15px 0;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.input-group input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.input-group button {
+    padding: 10px 20px;
+    background: #6c5ce7;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.input-group button:hover {
+    background: #5c4bc0;
+}
+
+.profiles-results, .current-profiles {
+    margin-top: 20px;
+}
+
+.profiles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.profile-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.profile-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.1);
+}
+
+.profile-item.main-profile {
+    border-left: 4px solid #6c5ce7;
+    background: rgba(108, 92, 231, 0.05);
+}
+
+.profile-info h5 {
+    margin: 0 0 5px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.profile-id {
+    margin: 0;
+    color: #666;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.btn-view-profile {
+    padding: 8px 15px;
+    background: #00b894;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.btn-view-profile:hover {
+    background: #00a382;
+}
+
+/* ============================================ */
+/* SOLICITUD DE CAMBIOS */
+/* ============================================ */
+
+.change-request-section {
+    background: rgba(108, 92, 231, 0.08);
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #6c5ce7;
+    margin: 20px 0;
+    color: black;
+}
+
+.change-item-form {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.change-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.change-header h4 {
+    margin: 0;
+    color: #2d3748;
+}
+
+.btn-remove-change {
+    background: #e53e3e;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.btn-remove-change:hover {
+    background: #c53030;
+}
+
+.btn-add-change {
+    background: #38a169;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.btn-add-change:hover {
+    background: #2f855a;
+}
+
+.change-request-section .form-group {
+    margin-bottom: 15px;
+}
+
+.change-request-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.change-request-section select,
+.change-request-section input,
+.change-request-section textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.change-request-section select:focus,
+.change-request-section input:focus,
+.change-request-section textarea:focus {
+    outline: none;
+    border-color: #6c5ce7;
+}
+
+.change-request-section #currentValue {
+    background-color: #f7fafc;
+    color: #718096;
+}
+
+.btn-request {
+    background: linear-gradient(135deg, #6c5ce7 0%, #3498db 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.btn-request:hover {
+    transform: translateY(-2px);
+}
+
+#requestResult.success {
+    background-color: #c6f6d5;
+    border: 2px solid #48bb78;
+    color: #22543d;
+}
+
+#requestResult.error {
+    background-color: #fed7d7;
+    border: 2px solid #f56565;
+    color: #742a2a;
+}
+
+/* ============================================ */
+/* TARJETAS DE ARTISTA Y LANZAMIENTOS */
+/* ============================================ */
+
+.artist-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(15px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 2.5rem;
+    margin: 2.5rem 0;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+}
+
+.artist-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+}
+
+.artist-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.artist-subtitle {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1.5rem;
+}
+
+.artist-details {
+    margin-bottom: 1.5rem;
+}
+
+.artist-details h4 {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+    color: #fff;
+}
+
+.insignia-container {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.insignia-image {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.artist-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.info-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-label {
+    display: block;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 1rem;
+    color: #fff;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* ============================================ */
+/* LANZAMIENTOS GRID */
+/* ============================================ */
+
+.lanzamientos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.lanzamiento-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.lanzamiento-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.lanzamiento-header {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.lanzamiento-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease-in-out;
+}
+
+.lanzamiento-image:hover {
+    transform: scale(1.05);
+}
+
+.lanzamiento-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.7) 50%, transparent 100%);
+    padding: 20px 16px 16px;
+    color: white;
+}
+
+.lanzamiento-badge {
+    background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%);
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-block;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    letter-spacing: 0.5px;
+}
+
+.lanzamiento-title {
+    margin: 0 0 6px 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1.2;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    color: white;
+}
+
+.lanzamiento-artist {
+    margin: 0;
+    font-size: 0.95rem;
+    opacity: 0.95;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lanzamiento-status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.15);
+    z-index: 10;
+}
+
+.lanzamiento-details {
+    padding: 20px;
+}
+
+.lanzamiento-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.lanzamiento-stat-item {
+    text-align: left;
+}
+
+.lanzamiento-stat-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.lanzamiento-stat-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.lanzamiento-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+}
+
+.lanzamiento-toggle-btn {
+    background: transparent;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.lanzamiento-toggle-btn:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.lanzamiento-delivered {
+    background: #10b981;
+    color: white;
+    padding: 
