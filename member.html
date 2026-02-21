@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+<head>
+    <!-- META TAGS BÁSICOS AVANZADOS -->
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval';
+                  img-src 'self' https: data: blob: 
+                          *.googleusercontent.com 
+                          *.googleapis.com 
+                          *.gstatic.com 
+                          firebasestorage.googleapis.com 
+                          raw.githubusercontent.com;
+                  font-src 'self' https: data:;
+                  style-src 'self' https: 'unsafe-inline';
+                  script-src 'self' https: 'unsafe-inline' 'unsafe-eval';
+                  connect-src 'self' https: wss:;">
+
+    <!-- OPEN GRAPH (Facebook, LinkedIn, etc.) -->
+    <meta property="og:title" content="Mi Portal - Grouvex Studios">
+    <meta property="og:description" content="Portal personal para miembros de Grouvex Studios">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/Grouvex1.png">
+    <meta property="og:url" content="https://panel.grouvex.com/member.html">
+    <meta property="og:site_name" content="Grouvex Studios">
+    <meta property="og:locale" content="es_ES">
+    
+    <!-- TWITTER CARD -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mi Portal - Grouvex Studios">
+    <meta name="twitter:description" content="Portal personal para miembros de Grouvex Studios">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/Grouvex1.png">
+    <meta name="twitter:site" content="@grouvexstudios">
+    
+    <!-- APPLE/IOS SPECIFIC -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Grouvex Studios">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-touch-fullscreen" content="yes">
+    
+    <!-- PWA / WEB APP MANIFEST -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Grouvex Studios">
+    
+    <!-- PREFETCH/PRELOAD -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
+    <link rel="preload" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/GROUVEX.png" as="image">
+    
+    <!-- ICONS -->
+    <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/GROUVEX.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/apple-touch-icon.png">
+    
+    <!-- CANONICAL URL -->
+    <link rel="canonical" href="https://panel.grouvex.com/member.html">
+    
+    <!-- STYLESHEETS EXTERNAS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- SCRIPTS EXTERNOS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- ESTILOS PROPIOS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-member.css">
+    
+    <title>Grouvex Studios - Mi Portal</title>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6d28d9',
+                        'primary-dark': '#5b21b6',
+                        secondary: '#0ea5e9',
+                        dark: '#0f172a',
+                        darker: '#020617',
+                        light: '#f8fafc',
+                        lighter: '#e2e8f0',
+                        danger: '#ef4444',
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Particles Intro -->
+    <div id="particlesContainer" class="particles-container"></div>
+    
+    <main id="mainContent">
+        <!-- Header con logo -->
+        <div class="header">
+            <div class="logo-title">
+                <a href="https://panel.grouvex.com">
+                    <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/Grouvex1.png" 
+                         alt="Grouvex Studios Logo" class="final-logo">
+                </a>
+                <div class="title-container">
+                    <h1 class="welcome-title">Grouvex Studios</h1>
+                    <p class="welcome-subtitle">Records • Designs • Games</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contadores de tiempo -->
+        <div id="webStatusMessages" class="web-status"></div>
+        
+        <!-- Oferta Banner -->
+        <div id="offerBanner" class="offer-banner">
+            <!-- Se llena dinámicamente con JS -->
+        </div>
+
+        <!-- User Dashboard -->
+        <div id="userDashboard" class="user-info">
+            <!-- El contenido se carga dinámicamente -->
+        </div>
+
+        <!-- Sección de Perfiles Relacionados -->
+        <div class="related-profiles-section">
+            <!-- Se llena dinámicamente -->
+        </div>
+
+        <!-- Sección de Solicitud de Cambios -->
+        <details class="change-request-main-section" id="changeRequestSection">
+            <summary><h3><i class="fas fa-edit"></i> Solicitar Cambios en mi Información</h3></summary>
+            <div id="changeRequestContainer">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </details>
+
+        <!-- Sección de Estado de Solicitudes -->
+        <details class="requests-status-section">
+            <summary><h3><i class="fas fa-clipboard-list"></i> Estado de mis Solicitudes</h3></summary>
+            <div id="requestsStatusContainer">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </details>
+
+        <!-- Documentos Oficiales -->
+        <details class="docs-section">
+            <summary><h2><i class="fas fa-file-contract"></i> Documentos Oficiales (DDOO)</h2></summary>
+            <div id="docsContainer">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </details>
+
+        <!-- Grouvex Studios Section -->
+        <details class="grouvex-main-section" open>
+            <summary><h1>Grouvex Studios</h1></summary>
+            <div id="grouvexDataContainer">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </details>
+
+        <!-- GSRecords Section -->
+        <details class="gsrecords-section">
+            <summary><h1>Grouvex Studios Records</h1></summary>
+            <div id="gsrecordsContainer">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </details>
+
+        <!-- Comunidad de Miembros -->
+        <div id="member-profiles-section">
+            <!-- Se llena dinámicamente -->
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-container">
+                <!-- Redes sociales -->
+                <div class="footer-socials-top">
+                    <div class="footer-imagenes">
+                        <nav>
+                            <a href="https://instagram.com/grouvexstudios" target="_blank" rel="noopener noreferrer" class="social-icon"><i class="fab fa-instagram"></i></a>
+                            <a href="https://tiktok.com/@GrouvexStudios" target="_blank" rel="noopener noreferrer" class="social-icon"><i class="fab fa-tiktok"></i></a>
+                            <a href="https://discord.gg/XnxcuZHrh3" target="_blank" rel="noopener noreferrer" class="social-icon"><i class="fab fa-discord"></i></a>
+                            <a href="https://open.spotify.com/intl-es/artist/0Sz3myYKWtxR1seCT5e7Rx" target="_blank" rel="noopener noreferrer" class="social-icon"><i class="fab fa-spotify"></i></a>
+                            <a href="https://twitter.com/@grouvex" target="_blank" rel="noopener noreferrer" class="social-icon"><img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/X.png" alt="X/Twitter"></a>
+                            <a href="https://youtube.com/@GrouvexStudios" target="_blank" rel="noopener noreferrer" class="social-icon"><i class="fab fa-youtube"></i></a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Footer columns -->
+                <div class="footer-main">
+                    <div class="footer-left">
+                        <a href="https://grouvex.github.io">
+                            <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/Grouvex1.png" 
+                                 alt="Logo Grouvex Studios" class="footer-logo">
+                        </a>
+                    </div>
+                    <div class="footer-right">
+                        <!-- Columnas de información -->
+                        <div class="footer-column">
+                            <h4><i class="fas fa-shield-alt"></i> Seguridad</h4>
+                            <p><a href="https://docs.google.com/document/d/1_LD48G3t9fintxvSbzPRb-DAeLFyDIs4hUp3tA5_lRQ/edit" target="_blank">Términos de Servicio</a></p>
+                            <p><a href="https://grouvex.github.io/contacto" target="_blank">Contacto</a></p>
+                        </div>
+                        <div class="footer-column">
+                            <h4><i class="fas fa-globe"></i> Páginas</h4>
+                            <p><a href="https://grouvex.github.io/faqs" target="_blank">FAQS</a></p>
+                        </div>
+                        <div class="footer-column">
+                            <h4><i class="fa-solid fa-compact-disc"></i> GSRecords</h4>
+                            <p><a href="https://grouvex.github.io/gsrecords" target="_blank">GSRecords</a></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Copyright -->
+                <div class="footer-bottom">
+                    <p>©2021 - <span id="currentYear"></span> Grouvex Studios. Todos los derechos reservados.</p>
+                    <p>©<span id="currentYear2"></span>-v0.0.6</p>
+                </div>
+            </div>
+
+            <!-- Status Pages/APIs -->
+            <details class="status-section">
+                <summary><h3><i class="fas fa-server"></i> Status Pages/APIs</h3></summary>
+                <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ6MG-IVoaKtRJKcf1t5oValyjPw7ZtDDpwZQn0UlW23GZV_80JGuZ0kvp6frtnIy5uZ3nXg_8MO90/pubhtml" target="_blank">Ver completo</a>
+                <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ6MG-IVoaKtRJKcf1t5oValyjPw7ZtDDpwZQn0UlW23GZV_80JGuZ0kvp6frtnIy5uZ3nXg_8MO90/pubhtml?gid=387403077&amp;single=true" class="status-iframe"></iframe>
+            </details>
+
+            <!-- Calendario -->
+            <details class="calendar-section" open>
+                <summary><h2><i class="fas fa-calendar-alt"></i> Calendario Oficial</h2></summary>
+                <div class="calendar-header">
+                    <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/Grouvex1.png" class="calendar-logo">
+                    <a href="https://grouvex.github.io/calendario.html" target="_blank">Abrir Calendario</a>
+                </div>
+                <iframe src="https://www.grouvex.com/calendario.html" class="calendar-iframe"></iframe>
+            </details>
+        </footer>
+    </main>
+
+    <!-- Scripts principales -->
+    <script src="script.js"></script>
+    <script src="script-member.js"></script>
+
+    <!-- Tawk.to Script -->
+    <script type="text/javascript">
+        var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+        (function(){
+            var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+            s1.async=true;
+            s1.src='https://embed.tawk.to/6525b3a66fcfe87d54b88bc4/1hcdkbgr3';
+            s1.charset='UTF-8';
+            s1.setAttribute('crossorigin','*');
+            s0.parentNode.insertBefore(s1,s0);
+        })();
+    </script>
+</body>
+</html>
