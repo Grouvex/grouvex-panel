@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grouvex Studios - Perfil de Artista</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="google-script-simulator.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo i {
+            font-size: 2.5em;
+            color: #ff6b6b;
+        }
+
+        .logo h1 {
+            font-size: 2em;
+            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9em;
+        }
+
+        /* Tarjeta principal */
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Panel de autenticación */
+        .auth-panel {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .auth-panel h3 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .auth-panel p {
+            margin-bottom: 20px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .btn-auth {
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255,107,107,0.4);
+        }
+
+        .btn-logout {
+            background: rgba(255,107,107,0.2);
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        /* Pestañas */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 1em;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: rgba(255,107,107,0.3);
+            color: #ff6b6b;
+        }
+
+        .tab:hover {
+            background: rgba(255,107,107,0.2);
+            color: #ff6b6b;
+        }
+
+        /* Búsqueda */
+        .search-section {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.5);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            outline: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #ff6b6b;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255,107,107,0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(78, 205, 196, 0.2);
+            border: 1px solid #4ecdc4;
+            color: #4ecdc4;
+        }
+
+        .btn-secondary:hover {
+            background: #4ecdc4;
+            color: #1a1a2e;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* User Dashboard */
+        .user-info {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: rgba(81, 179, 221, 0.3);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #ff6b6b;
+            display: none;
+        }
+
+        .avatar-container {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .avatar-container img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-email {
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+        }
+
+        .staff-badge, .verified-team-badge {
+            font-size: 12px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .staff-badge {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .verified-team-badge {
+            background: #28a745;
+            color: white;
+        }
+
+        .insignia-image {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* TIGS Container */
+        .tigs-container {
+            flex-shrink: 0;
+            margin-left: 20px;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .tigs-image {
+            width: auto;
+            height: auto;
+            max-width: 250px;
+            max-height: 170px;
+            object-fit: contain;
+        }
+
+        .tigs-id {
+            position: absolute;
+            font-size: 6px;
+            top: 36px;
+            left: 90px;
+            color: black;
+        }
+
+        .tigs-avatar {
+            position: absolute;
+            top: 46px;
+            left: 4px;
+            width: 63px;
+            height: auto;
+            border-radius: 5.2%;
+            object-fit: cover;
+            opacity: 90%;
+        }
+
+        .tigs-insignias {
+            position: absolute;
+            bottom: 8px;
+            left: 2px;
+            width: 70px;
+            height: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1px;
+            align-content: flex-start;
+            overflow: visible;
+        }
+
+        .tigs-insignias img {
+            width: 7px;
+            height: 7px;
+            flex-shrink: 0;
+        }
+
+        /* Error */
+        .error-message {
+            background: rgba(255,107,107,0.2);
+            border-left: 4px solid #ff6b6b;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        /* Warning */
+        .warning-message {
+            background: rgba(255,193,7,0.2);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        /* Main content - oculto hasta autenticación */
+        .main-content {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .card { padding: 20px; }
+            .tigs-container { margin-left: 0; margin-top: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-music"></i>
+                <h1>Grouvex Studios</h1>
+            </div>
+            <p class="subtitle"><i class="fas fa-star"></i> Perfil de Artista <i class="fas fa-star"></i></p>
+        </div>
+
+        <div class="card">
+            <!-- Panel de autenticación (se muestra si no hay sesión) -->
+            <div id="authPanel" class="auth-panel">
+                <i class="fas fa-lock" style="font-size: 3em; color: #ff6b6b; margin-bottom: 20px;"></i>
+                <h3>Acceso Restringido</h3>
+                <p>Debes iniciar sesión para acceder al perfil de artista.</p>
+                <button id="loginRedirectBtn" class="btn-auth">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </button>
+            </div>
+
+            <!-- Contenido principal (se muestra solo con autenticación) -->
+            <div id="mainContent" class="main-content">
+                <!-- Info del usuario autenticado -->
+                <div id="userInfoBar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px;">
+                    <div>
+                        <i class="fas fa-user-circle"></i> 
+                        <span id="authUserEmail"></span>
+                        <span id="authStaffBadge" style="display: none; margin-left: 10px; background: #ff6b6b; padding: 2px 8px; border-radius: 20px; font-size: 11px;">STAFF</span>
+                    </div>
+                    <button id="logoutBtn" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+
+                <!-- Pestañas -->
+                <div class="tabs">
+                    <button class="tab active" data-method="post">
+                        <i class="fas fa-arrow-up"></i> POST (google.script.run)
+                    </button>
+                    <button class="tab" data-method="get">
+                        <i class="fas fa-arrow-down"></i> GET (URL directa)
+                    </button>
+                </div>
+
+                <!-- Búsqueda -->
+                <div class="search-section">
+                    <div class="search-wrapper">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="userIdInput" class="search-input" placeholder="GS-ID del artista">
+                    </div>
+                    <button id="searchBtn" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                    <button id="testApiBtn" class="btn btn-secondary">
+                        <i class="fas fa-heartbeat"></i> Health
+                    </button>
+                </div>
+
+                <!-- Loading -->
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Cargando datos del artista...</p>
+                </div>
+
+                <!-- Error -->
+                <div id="errorMessage" class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="errorText"></span>
+                </div>
+
+                <!-- Advertencia de email no verificado -->
+                <div id="unverifiedWarning" class="warning-message">
+                    <i class="fas fa-envelope"></i>
+                    <span>Tu email no está verificado. Por favor, revisa tu bandeja de entrada y verifica tu cuenta para acceder a todas las funcionalidades.</span>
+                    <button id="resendVerificationBtn" style="margin-left: 10px; background: #ffc107; border: none; padding: 4px 12px; border-radius: 20px; cursor: pointer;">Reenviar</button>
+                </div>
+
+                <!-- Perfil -->
+                <div id="profileCard" class="user-info" style="display: none;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; width: 100%;">
+                        <!-- Bloque 1: Información del usuario -->
+                        <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0;">
+                            <div class="avatar-container" style="position: relative; flex-shrink: 0;">
+                                <img id="user-avatar" src="" alt="Avatar" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover;">
+                                <img id="user-avatar-overlay" src="" alt="Decoración" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; display: none; object-fit: cover;">
+                            </div>
+                            
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 4px; flex-wrap: wrap;">
+                                    <strong id="user-name" style="font-size: 16px;"></strong>
+                                    <span id="email-verified" style="display: none;">
+                                        <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/verified.png" alt="Verificado" style="width: 16px; height: 16px;">
+                                    </span>
+                                </div>
+                                
+                                <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 4px; flex-wrap: wrap;">
+                                    <span id="userEmail" class="user-email"></span>
+                                    <div id="staffBadgeContainer" style="display: inline-flex; align-items: center; gap: 5px;">
+                                        <span id="staffBadge" class="staff-badge" style="display: none;"><i class="fas fa-shield-alt"></i> STAFF</span>
+                                        <span id="verifiedTeamBadge" class="verified-team-badge" style="display: none;"><i class="fas fa-check-circle"></i> VERIFIED TEAM</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Insignias en línea horizontal -->
+                                <div id="insigniasContainer" style="display: flex; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; max-width: 60%;"></div>
+                                
+                                <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 13px;">
+                                    Miembro desde: <span id="createdAt"></span>
+                                </p>
+                                
+                                <p id="description" style="margin-top: 8px; font-size: 13px; color: rgba(255,255,255,0.8);"></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Bloque 2: Imagen TIGS -->
+                        <div class="tigs-container">
+                            <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/TIGS%20(GS-ID).jpg" alt="TIGS" class="tigs-image">
+                            <p class="tigs-id" id="tigs-id"></p>
+                            <img id="tigs-avatar" src="" alt="Avatar TIGS" class="tigs-avatar">
+                            <div id="tigs-insignias" class="tigs-insignias"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Redes Sociales -->
+                    <div id="socialLinks" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);"></div>
+                    
+                    <!-- Tipo de perfil -->
+                    <div style="margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.5);">
+                        <i class="fas fa-lock"></i> Tipo de perfil: <span id="profileType"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgoQ_Px3hHVrevUsyct_FBeXWMDKXpPSw",
+            authDomain: "grouvex-studios.firebaseapp.com",
+            databaseURL: "https://grouvex-studios-default-rtdb.firebaseio.com",
+            projectId: "grouvex-studios",
+            storageBucket: "grouvex-studios.appspot.com",
+            messagingSenderId: "1070842606062",
+            appId: "1:1070842606062:web:5d887863048fd100b49eff",
+            measurementId: "G-75BR8D2CR3"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        
+        let currentMethod = 'post';
+        let currentUser = null;
+        let isStaff = false;
+
+        // ============================================
+        // FUNCIONES DE UI
+        // ============================================
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('profileCard').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            document.getElementById('errorText').textContent = message;
+            errorEl.style.display = 'block';
+            hideLoading();
+        }
+        
+        function showUnverifiedWarning(show, user) {
+            const warning = document.getElementById('unverifiedWarning');
+            if (show && user && !user.emailVerified) {
+                warning.style.display = 'block';
+                // Configurar botón de reenviar verificación
+                const resendBtn = document.getElementById('resendVerificationBtn');
+                resendBtn.onclick = () => {
+                    user.sendEmailVerification().then(() => {
+                        alert('✅ Email de verificación reenviado. Revisa tu bandeja de entrada.');
+                    }).catch((error) => {
+                        alert('❌ Error: ' + error.message);
+                    });
+                };
+            } else {
+                warning.style.display = 'none';
+            }
+        }
+        
+        function displayArtistData(apiResponse) {
+            console.log("🎨 Datos recibidos:", apiResponse);
+            
+            if (!apiResponse || !apiResponse.found) {
+                showError("No se encontró el artista. Verifica el GS-ID.");
+                return;
+            }
+            
+            const artist = apiResponse.artistData || {};
+            const insigniaUrls = apiResponse.insigniaUrls || [];
+            const isArtistStaff = apiResponse.isStaff === true;
+            const hasVerifiedBadge = apiResponse.insignias?.some(i => i.name === 'verified') || false;
+            const userId = apiResponse.id || artist["Grouvex Studios UserID"] || '';
+            
+            // Mostrar perfil
+            document.getElementById('profileCard').style.display = 'block';
+            hideLoading();
+            
+            // Nombre y email
+            const username = artist["Nombre de Usuario"] || artist["Nombre del Artista/Banda"] || 'Sin nombre';
+            const email = artist["Email"] || 'Sin email';
+            
+            document.getElementById('user-name').textContent = username;
+            document.getElementById('userEmail').textContent = email;
+            
+            // Avatar
+            const avatarImg = document.getElementById('user-avatar');
+            const tigsAvatar = document.getElementById('tigs-avatar');
+            const userAvatarUrl = artist["Imagen 1"] || '';
+            
+            if (userAvatarUrl) {
+                avatarImg.src = userAvatarUrl;
+                tigsAvatar.src = userAvatarUrl;
+            } else {
+                avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=ff6b6b&color=fff&size=90`;
+                tigsAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=ff6b6b&color=fff&size=63`;
+            }
+            
+            // TIGS ID
+            document.getElementById('tigs-id').textContent = userId;
+            
+            // Badges
+            document.getElementById('staffBadge').style.display = isArtistStaff ? 'inline-flex' : 'none';
+            document.getElementById('verifiedTeamBadge').style.display = hasVerifiedBadge ? 'inline-flex' : 'none';
+            document.getElementById('email-verified').style.display = hasVerifiedBadge ? 'inline-flex' : 'none';
+            
+            // Descripción
+            const description = artist["Descripción del Perfil"] || artist["profileDescription"] || 'Sin descripción';
+            document.getElementById('description').textContent = description;
+            
+            // Tipo de perfil
+            const profileType = artist["Tipo de Perfil"] || 'Público';
+            document.getElementById('profileType').textContent = profileType;
+            
+            // Fecha de registro
+            const createdAt = artist["Marca temporal"] || artist["timestamp"];
+            if (createdAt) {
+                const date = new Date(createdAt);
+                document.getElementById('createdAt').textContent = date.toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } else {
+                document.getElementById('createdAt').textContent = 'No disponible';
+            }
+            
+            // INSIGNIAS
+            const insigniasContainer = document.getElementById('insigniasContainer');
+            if (insigniaUrls.length > 0) {
+                insigniasContainer.innerHTML = insigniaUrls.map(url => `
+                    <img src="${url}" alt="Insignia" class="insignia-image" onerror="this.style.display='none'">
+                `).join('');
+            } else {
+                insigniasContainer.innerHTML = '<span style="color: rgba(255,255,255,0.5); font-size: 12px;">Sin insignias</span>';
+            }
+            
+            // INSIGNIAS TIGS
+            const tigsInsignias = document.getElementById('tigs-insignias');
+            if (insigniaUrls.length > 0) {
+                tigsInsignias.innerHTML = insigniaUrls.map(url => `
+                    <img src="${url}" alt="Insignia" onerror="this.style.display='none'">
+                `).join('');
+            } else {
+                tigsInsignias.innerHTML = '';
+            }
+            
+            // REDES SOCIALES
+            const socialLinksContainer = document.getElementById('socialLinks');
+            const socialNetworks = [
+                { name: 'Instagram', value: artist["Tu usuario de Instagram"], url: (v) => `https://instagram.com/${v.replace('@', '')}`, icon: 'fab fa-instagram' },
+                { name: 'TikTok', value: artist["Tu usuario de TikTok"], url: (v) => `https://tiktok.com/@${v.replace('@', '')}`, icon: 'fab fa-tiktok' },
+                { name: 'YouTube', value: artist["Tu usuario de YouTube"], url: (v) => `https://youtube.com/@${v.replace('@', '')}`, icon: 'fab fa-youtube' },
+                { name: 'Discord', value: artist["Tu usuario de Discord"], url: () => '#', icon: 'fab fa-discord' },
+                { name: 'X', value: artist["Tu usuario de X"], url: (v) => `https://twitter.com/${v.replace('@', '')}`, icon: 'fab fa-x-twitter' },
+                { name: 'Facebook', value: artist["Tu usuario de Facebook"], url: (v) => `https://facebook.com/${v}`, icon: 'fab fa-facebook' }
+            ];
+            
+            const activeSocials = socialNetworks.filter(social => social.value && social.value.trim() !== '');
+            
+            if (activeSocials.length > 0) {
+                socialLinksContainer.innerHTML = activeSocials.map(social => `
+                    <a href="${social.url(social.value)}" target="_blank" rel="noopener noreferrer" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border-radius: 20px; text-decoration: none; color: white; display: inline-flex; align-items: center; gap: 8px; font-size: 13px;">
+                        <i class="${social.icon}"></i> ${social.name}
+                    </a>
+                `).join('');
+            } else {
+                socialLinksContainer.innerHTML = '<span style="color: rgba(255,255,255,0.5);"><i class="fas fa-link"></i> No hay redes sociales vinculadas</span>';
+            }
+            
+            console.log("✅ Perfil cargado correctamente");
+        }
+        
+        // ============================================
+        // CARGA CON POST (google.script.run)
+        // ============================================
+        function loadWithPost(userId) {
+            console.log("📡 POST - Cargando:", userId);
+            
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    console.log("✅ POST Response:", response);
+                    displayArtistData(response);
+                })
+                .withFailureHandler(function(error) {
+                    console.error("❌ POST Error:", error);
+                    showError("Error POST: " + error);
+                })
+                .getArtistData(userId);
+        }
+        
+        // ============================================
+        // CARGA CON GET (URL directa)
+        // ============================================
+        function loadWithGet(userId) {
+            console.log("📡 GET - Cargando:", userId);
+            
+            const url = `${GAS_API_URL}?api=true&endpoint=getArtistData&id=${encodeURIComponent(userId)}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("✅ GET Response:", data);
+                    displayArtistData(data);
+                })
+                .catch(error => {
+                    console.error("❌ GET Error:", error);
+                    showError("Error GET: " + error.message);
+                });
+        }
+        
+        // ============================================
+        // CARGA PRINCIPAL
+        // ============================================
+        function loadArtistData(userId) {
+            if (!userId || userId.trim() === '') {
+                showError("Por favor ingresa un GS-ID válido");
+                return;
+            }
+            
+            showLoading();
+            
+            if (currentMethod === 'post') {
+                loadWithPost(userId);
+            } else {
+                loadWithGet(userId);
+            }
+        }
+        
+        // ============================================
+        // HEALTH CHECK
+        // ============================================
+        function testApiHealth() {
+            showLoading();
+            
+            fetch(`${GAS_API_URL}?api=true&endpoint=health`)
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    alert(`✅ API funcionando!\nStatus: ${data.status}\nTimestamp: ${data.timestamp}`);
+                })
+                .catch(error => {
+                    hideLoading();
+                    alert(`❌ Error: ${error.message}`);
+                });
+        }
+        
+        // ============================================
+        // VERIFICAR SI EL USUARIO ES STAFF (desde la API)
+        // ============================================
+        function checkIfUserIsStaff(userId) {
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    if (response && response.found && response.isStaff) {
+                        isStaff = true;
+                        document.getElementById('authStaffBadge').style.display = 'inline-flex';
+                    }
+                })
+                .getArtistData(userId);
+        }
+        
+        // ============================================
+        // REDIRIGIR A LOGIN
+        // ============================================
+        function redirectToLogin() {
+            window.location.href = 'https://grouvex.github.io/login';
+        }
+        
+        // ============================================
+        // AUTH STATE OBSERVER
+        // ============================================
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Usuario autenticado
+                currentUser = user;
+                
+                // Verificar email
+                await user.reload();
+                
+                if (!user.emailVerified) {
+                    // Mostrar advertencia pero permitir acceso limitado
+                    showUnverifiedWarning(true, user);
+                } else {
+                    showUnverifiedWarning(false);
+                }
+                
+                // Mostrar contenido principal
+                document.getElementById('authPanel').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('authUserEmail').textContent = user.email;
+                
+                // Verificar si es staff
+                const userId = `GS-${user.uid}`;
+                checkIfUserIsStaff(userId);
+                
+                // Cargar perfil del usuario automáticamente
+                document.getElementById('userIdInput').value = userId;
+                loadArtistData(userId);
+                
+            } else {
+                // No autenticado - ocultar contenido y mostrar panel de login
+                currentUser = null;
+                isStaff = false;
+                document.getElementById('mainContent').style.display = 'none';
+                document.getElementById('authPanel').style.display = 'block';
+                document.getElementById('profileCard').style.display = 'none';
+            }
+        });
+        
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botón de login
+            const loginBtn = document.getElementById('loginRedirectBtn');
+            if (loginBtn) {
+                loginBtn.addEventListener('click', redirectToLogin);
+            }
+            
+            // Botón de logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    auth.signOut().then(() => {
+                        console.log("Sesión cerrada");
+                    }).catch((error) => {
+                        console.error("Error al cerrar sesión:", error);
+                    });
+                });
+            }
+            
+            // Pestañas
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentMethod = this.dataset.method;
+                    
+                    const userId = document.getElementById('userIdInput').value.trim();
+                    if (userId) {
+                        loadArtistData(userId);
+                    }
+                });
+            });
+            
+            // Botones de búsqueda
+            const searchBtn = document.getElementById('searchBtn');
+            if (searchBtn) {
+                searchBtn.addEventListener('click', () => {
+                    const userId = document.getElementById('userIdInput').value.trim();
+                    loadArtistData(userId);
+                });
+            }
+            
+            const testApiBtn = document.getElementById('testApiBtn');
+            if (testApiBtn) {
+                testApiBtn.addEventListener('click', testApiHealth);
+            }
+            
+            // Enter key
+            const userIdInput = document.getElementById('userIdInput');
+            if (userIdInput) {
+                userIdInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        loadArtistData(e.target.value.trim());
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
