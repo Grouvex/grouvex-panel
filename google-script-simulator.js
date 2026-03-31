@@ -1,7 +1,7 @@
 // ============================================
 // CONFIGURACIÓN DE LA API (CAMBIA ESTO)
 // ============================================
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxvTb2OPuTvquH6zSut1gVyPproFjHGSaN02xGDjNN7NoluU5PDaH5PBi0WA2K6c2TaeQ/exec';
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec';
 
 // ============================================
 // SIMULADOR DE GOOGLE.SCRIPT.RUN
