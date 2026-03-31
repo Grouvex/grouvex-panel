@@ -59,7 +59,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- SCRIPTS EXTERNOS -->
-    <script src="script.js"></script><script src="google-script-simulator.js"></script>
+    <script src="google-script-simulator.js"></script><script src="script.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
@@ -248,18 +248,348 @@
     </div>
 
     <!-- Contenedores de contenido de ayuda (se mantienen igual) -->
-    <div id="help-content" class="content-container">...</div>
-    <div id="crear-cuenta-grouvex" class="content-container">...</div>
-    <div id="crear-cuenta-secundaria" class="content-container">...</div>
-    <div id="perfil-artista" class="content-container">...</div>
-    <div id="nuevo-perfil-artista" class="content-container">...</div>
-    <div id="problemas-carga" class="content-container">...</div>
-    <div id="problemas-acceso" class="content-container">...</div>
-    <div id="contactar-soporte" class="content-container">...</div>
-    <div id="politica-privacidad" class="content-container">...</div>
-    <div id="reportar-error" class="content-container">...</div>
+          <div id="help-content" class="content-container">
+              <h2 class="text-xl font-bold text-green-600 mb-4 flex items-center">
+                  <i class="fas fa-question-circle mr-2"></i> Centro de Ayuda
+              </h2>
+              
+              <div class="space-y-2">
+                  <details>
+                      <summary>Asuntos Legales</summary>
+                      <button class="help-btn" onclick="showContent('politica-privacidad')">
+                          <i class="fas fa-shield-alt"></i> Política de privacidad y datos
+                      </button>
+                  </details>
 
-    <!-- Script principal -->
-    <script src="script.js"></script>
+                  <details>
+                      <summary>Asuntos Técnicos</summary>
+                      <button class="help-btn" onclick="showContent('problemas-carga')">
+                          <i class="fas fa-exclamation-triangle"></i> ¿No carga una página, formulario u otro servicio?
+                      </button>
+                      
+                      <button class="help-btn" onclick="showContent('problemas-acceso')">
+                          <i class="fas fa-key"></i> Problemas de acceso
+                      </button>
+                      
+                      <button class="help-btn" onclick="showContent('contactar-soporte')">
+                          <i class="fas fa-headset"></i> Contactar con soporte técnico
+                      </button>
+                  </details>
+
+                  <details>
+                      <summary>Dudas de Grouvex Studios</summary>
+                      <button class="help-btn" onclick="showContent('crear-cuenta-grouvex')">
+                          <i class="fas fa-user-plus"></i> ¿Cómo crear una nueva cuenta o iniciar en Grouvex Studios?
+                      </button>
+                      <button class="help-btn" onclick="showContent('crear-cuenta-secundaria')">
+                          <i class="fas fa-user-plus"></i> ¿Cómo crear una cuenta secundaria en Grouvex Studios?
+                      </button>
+                  </details>
+
+                  <details>
+                      <summary>Dudas de GSRecords</summary>
+                      <button class="help-btn" onclick="showContent('perfil-artista')">
+                          <i class="fas fa-user-plus"></i> ¿Cómo crear un perfil de artista en todas o varias plataformas?
+                      </button>
+                      <button class="help-btn" onclick="showContent('nuevo-perfil-artista')">
+                          <i class="fas fa-user-plus"></i> ¿Cómo crear más perfil de artista, a parte del inicial, en todas o varias plataformas?
+                      </button>
+                  </details>
+
+                  <details>
+                      <summary>Dudas Generales</summary>
+                      <button class="help-btn" onclick="showContent('reportar-error')">
+                          <i class="fas fa-bug"></i> Reportar error o bug
+                      </button>
+                  </details>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                  <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="hideAllContent()">
+                      Cerrar
+                  </button>
+              </div>
+          </div>
+
+          <!-- Contenido para cada sección de ayuda -->
+          <div id="crear-cuenta-grouvex" class="content-container">
+            <div class="breadcrumb">
+                <a onclick="showHelpContent()">Centro de Ayuda</a> <span>></span> <span>¿Cómo crear una nueva cuenta o iniciar en Grouvex Studios?</span>
+            </div>
+              
+            <h2 class="text-xl font-bold text-green-600 mb-4">¿Cómo crear una nueva cuenta o iniciar en Grouvex Studios?</h2>
+              
+            <div class="mb-4">
+                <p class="text-sm text-gray-700 mb-3">Para crear una cuenta en nuestro sistema, sigue estos pasos:</p>
+                <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
+                    <li>Diríjase a <a href="https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec" target="_blank" class="text-blue-600 hover:underline">Portal de Miembro - Inicio</a></li>
+                    <li>Si no tiene cuenta, dele a Registrarse e inserte los datos que se le piden.</li>
+                    <li>Después, dele a iniciar sesión y luego otra vez a registrarse. Verá que se le ha enviado un correo de verificación.</li>
+                    <li>Verifique la cuenta desde su correo</li>
+                    <li>Cuando lo haya verificado, en la pagina de registro, dele a verificar. Una vez que se verifica:</li>
+                    <li>Ya puede Iniciar Sesión.</li>
+                    <li>Se recomienda que si va a estar en otros organismos (Grouvex Studios Records por ejemplo) use el mismo correo.</li>
+                    <li>Tiene opción de seleccionar una cuenta Permanente (No tiene ninguna restricción inicialmente) o una cuenta Temporal (Durará lo que le indique el equipo o lo que dure el proyecto donde se encuentra. No podrá crear cuentas secundarias)</li>
+                    <li>Si quiere acceder a otros suborganismos, deberá rellenar el <a href="https://docs.google.com/forms/d/e/1FAIpQLSdDyJ3loqMzLAuCBNzChER0RgjxS5ijbDZPLIyahSj3DoTtFw/viewform?usp=dialog" target="_blank" class="text-blue-600 hover:underline">formulario</a></li>
+                    <li>Se le pedirá el Grouvex Studios User ID (GSUserID). Para encontrar dicha información, deberá iniciar sesión y en el Dashboard (Inicia sesión y presione abrir), podrá ver el GSUserID (El id completo sería: GS-ID).</li>
+                </ol>
+                
+                <div class="mt-3 p-3 bg-green-50 rounded-lg">
+                    <p class="text-sm text-green-700"><strong>Nota:</strong> Asegúrate de usar una contraseña segura que combine letras, números y caracteres especiales.</p>
+                </div>
+            </div>
+              
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="showHelpContent()"> Volver </button>
+            </div>
+          </div>
+
+          <div id="crear-cuenta-secundaria" class="content-container">
+              <div class="breadcrumb">
+                  <a onclick="showHelpContent()">Centro de Ayuda</a>
+                  <span>></span>
+                  <span>¿Cómo crear una cuenta secundaria en Grouvex Studios?</span>
+              </div>
+              
+              <h2 class="text-xl font-bold text-green-600 mb-4">¿Cómo crear una cuenta secundaria en Grouvex Studios?</h2>
+              
+              <div class="mb-4">
+                  <p class="text-sm text-gray-700 mb-3">Para crear una cuenta secundaria en nuestro sistema, sigue estos pasos:</p>
+                  <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
+                      <li>Escriba a <a href="mailto:administracion@grouvex.com" class="text-blue-600 hover:underline">administracion@grouvex.com</a> (desde el o uno de los correos que está registrado con nosotros) solicitando crear una nueva. Esta nueva cuenta tendrá el GS-ID-NuevoUsuario). Por defecto, el equipo usará los mismo datos de contacto que los datos de quien envió la solicitud.</li>
+                      <li>Espere a que el equipo le avise que ya se ha creado.</li>
+                      <li>Una vez que sea confirmado que su cuenta está disponible, usando las credenciales del 1ºUsuario que creó, accederá al 1ºUsuario.</li>
+                      <li>Para acceder a tus otros usuarios, Seleccione el campo donde pone "Has iniciado sesión como:" y le aparecerá una sección llamada "Mis Perfiles relacionados"</li>
+                      <li>Pulse Mis Perfiles relacionados, y deberían de salir todos sus perfiles.</li>
+                      <li>En el perfil donde quiera acceder pulse: Ver Perfil.</li>
+                      <li>En caso de que no se encuentre, busque el GS-SuID-NombreDelUsuarioAlQueQuiereAcceder.</li>
+                  </ol>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                  <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="showHelpContent()">
+                      Volver
+                  </button>
+              </div>
+          </div>
+
+          <div id="perfil-artista" class="content-container">
+              <div class="breadcrumb">
+                  <a onclick="showHelpContent()">Centro de Ayuda</a>
+                  <span>></span>
+                  <span>¿Cómo crear un perfil de artista en todas o varias plataformas?</span>
+              </div>
+              
+              <h2 class="text-xl font-bold text-green-600 mb-4">¿Cómo crear un perfil de artista en todas o varias plataformas?</h2>
+              
+              <div class="mb-4">
+                  <p class="text-sm text-gray-700 mb-3">Para crear un perfil de artista NO VERIFICADO, deberá lanzar/publicar una canción a través del Sello Discográfico Grouvex Studios Records:</p>
+                  <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
+                      <li>Debe tener una cuenta en Grouvex Studios</li>
+                      <li>Debe haber rellenado el <a href="https://docs.google.com/forms/d/e/1FAIpQLSdDyJ3loqMzLAuCBNzChER0RgjxS5ijbDZPLIyahSj3DoTtFw/viewform?usp=dialog" target="_blank" class="text-blue-600 hover:underline">formulario</a> y haber rellenado la sección de Artista.</li>
+                      <li>Después con los datos artísticos, rellenar el <a href="https://docs.google.com/forms/d/e/1FAIpQLSe9CFEvsM9iLjF6dA_78v7rOMnL_kqYt9BZ4QFPVI_4tv9h_A/viewform?usp=dialog" target="_blank" class="text-blue-600 hover:underline">Contrato de lanzamientos de Álbums/EP/Canciones</a>. En la sección de plataformas, solo se creará el perfil en las plataformas que seleccione.</li>
+                      <li>Podrá revisar en el Portal su información de artista en la sección de Grouvex Studios Records.</li>
+                      <li>Una vez que se haya aceptado, no tardará mucho en crearse el perfil de artista, y su nuevo lanzamiento.</li>
+                  </ol>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                  <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="showHelpContent()">
+                      Volver
+                  </button>
+              </div>
+          </div>
+
+          <div id="nuevo-perfil-artista" class="content-container">
+              <div class="breadcrumb">
+                  <a onclick="showHelpContent()">Centro de Ayuda</a>
+                  <span>></span>
+                  <span>¿Cómo crear más perfil de artista, a parte del inicial, en todas o varias plataformas?</span>
+              </div>
+              
+              <h2 class="text-xl font-bold text-green-600 mb-4">¿Cómo crear más perfil de artista, a parte del inicial, en todas o varias plataformas?</h2>
+              
+              <div class="mb-4">
+                  <p class="text-sm text-gray-700 mb-3">Siguiendo su plan de distribución musical, puede crear o no una nueva cuenta siguiendo los siguientes pasos:</p>
+                  <ol class="list-decimal list-inside text-sm text-gray-700 space-y-2 ml-4">
+                      <li>Envie un correo a <a href="mailto:moderacion@grouvex.com" class="text-blue-600 hover:underline">moderacion@grouvex.com</a> indicando que desearía tener una nueva cuenta. Indique el nombre del nuevo perfil de artista.</li>
+                      <li>El GSUserID será: GS-ID-NuevoUsuario. Los datos artísticos por defecto, serán igual que los del artista principal.</li>
+                      <li>Una vez que se verifique que se a creado, puede rellenar <a href="https://docs.google.com/forms/d/e/1FAIpQLSe9CFEvsM9iLjF6dA_78v7rOMnL_kqYt9BZ4QFPVI_4tv9h_A/viewform?usp=dialog" target="_blank" class="text-blue-600 hover:underline">Contrato de lanzamientos de Álbums/EP/Canciones</a> En la sección de plataformas, solo se creará el perfil en las plataformas que seleccione.</li>
+                      <li>Podrá revisar en el Portal su información de artista en la sección de Grouvex Studios Records.</li>
+                      <li>Una vez que se haya aceptado, no tardará mucho en crearse el perfil de artista, y su nuevo lanzamiento.</li>
+                  </ol>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                  <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="showHelpContent()">
+                      Volver
+                  </button>
+              </div>
+          </div>
+
+          <div id="problemas-carga" class="content-container">
+              <div class="breadcrumb">
+                  <a onclick="showHelpContent()">Centro de Ayuda</a>
+                  <span>></span>
+                  <span>¿No carga una página, formulario u otro servicio?</span>
+              </div>
+              
+              <h2 class="text-xl font-bold text-green-600 mb-4">¿No carga una página, formulario u otro servicio?</h2>
+              
+              <div class="mb-4">
+                  <p class="text-sm text-gray-700 mb-3">Para saber el estado de nuestros organismos, podrá consultarlo en:</p>
+                  <ul class="list-disc list-inside text-sm text-gray-700 space-y-2 ml-4">
+                      <li><a href="https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec" target="_blank" class="text-blue-600 hover:underline">Status Pages/APIs</a></li>
+                      <li><a href="https://grouvex.github.io" target="_blank" class="text-blue-600 hover:underline">Grouvex Website</a></li>
+                      <li>El <a href="https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec" target="_blank" class="text-blue-600 hover:underline">Dashboard</a> introduciendo las credenciales que ha puesto en <a href="https://grouvex.github.io/login" target="_blank" class="text-blue-600 hover:underline">Grouvex Website</a></li>
+                  </ul>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                  <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="showHelpContent()">
+                      Volver
+                  </button>
+              </div>
+          </div>
+
+          <div id="problemas-acceso" class="content-container">
+              <div class="breadcrumb">
+                  <a onclick="showHelpContent()">Centro de Ayuda</a>
+                  <span>></span>
+                  <span>Problemas de acceso</span>
+              </div>
+              
+              <h2 class="text-xl font-bold text-green-600 mb-4">Problemas de acceso</h2>
+              
+              <div class="mb-4">
+                  <p class="text-sm text-gray-700 mb-3">Si estás experimentando problemas para iniciar sesión:</p>
+                  <ul class="list-disc list-inside text-sm text-gray-700 space-y-2 ml-4">
+                      <li>Asegúrate de que estás usando el email y contraseña correctos</li>
+                      <li>Verifica que el bloqueo de mayúsculas no esté activado</li>
+                      <li>Si olvidaste tu contraseña, utiliza la opción "Recuperar contraseña"</li>
+                      <li>Limpia la caché de tu navegador e intenta nuevamente</li>
+                  </ul>
+                  
+                  <div class="mt-3 p-3 bg-green-50 rounded-lg">
+                      <p class="text-sm text-green-700"><strong>Solución rápida:</strong> Si continúas con problemas, intenta acceder desde un navegador diferente o dispositivo móvil.</p>
+                  </div>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                  <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="showHelpContent()">
+                      Volver
+                  </button>
+              </div>
+          </div>
+
+          <div id="contactar-soporte" class="content-container">
+              <div class="breadcrumb">
+                  <a onclick="showHelpContent()">Centro de Ayuda</a>
+                  <span>></span>
+                  <span>Contactar con soporte técnico</span>
+              </div>
+              
+              <h2 class="text-xl font-bold text-green-600 mb-4">Contactar con soporte técnico</h2>
+              
+              <div class="mb-4">
+                  <p class="text-sm text-gray-700 mb-3">Para contactar con nuestro equipo de soporte técnico:</p>
+                  <ul class="list-disc list-inside text-sm text-gray-700 space-y-2 ml-4">
+                      <li>Email: <a href="mailto:soporte@grouvex.com" class="text-blue-600 hover:underline">soporte@grouvex.com</a>  (casos generales)</li>
+                      <li>Centro de Contactos (casos generales y específicos)</li>
+                      <li>Respuesta en un plazo máximo de 24-72 horas hábiles</li>
+                  </ul>
+                  
+                  <div class="mt-3 p-3 bg-blue-50 rounded-lg">
+                      <p class="text-sm text-blue-700"><strong>Nota:</strong> Por favor, incluya su UserID y detalles del problema para agilizar la resolución. En el Centro de Contatos modifica unicamente lo que se te pide.</p>
+                  </div>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                  <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="showHelpContent()">
+                      Volver
+                  </button>
+              </div>
+          </div>
+
+          <div id="politica-privacidad" class="content-container">
+              <div class="breadcrumb">
+                  <a onclick="showHelpContent()">Centro de Ayuda</a>
+                  <span>></span>
+                  <span>Política de privacidad y datos</span>
+              </div>
+              
+              <h2 class="text-xl font-bold text-green-600 mb-4">Política de privacidad y datos</h2>
+              
+              <div class="mb-4">
+                  <p class="text-sm text-gray-700 mb-3">En Grouvex Studios protegemos y respetamos tu privacidad:</p>
+                  <ul class="list-disc list-inside text-sm text-gray-700 space-y-2 ml-4">
+                      <li>Tus datos personales se almacenan de forma segura</li>
+                      <li>No compartimos tu información con terceros sin tu consentimiento</li>
+                      <li>Puedes solicitar la eliminación de tus datos en cualquier momento</li>
+                      <li>Consulta nuestra política completa en <a href="https://grouvex.github.io" target="_blank" class="text-blue-600 hover:underline">Grouvex Website</a></li>
+                      <li>Datos de Registro: Cuando contacta al equipo de Grouvex Studio utilizando el contacto oficial, se registra en nuestra comunidad o nos contacta a través de una red social, su información de perfil se guarda para que podamos ponernos en contacto con usted.</li>
+                      <li>Datos de Perfil: Cuando crea o edita su perfil, puede ver su información en la <a href="https://grouvex.github.io/login" class="text-blue-600 hover:underline">página de registro</a>. La información que usa en la web es lo que podemos ver, además de lo que nos proporciona voluntariamente.</li>
+                      <li>Datos de Actividad: Cuando usa nuestra comunidad, recopilamos información sobre su actividad, como la última vez que a iniciado sesión, los comentarios que hace, los mensajes que envía.</li>
+                      <li>Datos de Comunicación: Cuando se comunica con nosotros o con otros usuarios, recopilamos el contenido y los metadatos de sus comunicaciones, como la fecha, hora y destinatario.</li>
+                      <li>Datos de Cookies y Tecnologías Similares: Cuando visita nuestro sitio web o página de contacto, usamos cookies y otras tecnologías similares para recopilar información sobre su dispositivo, navegador, dirección IP, preferencias y mejorar la calidad de su estancia.</li>
+                      <li>Para proporcionar y mejorar nuestros servicios: Usamos la información que recopilamos para brindarle los servicios que solicita, personalizar su experiencia, mejorar la calidad y seguridad de nuestra comunidad, y desarrollar nuevas funciones y productos.</li>
+                      <li>Para comunicarnos con usted: Usamos la información que recopilamos para enviarle notificaciones, boletines, responder a sus consultas y solicitudes, y mantenerlo informado sobre cambios en nuestra política de privacidad y términos y condiciones.</li>
+                      <li>Para fines analíticos y publicitarios: Usamos la información que recopilamos para analizar el uso y rendimiento de nuestra comunidad, medir la efectividad de nuestras publicaciones.</li>
+                      <li>Para cumplir con nuestras obligaciones legales: Usamos la información que recopilamos para cumplir con las leyes y regulaciones aplicables, cooperar con las autoridades competentes y proteger nuestros derechos e intereses legítimos.</li>
+                      <li>Implementamos medidas técnicas y organizativas adecuadas para proteger la información que recopilamos contra el acceso no autorizado, divulgación, modificación, pérdida o uso indebido. Además, cumplimos con los términos de servicio y la política de privacidad de la aplicación donde nos encontramos.</li>
+                      <li>Limitamos el acceso a la información que recopilamos a nuestros empleados, contratistas y proveedores de servicios que necesitan conocerla para realizar sus funciones.</li>
+                      <li>Revisamos periódicamente nuestras prácticas de seguridad y actualizamos nuestras medidas de protección según sea necesario.</li>
+                      <li>Sin embargo, tenga en cuenta que ninguna medida de seguridad es perfecta o impenetrable, y no podemos garantizar la seguridad absoluta de la información que recopilamos.</li>
+                      <li>Con otros usuarios: Compartimos su información de perfil público y su actividad en publicaciones y con otros usuarios de nuestra comunidad si nos da su consentimiento. Puede controlar qué información comparte con la comunidad contactándonos.</li>
+                      <li>Con terceros: Compartimos la información que recopilamos con terceros que nos ayudan a proporcionar y mejorar nuestros servicios, como proveedores de alojamiento web, análisis de datos, publicidad y marketing. Estos terceros solo pueden acceder a la información que necesitan para realizar sus funciones y deben tratarla de acuerdo con esta política de privacidad y las leyes aplicables.</li>
+                      <li>Con su consentimiento: Compartimos la información que recopilamos con otros terceros cuando nos da su consentimiento expreso para hacerlo. Por ejemplo, si decide vincular su cuenta con una red social externa o un servicio de música.</li>
+                      <li>Por razones legales: Compartimos la información que recopilamos cuando es requerido por ley o una orden judicial, o cuando creemos que es necesario para proteger nuestros derechos e intereses legítimos o los de terceros.</li>
+                      <li>Puede acceder y modificar su información personal, en la web, en cualquier momento a través de la <a href="https://grouvex.github.io/login" class="text-blue-600 hover:underline">configuración de su perfil y cuenta</a>.</li>
+                      <li>Puede solicitar la eliminación de su información personal <a href="https://grouvex.github.io/contacto" class="text-blue-600 hover:underline">contactando al equipo de soporte</a>. La información utilizada por el equipo de Grouvex Studio puede solicitarse para su eliminación contactándonos.</li>
+                      <li>Puede optar por no recibir comunicaciones de marketing de nuestra parte siguiendo las instrucciones incluidas en cada correo electrónico o notificación que le enviemos.</li>
+                      <li>Puede rechazar el uso de cookies y otras tecnologías similares cambiando la configuración de su navegador o dispositivo. Sin embargo, tenga en cuenta que esto puede afectar la funcionalidad y disponibilidad de algunos de los servicios de la página web.</li>
+                  </ul>
+                  <div class="mt-3 p-3 bg-green-50 rounded-lg">
+                      <p class="text-sm text-green-700"><strong>Solución rápida:</strong> Podemos modificar esta política de privacidad de vez en cuando para reflejar cambios en nuestras prácticas o en las leyes y regulaciones aplicables según el <a href="https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">TÍTULO I + DISPOSICIÓN BOGS/2025/002 + Capítulo III + Sección II +Art. 20.4. Modificaciones Documentales y Notificación</a>. Le notificaremos cualquier cambio significativo a través de un aviso en nuestro sitio web o aplicación o por correo electrónico a la dirección que nos haya proporcionado. Le recomendamos que revise esta política de privacidad periódicamente para mantenerse informado de cualquier actualización.</p>
+                  </div>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                  <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="showHelpContent()">
+                      Volver
+                  </button>
+              </div>
+          </div>
+
+          <div id="reportar-error" class="content-container">
+              <div class="breadcrumb">
+                  <a onclick="showHelpContent()">Centro de Ayuda</a>
+                  <span>></span>
+                  <span>Reportar error o bug</span>
+              </div>
+              
+              <h2 class="text-xl font-bold text-green-600 mb-4">Reportar error o bug</h2>
+              
+              <div class="mb-4">
+                  <p class="text-sm text-gray-700 mb-3">Para reportar un error o bug en nuestros servicios:</p>
+                  <ul class="list-disc list-inside text-sm text-gray-700 space-y-2 ml-4">
+                      <li>Describe detalladamente el problema encontrado</li>
+                      <li>Indica los pasos para reproducir el error</li>
+                      <li>Especifica el navegador y dispositivo que estás utilizando</li>
+                      <li>Incluye capturas de pantalla si es posible</li>
+                      <li>Envía la información a: <a href="mailto:developers@grouvex.com?subject=Reportar error o bug" class="text-blue-600 hover:underline">developers@grouvex.com</a></li>
+                  </ul>
+                  
+                  <div class="mt-3 p-3 bg-yellow-50 rounded-lg">
+                      <p class="text-sm text-yellow-700"><strong>Agradecimiento:</strong> Tu reporte nos ayuda a mejorar nuestros servicios.</p>
+                  </div>
+              </div>
+              
+              <div class="mt-4 pt-4 border-t border-gray-200">
+                  <button class="w-full py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition" onclick="showHelpContent()">
+                      Volver
+                  </button>
+              </div>
+          </div>
 </body>
 </html>
