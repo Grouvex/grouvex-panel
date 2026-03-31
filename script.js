@@ -587,15 +587,15 @@ function handleRegistrationError(error) {
 function openMemberPortal() {
     if (!currentUser) return;
     
-    const url = `${WEB_LINK}member?id=GS-${encodeURIComponent(currentUser.uid)}`;
-    window.open(url, '_blank');
+    const url = `${WEB_LINK}member`;
+    window.open(url);
 }
 
 function openStaffPortal() {
     if (!currentUser || !(isStaff || isVerifiedTeam)) return;
     
-    const url = `${WEB_LINK}staff?staffid=GS-${encodeURIComponent(currentUser.uid)}&isStaff=true`;
-    window.open(url, '_blank');
+    const url = `${WEB_LINK}staff`;
+    window.open(url);
 }
 
 function searchOtherMember() {
@@ -603,8 +603,8 @@ function searchOtherMember() {
     
     const targetId = prompt("Ingresa el GS-ID del miembro que deseas buscar:");
     if (targetId) {
-        const url = `${WEB_LINK}member?id=GS-${encodeURIComponent(currentUser.uid)}&targetId=${encodeURIComponent(targetId)}&isStaff=true`;
-        window.open(url, '_blank');
+        const url = `${WEB_LINK}member`;
+        window.open(url);
     }
 }
 
