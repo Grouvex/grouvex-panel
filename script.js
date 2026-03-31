@@ -1,7 +1,7 @@
 // ============================================
 // CONFIGURACIÓN DE LA API (CAMBIA ESTO)
 // ============================================
-const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwR4CCnATR8nYOldQD_6c4SbieGJYlit8Ogx2-9m7BOws1PduoA4_md08Lyw2iuYmL2/exec'; // Reemplaza con tu URL
+const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxvTb2OPuTvquH6zSut1gVyPproFjHGSaN02xGDjNN7NoluU5PDaH5PBi0WA2K6c2TaeQ/exec';
 
 // ============================================
 // SIMULADOR DE GOOGLE.SCRIPT.RUN
@@ -1266,3 +1266,238 @@ function padZero(num) {
         });
     });
 })();
+
+
+
+
+      // ============================================
+// FUNCIÓN PARA MOSTRAR LOS DATOS DEL ARTISTA
+// ============================================
+function displayArtistData(artistData) {
+  console.log("🎨 Mostrando datos del artista:", artistData);
+  
+  // Verificar si hay datos válidos
+  if (!artistData || !artistData.found) {
+    console.error("❌ No se encontraron datos del artista");
+    return;
+  }
+  
+  // ============================================
+  // MOSTRAR INFORMACIÓN BÁSICA DEL ARTISTA
+  // ============================================
+  
+  // Nombre de usuario
+  const usernameElement = document.getElementById('artist-username');
+  if (usernameElement) {
+    usernameElement.textContent = artistData.username || 'Sin nombre';
+  }
+  
+  // Email
+  const emailElement = document.getElementById('artist-email');
+  if (emailElement) {
+    emailElement.textContent = artistData.email || 'Sin email';
+  }
+  
+  // Descripción del perfil
+  const descriptionElement = document.getElementById('artist-description');
+  if (descriptionElement) {
+    descriptionElement.textContent = artistData.profileDescription || 'Sin descripción';
+  }
+  
+  // Tipo de perfil (Público/Privado)
+  const profileTypeElement = document.getElementById('profile-type');
+  if (profileTypeElement) {
+    profileTypeElement.textContent = artistData.profileType || 'Público';
+  }
+  
+  // ============================================
+  // MOSTRAR REDES SOCIALES
+  // ============================================
+  
+  // Instagram
+  const instagramElement = document.getElementById('artist-instagram');
+  if (instagramElement && artistData.instagram) {
+    instagramElement.href = `https://instagram.com/${artistData.instagram.replace('@', '')}`;
+    instagramElement.textContent = artistData.instagram;
+    instagramElement.style.display = 'inline-flex';
+  } else if (instagramElement) {
+    instagramElement.style.display = 'none';
+  }
+  
+  // TikTok
+  const tiktokElement = document.getElementById('artist-tiktok');
+  if (tiktokElement && artistData.tiktok) {
+    tiktokElement.href = `https://tiktok.com/@${artistData.tiktok.replace('@', '')}`;
+    tiktokElement.textContent = artistData.tiktok;
+    tiktokElement.style.display = 'inline-flex';
+  } else if (tiktokElement) {
+    tiktokElement.style.display = 'none';
+  }
+  
+  // YouTube
+  const youtubeElement = document.getElementById('artist-youtube');
+  if (youtubeElement && artistData.youtube) {
+    youtubeElement.href = `https://youtube.com/@${artistData.youtube.replace('@', '')}`;
+    youtubeElement.textContent = artistData.youtube;
+    youtubeElement.style.display = 'inline-flex';
+  } else if (youtubeElement) {
+    youtubeElement.style.display = 'none';
+  }
+  
+  // Discord
+  const discordElement = document.getElementById('artist-discord');
+  if (discordElement && artistData.discord) {
+    discordElement.textContent = artistData.discord;
+    discordElement.style.display = 'inline-flex';
+  } else if (discordElement) {
+    discordElement.style.display = 'none';
+  }
+  
+  // X (Twitter)
+  const xElement = document.getElementById('artist-x');
+  if (xElement && artistData.x) {
+    xElement.href = `https://twitter.com/${artistData.x.replace('@', '')}`;
+    xElement.textContent = artistData.x;
+    xElement.style.display = 'inline-flex';
+  } else if (xElement) {
+    xElement.style.display = 'none';
+  }
+  
+  // Facebook
+  const facebookElement = document.getElementById('artist-facebook');
+  if (facebookElement && artistData.facebook) {
+    facebookElement.href = `https://facebook.com/${artistData.facebook}`;
+    facebookElement.textContent = artistData.facebook;
+    facebookElement.style.display = 'inline-flex';
+  } else if (facebookElement) {
+    facebookElement.style.display = 'none';
+  }
+  
+  // ============================================
+  // MOSTRAR INSIGNIAS (LO NUEVO)
+  // ============================================
+  const insigniasContainer = document.getElementById('insignias-container');
+  if (insigniasContainer) {
+    const insigniaUrls = artistData.insignias || [];
+    
+    if (insigniaUrls.length > 0) {
+      insigniasContainer.innerHTML = insigniaUrls.map(url => 
+        `<img src="${url}" alt="Insignia del usuario" class="insignia-image" style="width: 20px; height: 20px; flex-shrink: 0; margin-right: 4px;">`
+      ).join('');
+      insigniasContainer.style.display = 'flex';
+    } else {
+      insigniasContainer.style.display = 'none';
+      insigniasContainer.innerHTML = '';
+    }
+  }
+  
+  // ============================================
+  // MOSTRAR INFORMACIÓN ADICIONAL
+  // ============================================
+  
+  // Fecha de registro
+  const createdAtElement = document.getElementById('artist-created-at');
+  if (createdAtElement && artistData.timestamp) {
+    const date = new Date(artistData.timestamp);
+    createdAtElement.textContent = date.toLocaleDateString('es-ES');
+  }
+  
+  // Info que muestra (si es relevante)
+  const infoToShowElement = document.getElementById('artist-info-to-show');
+  if (infoToShowElement && artistData.infoToShow) {
+    infoToShowElement.textContent = artistData.infoToShow;
+  }
+  
+  console.log("✅ Datos del artista mostrados correctamente");
+}
+
+// ============================================
+// FUNCIÓN PARA CARGAR LOS DATOS DESDE LA API
+// ============================================
+function loadArtistData(userId) {
+  console.log("📡 Cargando datos del artista:", userId);
+  
+  if (!userId) {
+    console.error("❌ No se proporcionó userId");
+    return;
+  }
+  
+  // Mostrar loading
+  const loadingElement = document.getElementById('loading-spinner');
+  if (loadingElement) {
+    loadingElement.style.display = 'block';
+  }
+  
+  // Usando el simulador de google.script.run que ya tienes
+  google.script.run
+    .withSuccessHandler(function(response) {
+      console.log("✅ Respuesta recibida:", response);
+      
+      // Ocultar loading
+      if (loadingElement) {
+        loadingElement.style.display = 'none';
+      }
+      
+      // Procesar la respuesta
+      if (response.status === 'success') {
+        displayArtistData(response.result);
+      } else if (response.found !== undefined) {
+        // Si la respuesta es directamente el objeto del artista
+        displayArtistData(response);
+      } else {
+        console.error("❌ Error en la respuesta:", response);
+        showError("No se pudieron cargar los datos del artista");
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error("❌ Error en la llamada API:", error);
+      
+      // Ocultar loading
+      if (loadingElement) {
+        loadingElement.style.display = 'none';
+      }
+      
+      showError("Error de conexión con el servidor");
+    })
+    .getArtistData(userId);
+}
+
+// ============================================
+// FUNCIÓN PARA MOSTRAR ERRORES
+// ============================================
+function showError(message) {
+  const errorElement = document.getElementById('error-message');
+  if (errorElement) {
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    
+    // Ocultar después de 5 segundos
+    setTimeout(() => {
+      errorElement.style.display = 'none';
+    }, 5000);
+  } else {
+    alert(message);
+  }
+}
+
+// ============================================
+// INICIALIZAR CUANDO CARGA LA PÁGINA
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("🚀 Página cargada, inicializando...");
+  
+  // Obtener el ID del usuario desde la URL (ej: ?id=GS-123)
+  const urlParams = new URLSearchParams(window.location.search);
+  const userId = urlParams.get('id') || urlParams.get('userId');
+  
+  if (userId) {
+    loadArtistData(userId);
+  } else {
+    console.warn("⚠️ No se encontró userId en la URL");
+    const errorElement = document.getElementById('error-message');
+    if (errorElement) {
+      errorElement.textContent = "No se especificó un usuario";
+      errorElement.style.display = 'block';
+    }
+  }
+});
