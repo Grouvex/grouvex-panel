@@ -4,112 +4,60 @@
 const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec';
 
 // ============================================
-// SIMULADOR DE GOOGLE.SCRIPT.RUN (usando GET)
+// SIMULADOR DEFINITIVO (JSON-SAFE)
 // ============================================
 (function(global) {
+    // Definimos la URL de tu Web App de Google
+
     global.google = global.google || {};
-    
     global.google.script = (function() {
-        let successHandler = null;
-        let failureHandler = null;
-        let userObject = null;
+        let _h = { s: null, f: null, obj: null };
+        const reset = () => { _h = { s: null, f: null, obj: null }; };
 
-        function resetHandlers() {
-            successHandler = null;
-            failureHandler = null;
-            userObject = null;
-        }
+        const execute = (name, args) => {
+            // Recogemos los handlers actuales
+            const success = _h.s;
+            const failure = _h.f;
+            const userObj = _h.obj;
+            reset(); // Limpiamos para la siguiente llamada
 
-        const createRunProxy = () => {
-            return new Proxy({}, {
-                get: (target, prop) => {
-                    if (prop === 'withSuccessHandler') {
-                        return (handler) => {
-                            successHandler = handler;
-                            return runProxy;
-                        };
-                    }
-                    if (prop === 'withFailureHandler') {
-                        return (handler) => {
-                            failureHandler = handler;
-                            return runProxy;
-                        };
-                    }
-                    if (prop === 'withUserObject') {
-                        return (obj) => {
-                            userObject = obj;
-                            return runProxy;
-                        };
-                    }
+            // Enviamos siempre como Array de Strings para evitar errores de tipo
+            const payloadData = args.map(arg => String(arg || "").trim());
 
-                    return (...args) => {
-                        const functionName = prop;
-                        const functionArgs = args;
-                        
-                        // Para getArtistData, usar GET
-                        if (functionName === 'getArtistData') {
-                            const userId = functionArgs[0];
-                            const url = `${GAS_API_URL}?api=true&endpoint=getArtistData&id=${encodeURIComponent(userId)}`;
-                            
-                            fetch(url)
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (successHandler) {
-                                        successHandler(data, userObject);
-                                    }
-                                    resetHandlers();
-                                })
-                                .catch(error => {
-                                    if (failureHandler) {
-                                        failureHandler(error.message, userObject);
-                                    }
-                                    resetHandlers();
-                                });
-                        } else {
-                            // Para otras funciones, mantener POST (si las necesitas)
-                            const payload = {
-                                action: functionName,
-                                data: functionArgs.length === 1 ? functionArgs[0] : functionArgs
-                            };
-
-                            fetch(GAS_API_URL, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(payload)
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.status === 'success') {
-                                    if (successHandler) {
-                                        successHandler(data.result, userObject);
-                                    }
-                                } else {
-                                    if (failureHandler) {
-                                        failureHandler(data.error, userObject);
-                                    }
-                                }
-                                resetHandlers();
-                            })
-                            .catch(error => {
-                                if (failureHandler) {
-                                    failureHandler(error.message, userObject);
-                                }
-                                resetHandlers();
-                            });
-                        }
-
-                        return runProxy;
-                    };
+            fetch(GAS_API_URL, {
+                method: 'POST',
+                mode: 'cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    endpoint: name,
+                    payload: payloadData
+                })
+            })
+            .then(resp => resp.json())
+            .then(data => {
+                if (data.success) {
+                    if (success) success(data.data, userObj);
+                } else {
+                    if (failure) failure(data.error, userObj);
                 }
+            })
+            .catch(err => {
+                if (failure) failure(err.message, userObj);
             });
         };
 
-        const runProxy = createRunProxy();
+        // El Proxy hace la magia: intercepta cualquier nombre de función
+        const proxy = new Proxy({}, {
+            get: (target, prop) => {
+                if (prop === 'withSuccessHandler') return (h) => { _h.s = h; return proxy; };
+                if (prop === 'withFailureHandler') return (h) => { _h.f = h; return proxy; };
+                if (prop === 'withUserObject') return (o) => { _h.obj = o; return proxy; };
+                
+                // Si no es un handler, es el nombre de la función (ej: getRelatedArtistIds)
+                return (...args) => execute(prop, args);
+            }
+        });
 
-        return {
-            run: runProxy
-        };
+        return { run: proxy };
     })();
 })(window);
