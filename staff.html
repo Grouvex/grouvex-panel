@@ -1102,32 +1102,43 @@
         // ============================================
         // AUTH STATE OBSERVER
         // ============================================
-        auth.onAuthStateChanged(async (user) => {
+auth.onAuthStateChanged(async (user) => {
+            console.log('Triggered with user:', user ? user.email : 'null');
+            
             if (user) {
+                console.log('User authenticated:', user.email);
                 currentUser = user;
                 
+                console.log('Reloading user data...');
                 await user.reload();
+                console.log('User reloaded. Email verified:', user.emailVerified);
                 
                 if (!user.emailVerified) {
+                    console.log('Email not verified - showing warning for:', user.email);
                     showUnverifiedWarning(true, user);
                 } else {
+                    console.log('Email verified - hiding warning');
                     showUnverifiedWarning(false);
                 }
                 
                 document.getElementById('authPanel').style.display = 'block';
                 document.getElementById('mainContent').style.display = 'none';
                 document.getElementById('authUserEmail').textContent = user.email;
+                console.log('UI updated: authPanel visible, mainContent hidden');
                 
                 const userId = `GS-${user.uid}`;
+                console.log('Checking if user is staff. UserId:', userId);
                 checkIfUserIsStaff(userId);
                 
             } else {
+                console.log('No user signed in - resetting state');
                 currentUser = null;
                 isStaff = false;
                 document.getElementById('mainContent').style.display = 'block';
                 document.getElementById('authPanel').style.display = 'none';
                 document.getElementById('profileCard').style.display = 'block';
                 document.getElementById('responseDisplay').style.display = 'block';
+                console.log('UI updated: mainContent, profileCard, responseDisplay visible');
             }
         });
         
