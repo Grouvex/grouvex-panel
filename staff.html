@@ -25,7 +25,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
@@ -130,6 +130,7 @@
             margin-bottom: 25px;
             border-bottom: 1px solid rgba(255,255,255,0.2);
             padding-bottom: 10px;
+            flex-wrap: wrap;
         }
 
         .tab {
@@ -153,7 +154,7 @@
             color: #ff6b6b;
         }
 
-        /* Búsqueda */
+        /* Búsqueda y API Call */
         .search-section {
             display: flex;
             gap: 12px;
@@ -192,6 +193,71 @@
             border-color: #ff6b6b;
         }
 
+        /* Selector de función */
+        .function-selector {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .function-selector label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #ff6b6b;
+        }
+
+        .function-select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .function-select option {
+            background: #302b63;
+        }
+
+        /* Parámetros dinámicos */
+        .params-container {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .param-group {
+            margin-bottom: 12px;
+        }
+
+        .param-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .param-group input, 
+        .param-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 14px;
+        }
+
+        .param-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
         .btn {
             padding: 12px 24px;
             border: none;
@@ -226,6 +292,17 @@
             color: #1a1a2e;
         }
 
+        .btn-success {
+            background: rgba(40, 167, 69, 0.2);
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #28a745;
+            color: white;
+        }
+
         /* Loading */
         .loading {
             text-align: center;
@@ -245,6 +322,35 @@
 
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        /* Response Display */
+        .response-display {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .response-display pre {
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            color: #4ecdc4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .response-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ff6b6b;
         }
 
         /* User Dashboard */
@@ -377,7 +483,7 @@
             display: none;
         }
 
-        /* Main content - oculto hasta autenticación */
+        /* Main content */
         .main-content {
             display: none;
         }
@@ -396,23 +502,23 @@
                 <i class="fas fa-music"></i>
                 <h1>Grouvex Studios</h1>
             </div>
-            <p class="subtitle"><i class="fas fa-star"></i> Perfil de Artista <i class="fas fa-star"></i></p>
+            <p class="subtitle"><i class="fas fa-star"></i> API Multi-funciones <i class="fas fa-star"></i></p>
         </div>
 
         <div class="card">
-            <!-- Panel de autenticación (se muestra si no hay sesión) -->
+            <!-- Panel de autenticación -->
             <div id="authPanel" class="auth-panel">
                 <i class="fas fa-lock" style="font-size: 3em; color: #ff6b6b; margin-bottom: 20px;"></i>
                 <h3>Acceso Restringido</h3>
-                <p>Debes iniciar sesión para acceder al perfil de artista.</p>
+                <p>Debes iniciar sesión para acceder a la API.</p>
                 <button id="loginRedirectBtn" class="btn-auth">
                     <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                 </button>
             </div>
 
-            <!-- Contenido principal (se muestra solo con autenticación) -->
+            <!-- Contenido principal -->
             <div id="mainContent" class="main-content">
-                <!-- Info del usuario autenticado -->
+                <!-- Info del usuario -->
                 <div id="userInfoBar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 12px;">
                     <div>
                         <i class="fas fa-user-circle"></i> 
@@ -424,7 +530,7 @@
                     </button>
                 </div>
 
-                <!-- Pestañas -->
+                <!-- Pestañas de método -->
                 <div class="tabs">
                     <button class="tab active" data-method="post">
                         <i class="fas fa-arrow-up"></i> POST (google.script.run)
@@ -434,24 +540,75 @@
                     </button>
                 </div>
 
-                <!-- Búsqueda -->
+                <!-- Selector de función -->
+                <div class="function-selector">
+                    <label><i class="fas fa-code"></i> Seleccionar Función API:</label>
+                    <select id="functionSelect" class="function-select">
+                        <optgroup label="Consultas de Usuario">
+                            <option value="getArtistData">getArtistData - Obtener datos de artista</option>
+                            <option value="getUserAllFields">getUserAllFields - Obtener todos los campos del usuario</option>
+                            <option value="getRelatedArtistIds">getRelatedArtistIds - Obtener IDs relacionados</option>
+                            <option value="getEditableFields">getEditableFields - Obtener campos editables</option>
+                            <option value="getCurrentFieldValue">getCurrentFieldValue - Obtener valor actual de campo</option>
+                            <option value="checkUserGSRecordsStatus">checkUserGSRecordsStatus - Verificar estado de registros</option>
+                        </optgroup>
+                        <optgroup label="Consultas de Lanzamientos">
+                            <option value="getLanzamientoAllFields">getLanzamientoAllFields - Obtener todos los campos del lanzamiento</option>
+                            <option value="getCurrentSongInfo">getCurrentSongInfo - Obtener información de canción</option>
+                            <option value="getSongFieldValue">getSongFieldValue - Obtener valor de campo de canción</option>
+                            <option value="getUserSongsByUpc">getUserSongsByUpc - Obtener canciones por UPC</option>
+                        </optgroup>
+                        <optgroup label="Búsquedas Avanzadas">
+                            <option value="searchUsers">searchUsers - Buscar usuarios</option>
+                            <option value="searchArtistas">searchArtistas - Buscar artistas</option>
+                            <option value="adminSearchUsers">adminSearchUsers - Búsqueda admin de usuarios</option>
+                            <option value="adminAdvancedSearchUsers">adminAdvancedSearchUsers - Búsqueda avanzada admin</option>
+                            <option value="adminSearchByEmail">adminSearchByEmail - Buscar por email</option>
+                            <option value="adminSearchByUid">adminSearchByUid - Buscar por UID</option>
+                        </optgroup>
+                        <optgroup label="Administración">
+                            <option value="adminGetAllUsers">adminGetAllUsers - Obtener todos los usuarios</option>
+                            <option value="adminGetUserByUid">adminGetUserByUid - Obtener usuario por UID</option>
+                            <option value="adminGetUserForEdit">adminGetUserForEdit - Obtener usuario para editar</option>
+                            <option value="adminCreateUser">adminCreateUser - Crear usuario</option>
+                            <option value="adminEditUser">adminEditUser - Editar usuario</option>
+                            <option value="adminRevokeUserSessions">adminRevokeUserSessions - Revocar sesiones</option>
+                        </optgroup>
+                        <optgroup label="Actualizaciones y Procesos">
+                            <option value="staffUpdateUserData">staffUpdateUserData - Actualizar datos de usuario</option>
+                            <option value="staffUpdateLanzamientoData">staffUpdateLanzamientoData - Actualizar lanzamiento</option>
+                            <option value="processChangeRequest">processChangeRequest - Procesar solicitud de cambio</option>
+                            <option value="processChangeRequestStaff">processChangeRequestStaff - Procesar solicitud (staff)</option>
+                            <option value="processGSRecordsContract">processGSRecordsContract - Procesar contrato GS Records</option>
+                        </optgroup>
+                        <optgroup label="Sistema y Logs">
+                            <option value="getSystemStats">getSystemStats - Estadísticas del sistema</option>
+                            <option value="getStaffLogs">getStaffLogs - Logs de staff</option>
+                            <option value="getPendingChangeRequests">getPendingChangeRequests - Solicitudes pendientes</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- Parámetros dinámicos -->
+                <div id="paramsContainer" class="params-container"></div>
+
+                <!-- Botones de acción -->
                 <div class="search-section">
-                    <div class="search-wrapper">
-                        <i class="fas fa-id-card"></i>
-                        <input type="text" id="userIdInput" class="search-input" placeholder="GS-ID del artista">
-                    </div>
-                    <button id="searchBtn" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Buscar
+                    <button id="executeBtn" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Ejecutar Función
                     </button>
                     <button id="testApiBtn" class="btn btn-secondary">
-                        <i class="fas fa-heartbeat"></i> Health
+                        <i class="fas fa-heartbeat"></i> Health Check
+                    </button>
+                    <button id="clearResponseBtn" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i> Limpiar Respuesta
                     </button>
                 </div>
 
                 <!-- Loading -->
                 <div id="loading" class="loading">
                     <div class="spinner"></div>
-                    <p>Cargando datos del artista...</p>
+                    <p>Ejecutando función...</p>
                 </div>
 
                 <!-- Error -->
@@ -467,10 +624,18 @@
                     <button id="resendVerificationBtn" style="margin-left: 10px; background: #ffc107; border: none; padding: 4px 12px; border-radius: 20px; cursor: pointer;">Reenviar</button>
                 </div>
 
-                <!-- Perfil -->
+                <!-- Respuesta de la API -->
+                <div id="responseDisplay" class="response-display">
+                    <div class="response-title">
+                        <i class="fas fa-code-branch"></i> Respuesta de la API:
+                    </div>
+                    <pre id="responseContent"></pre>
+                </div>
+
+                <!-- Perfil de artista (legacy) -->
                 <div id="profileCard" class="user-info" style="display: none;">
+                    <!-- Mantenemos el perfil para compatibilidad con getArtistData -->
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; width: 100%;">
-                        <!-- Bloque 1: Información del usuario -->
                         <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0;">
                             <div class="avatar-container" style="position: relative; flex-shrink: 0;">
                                 <img id="user-avatar" src="" alt="Avatar" style="width: 90px; height: 90px; border-radius: 50%; object-fit: cover;">
@@ -493,7 +658,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Insignias en línea horizontal -->
                                 <div id="insigniasContainer" style="display: flex; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; max-width: 60%;"></div>
                                 
                                 <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 13px;">
@@ -504,7 +668,6 @@
                             </div>
                         </div>
                         
-                        <!-- Bloque 2: Imagen TIGS -->
                         <div class="tigs-container">
                             <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/TIGS%20(GS-ID).jpg" alt="TIGS" class="tigs-image">
                             <p class="tigs-id" id="tigs-id"></p>
@@ -513,10 +676,8 @@
                         </div>
                     </div>
                     
-                    <!-- Redes Sociales -->
                     <div id="socialLinks" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.2);"></div>
                     
-                    <!-- Tipo de perfil -->
                     <div style="margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.5);">
                         <i class="fas fa-lock"></i> Tipo de perfil: <span id="profileType"></span>
                     </div>
@@ -540,7 +701,6 @@
             measurementId: "G-75BR8D2CR3"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         
@@ -548,14 +708,89 @@
         let currentUser = null;
         let isStaff = false;
 
+        // Definición de parámetros por función
+        const functionParams = {
+            getArtistData: [{ name: "userId", type: "text", label: "ID de Usuario", required: true }],
+            getUserAllFields: [{ name: "userId", type: "text", label: "ID de Usuario", required: true }],
+            getRelatedArtistIds: [{ name: "baseId", type: "text", label: "Base ID", required: true }],
+            getEditableFields: [
+                { name: "userType", type: "text", label: "Tipo de Usuario", required: true },
+                { name: "requestType", type: "text", label: "Tipo de Solicitud", required: false }
+            ],
+            getCurrentFieldValue: [
+                { name: "userId", type: "text", label: "ID de Usuario", required: true },
+                { name: "fieldName", type: "text", label: "Nombre del Campo", required: true },
+                { name: "requestType", type: "text", label: "Tipo de Solicitud", required: false },
+                { name: "relatedId", type: "text", label: "ID Relacionado", required: false }
+            ],
+            getSongFieldValue: [
+                { name: "userId", type: "text", label: "ID de Usuario", required: true },
+                { name: "upc", type: "text", label: "UPC/EAN", required: true },
+                { name: "fieldName", type: "text", label: "Nombre del Campo", required: true }
+            ],
+            getCurrentSongInfo: [{ name: "songTitle", type: "text", label: "Título de la Canción", required: true }],
+            checkUserGSRecordsStatus: [{ name: "userId", type: "text", label: "ID de Usuario", required: true }],
+            getLanzamientoAllFields: [{ name: "upceanId", type: "text", label: "UPC/EAN ID", required: true }],
+            getUserSongsByUpc: [
+                { name: "userId", type: "text", label: "ID de Usuario", required: true },
+                { name: "upc", type: "text", label: "UPC/EAN", required: true }
+            ],
+            searchUsers: [{ name: "criteria", type: "json", label: "Criterios de Búsqueda (JSON)", required: true }],
+            searchArtistas: [{ name: "criteria", type: "json", label: "Criterios de Búsqueda (JSON)", required: true }],
+            adminSearchUsers: [{ name: "criteria", type: "json", label: "Criterios de Búsqueda (JSON)", required: true }],
+            adminAdvancedSearchUsers: [{ name: "criteria", type: "json", label: "Criterios Avanzados (JSON)", required: true }],
+            adminSearchByEmail: [{ name: "email", type: "text", label: "Email", required: true }],
+            adminSearchByUid: [{ name: "uid", type: "text", label: "UID", required: true }],
+            adminGetAllUsers: [],
+            adminGetUserByUid: [{ name: "uid", type: "text", label: "UID", required: true }],
+            adminGetUserForEdit: [{ name: "uid", type: "text", label: "UID", required: true }],
+            adminCreateUser: [
+                { name: "staffId", type: "text", label: "Staff ID", required: true },
+                { name: "userData", type: "json", label: "Datos del Usuario (JSON)", required: true }
+            ],
+            adminEditUser: [
+                { name: "staffId", type: "text", label: "Staff ID", required: true },
+                { name: "uid", type: "text", label: "UID", required: true },
+                { name: "updates", type: "json", label: "Actualizaciones (JSON)", required: true }
+            ],
+            adminRevokeUserSessions: [
+                { name: "staffId", type: "text", label: "Staff ID", required: true },
+                { name: "uid", type: "text", label: "UID", required: true }
+            ],
+            staffUpdateUserData: [
+                { name: "staffId", type: "text", label: "Staff ID", required: true },
+                { name: "targetUserId", type: "text", label: "Usuario Objetivo", required: true },
+                { name: "updates", type: "json", label: "Actualizaciones (JSON)", required: true }
+            ],
+            staffUpdateLanzamientoData: [
+                { name: "staffId", type: "text", label: "Staff ID", required: true },
+                { name: "targetUpcEan", type: "text", label: "UPC/EAN Objetivo", required: true },
+                { name: "updates", type: "json", label: "Actualizaciones (JSON)", required: true }
+            ],
+            processChangeRequest: [{ name: "requestData", type: "json", label: "Datos de Solicitud (JSON)", required: true }],
+            processChangeRequestStaff: [
+                { name: "staffId", type: "text", label: "Staff ID", required: true },
+                { name: "requestRow", type: "json", label: "Fila de Solicitud (JSON)", required: true },
+                { name: "action", type: "text", label: "Acción", required: true },
+                { name: "notes", type: "text", label: "Notas", required: false }
+            ],
+            processGSRecordsContract: [{ name: "formData", type: "json", label: "Datos del Formulario (JSON)", required: true }],
+            getSystemStats: [],
+            getStaffLogs: [
+                { name: "staffId", type: "text", label: "Staff ID", required: true },
+                { name: "filters", type: "json", label: "Filtros (JSON)", required: false }
+            ],
+            getPendingChangeRequests: []
+        };
+
         // ============================================
         // FUNCIONES DE UI
         // ============================================
         
         function showLoading() {
             document.getElementById('loading').style.display = 'block';
-            document.getElementById('profileCard').style.display = 'none';
             document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('profileCard').style.display = 'none';
         }
         
         function hideLoading() {
@@ -569,29 +804,187 @@
             hideLoading();
         }
         
+        function showResponse(data) {
+            const responseDiv = document.getElementById('responseDisplay');
+            const responseContent = document.getElementById('responseContent');
+            responseContent.textContent = JSON.stringify(data, null, 2);
+            responseDiv.style.display = 'block';
+            hideLoading();
+        }
+        
         function showUnverifiedWarning(show, user) {
             const warning = document.getElementById('unverifiedWarning');
             if (show && user && !user.emailVerified) {
                 warning.style.display = 'block';
-                // Configurar botón de reenviar verificación
                 const resendBtn = document.getElementById('resendVerificationBtn');
-                resendBtn.onclick = () => {
-                    user.sendEmailVerification().then(() => {
-                        alert('✅ Email de verificación reenviado. Revisa tu bandeja de entrada.');
-                    }).catch((error) => {
-                        alert('❌ Error: ' + error.message);
-                    });
-                };
+                if (resendBtn) {
+                    resendBtn.onclick = () => {
+                        user.sendEmailVerification().then(() => {
+                            alert('✅ Email de verificación reenviado. Revisa tu bandeja de entrada.');
+                        }).catch((error) => {
+                            alert('❌ Error: ' + error.message);
+                        });
+                    };
+                }
             } else {
                 warning.style.display = 'none';
             }
         }
         
+        // Generar campos de parámetros dinámicamente
+        function generateParamFields() {
+            const functionName = document.getElementById('functionSelect').value;
+            const params = functionParams[functionName] || [];
+            const container = document.getElementById('paramsContainer');
+            
+            if (params.length === 0) {
+                container.innerHTML = '<p style="color: rgba(255,255,255,0.5); text-align: center;">Esta función no requiere parámetros</p>';
+                return;
+            }
+            
+            container.innerHTML = params.map(param => `
+                <div class="param-group">
+                    <label>${param.label} ${param.required ? '<span style="color: #ff6b6b;">*</span>' : ''}</label>
+                    ${param.type === 'json' ? 
+                        `<textarea id="param_${param.name}" placeholder='Ejemplo: {"key": "value"}' rows="3"></textarea>` :
+                        `<input type="${param.type}" id="param_${param.name}" placeholder="Ingrese ${param.label.toLowerCase()}">`
+                    }
+                    ${param.type === 'json' ? '<small style="color: rgba(255,255,255,0.5);">Ingrese JSON válido</small>' : ''}
+                </div>
+            `).join('');
+        }
+        
+        // Obtener parámetros como objeto
+        function getParameters() {
+            const functionName = document.getElementById('functionSelect').value;
+            const params = functionParams[functionName] || [];
+            const parameters = {};
+            
+            for (const param of params) {
+                const element = document.getElementById(`param_${param.name}`);
+                if (element) {
+                    let value = element.value.trim();
+                    if (param.type === 'json') {
+                        try {
+                            value = value ? JSON.parse(value) : null;
+                        } catch (e) {
+                            throw new Error(`JSON inválido para ${param.label}: ${e.message}`);
+                        }
+                    }
+                    if (param.required && !value) {
+                        throw new Error(`El campo "${param.label}" es requerido`);
+                    }
+                    parameters[param.name] = value;
+                }
+            }
+            
+            return parameters;
+        }
+        
+        // ============================================
+        // EJECUTAR FUNCIÓN VÍA POST
+        // ============================================
+        function executeWithPost(functionName, params) {
+            console.log(`📡 POST - Ejecutando: ${functionName}`, params);
+            
+            // Construir objeto de llamada
+            const callObject = { ...params };
+            
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    console.log("✅ Response:", response);
+                    showResponse(response);
+                    
+                    // Si es getArtistData, mostrar también el perfil visual
+                    if (functionName === 'getArtistData' && response && response.found) {
+                        displayArtistData(response);
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    console.error("❌ Error:", error);
+                    showError("Error en la ejecución: " + error);
+                })
+                [functionName](callObject);
+        }
+        
+        // ============================================
+        // EJECUTAR FUNCIÓN VÍA GET
+        // ============================================
+        function executeWithGet(functionName, params) {
+            console.log(`📡 GET - Ejecutando: ${functionName}`, params);
+            
+            // Construir URL con parámetros
+            let url = `${GAS_API_URL}?api=true&endpoint=${functionName}`;
+            
+            // Agregar parámetros a la URL
+            for (const [key, value] of Object.entries(params)) {
+                if (value !== null && value !== undefined) {
+                    const paramValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                    url += `&${encodeURIComponent(key)}=${encodeURIComponent(paramValue)}`;
+                }
+            }
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("✅ Response:", data);
+                    showResponse(data);
+                    
+                    if (functionName === 'getArtistData' && data && data.found) {
+                        displayArtistData(data);
+                    }
+                })
+                .catch(error => {
+                    console.error("❌ Error:", error);
+                    showError("Error en la ejecución: " + error.message);
+                });
+        }
+        
+        // ============================================
+        // EJECUTAR FUNCIÓN PRINCIPAL
+        // ============================================
+        function executeFunction() {
+            try {
+                const functionName = document.getElementById('functionSelect').value;
+                const params = getParameters();
+                
+                showLoading();
+                document.getElementById('responseDisplay').style.display = 'none';
+                
+                if (currentMethod === 'post') {
+                    executeWithPost(functionName, params);
+                } else {
+                    executeWithGet(functionName, params);
+                }
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+        
+        // ============================================
+        // HEALTH CHECK
+        // ============================================
+        function testApiHealth() {
+            showLoading();
+            
+            fetch(`${GAS_API_URL}?api=true&endpoint=health`)
+                .then(response => response.json())
+                .then(data => {
+                    showResponse(data);
+                })
+                .catch(error => {
+                    hideLoading();
+                    alert(`❌ Error: ${error.message}`);
+                });
+        }
+        
+        // ============================================
+        // DISPLAY ARTIST DATA (legacy)
+        // ============================================
         function displayArtistData(apiResponse) {
             console.log("🎨 Datos recibidos:", apiResponse);
             
             if (!apiResponse || !apiResponse.found) {
-                showError("No se encontró el artista. Verifica el GS-ID.");
                 return;
             }
             
@@ -601,18 +994,14 @@
             const hasVerifiedBadge = apiResponse.insignias?.some(i => i.name === 'verified') || false;
             const userId = apiResponse.id || artist["Grouvex Studios UserID"] || '';
             
-            // Mostrar perfil
             document.getElementById('profileCard').style.display = 'block';
-            hideLoading();
             
-            // Nombre y email
             const username = artist["Nombre de Usuario"] || artist["Nombre del Artista/Banda"] || 'Sin nombre';
             const email = artist["Email"] || 'Sin email';
             
             document.getElementById('user-name').textContent = username;
             document.getElementById('userEmail').textContent = email;
             
-            // Avatar
             const avatarImg = document.getElementById('user-avatar');
             const tigsAvatar = document.getElementById('tigs-avatar');
             const userAvatarUrl = artist["Imagen 1"] || '';
@@ -625,23 +1014,17 @@
                 tigsAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=ff6b6b&color=fff&size=63`;
             }
             
-            // TIGS ID
             document.getElementById('tigs-id').textContent = userId;
-            
-            // Badges
             document.getElementById('staffBadge').style.display = isArtistStaff ? 'inline-flex' : 'none';
             document.getElementById('verifiedTeamBadge').style.display = hasVerifiedBadge ? 'inline-flex' : 'none';
             document.getElementById('email-verified').style.display = hasVerifiedBadge ? 'inline-flex' : 'none';
             
-            // Descripción
             const description = artist["Descripción del Perfil"] || artist["profileDescription"] || 'Sin descripción';
             document.getElementById('description').textContent = description;
             
-            // Tipo de perfil
             const profileType = artist["Tipo de Perfil"] || 'Público';
             document.getElementById('profileType').textContent = profileType;
             
-            // Fecha de registro
             const createdAt = artist["Marca temporal"] || artist["timestamp"];
             if (createdAt) {
                 const date = new Date(createdAt);
@@ -654,7 +1037,6 @@
                 document.getElementById('createdAt').textContent = 'No disponible';
             }
             
-            // INSIGNIAS
             const insigniasContainer = document.getElementById('insigniasContainer');
             if (insigniaUrls.length > 0) {
                 insigniasContainer.innerHTML = insigniaUrls.map(url => `
@@ -664,7 +1046,6 @@
                 insigniasContainer.innerHTML = '<span style="color: rgba(255,255,255,0.5); font-size: 12px;">Sin insignias</span>';
             }
             
-            // INSIGNIAS TIGS
             const tigsInsignias = document.getElementById('tigs-insignias');
             if (insigniaUrls.length > 0) {
                 tigsInsignias.innerHTML = insigniaUrls.map(url => `
@@ -674,7 +1055,6 @@
                 tigsInsignias.innerHTML = '';
             }
             
-            // REDES SOCIALES
             const socialLinksContainer = document.getElementById('socialLinks');
             const socialNetworks = [
                 { name: 'Instagram', value: artist["Tu usuario de Instagram"], url: (v) => `https://instagram.com/${v.replace('@', '')}`, icon: 'fab fa-instagram' },
@@ -696,86 +1076,10 @@
             } else {
                 socialLinksContainer.innerHTML = '<span style="color: rgba(255,255,255,0.5);"><i class="fas fa-link"></i> No hay redes sociales vinculadas</span>';
             }
-            
-            console.log("✅ Perfil cargado correctamente");
         }
         
         // ============================================
-        // CARGA CON POST (google.script.run)
-        // ============================================
-        function loadWithPost(userId) {
-            console.log("📡 POST - Cargando:", userId);
-            
-            google.script.run
-                .withSuccessHandler(function(response) {
-                    console.log("✅ POST Response:", response);
-                    displayArtistData(response);
-                })
-                .withFailureHandler(function(error) {
-                    console.error("❌ POST Error:", error);
-                    showError("Error POST: " + error);
-                })
-                .getArtistData(userId);
-        }
-        
-        // ============================================
-        // CARGA CON GET (URL directa)
-        // ============================================
-        function loadWithGet(userId) {
-            console.log("📡 GET - Cargando:", userId);
-            
-            const url = `${GAS_API_URL}?api=true&endpoint=getArtistData&id=${encodeURIComponent(userId)}`;
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("✅ GET Response:", data);
-                    displayArtistData(data);
-                })
-                .catch(error => {
-                    console.error("❌ GET Error:", error);
-                    showError("Error GET: " + error.message);
-                });
-        }
-        
-        // ============================================
-        // CARGA PRINCIPAL
-        // ============================================
-        function loadArtistData(userId) {
-            if (!userId || userId.trim() === '') {
-                showError("Por favor ingresa un GS-ID válido");
-                return;
-            }
-            
-            showLoading();
-            
-            if (currentMethod === 'post') {
-                loadWithPost(userId);
-            } else {
-                loadWithGet(userId);
-            }
-        }
-        
-        // ============================================
-        // HEALTH CHECK
-        // ============================================
-        function testApiHealth() {
-            showLoading();
-            
-            fetch(`${GAS_API_URL}?api=true&endpoint=health`)
-                .then(response => response.json())
-                .then(data => {
-                    hideLoading();
-                    alert(`✅ API funcionando!\nStatus: ${data.status}\nTimestamp: ${data.timestamp}`);
-                })
-                .catch(error => {
-                    hideLoading();
-                    alert(`❌ Error: ${error.message}`);
-                });
-        }
-        
-        // ============================================
-        // VERIFICAR SI EL USUARIO ES STAFF (desde la API)
+        // VERIFICAR STAFF
         // ============================================
         function checkIfUserIsStaff(userId) {
             google.script.run
@@ -800,39 +1104,30 @@
         // ============================================
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Usuario autenticado
                 currentUser = user;
                 
-                // Verificar email
                 await user.reload();
                 
                 if (!user.emailVerified) {
-                    // Mostrar advertencia pero permitir acceso limitado
                     showUnverifiedWarning(true, user);
                 } else {
                     showUnverifiedWarning(false);
                 }
                 
-                // Mostrar contenido principal
-                document.getElementById('authPanel').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('authPanel').style.display = 'block';
+                document.getElementById('mainContent').style.display = 'none';
                 document.getElementById('authUserEmail').textContent = user.email;
                 
-                // Verificar si es staff
                 const userId = `GS-${user.uid}`;
                 checkIfUserIsStaff(userId);
                 
-                // Cargar perfil del usuario automáticamente
-                document.getElementById('userIdInput').value = userId;
-                loadArtistData(userId);
-                
             } else {
-                // No autenticado - ocultar contenido y mostrar panel de login
                 currentUser = null;
                 isStaff = false;
-                document.getElementById('mainContent').style.display = 'none';
-                document.getElementById('authPanel').style.display = 'block';
-                document.getElementById('profileCard').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('authPanel').style.display = 'none';
+                document.getElementById('profileCard').style.display = 'block';
+                document.getElementById('responseDisplay').style.display = 'block';
             }
         });
         
@@ -840,13 +1135,11 @@
         // INICIALIZACIÓN
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Botón de login
             const loginBtn = document.getElementById('loginRedirectBtn');
             if (loginBtn) {
                 loginBtn.addEventListener('click', redirectToLogin);
             }
             
-            // Botón de logout
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', () => {
@@ -858,28 +1151,23 @@
                 });
             }
             
-            // Pestañas
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     tabs.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
                     currentMethod = this.dataset.method;
-                    
-                    const userId = document.getElementById('userIdInput').value.trim();
-                    if (userId) {
-                        loadArtistData(userId);
-                    }
                 });
             });
             
-            // Botones de búsqueda
-            const searchBtn = document.getElementById('searchBtn');
-            if (searchBtn) {
-                searchBtn.addEventListener('click', () => {
-                    const userId = document.getElementById('userIdInput').value.trim();
-                    loadArtistData(userId);
-                });
+            const functionSelect = document.getElementById('functionSelect');
+            if (functionSelect) {
+                functionSelect.addEventListener('change', generateParamFields);
+            }
+            
+            const executeBtn = document.getElementById('executeBtn');
+            if (executeBtn) {
+                executeBtn.addEventListener('click', executeFunction);
             }
             
             const testApiBtn = document.getElementById('testApiBtn');
@@ -887,15 +1175,17 @@
                 testApiBtn.addEventListener('click', testApiHealth);
             }
             
-            // Enter key
-            const userIdInput = document.getElementById('userIdInput');
-            if (userIdInput) {
-                userIdInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        loadArtistData(e.target.value.trim());
-                    }
+            const clearResponseBtn = document.getElementById('clearResponseBtn');
+            if (clearResponseBtn) {
+                clearResponseBtn.addEventListener('click', () => {
+                    document.getElementById('responseDisplay').style.display = 'none';
+                    document.getElementById('profileCard').style.display = 'none';
+                    document.getElementById('responseContent').textContent = '';
                 });
             }
+            
+            // Generar campos iniciales
+            generateParamFields();
         });
     </script>
 </body>
