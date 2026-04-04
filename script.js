@@ -587,7 +587,7 @@ function handleRegistrationError(error) {
 function openMemberPortal() {
     if (!currentUser) return;
     
-    const url = `${WEB_LINK}member`;
+    const url = `${WEB_LINK}member?id={currentUser.uid}`;
     window.open(url);
 }
 
