@@ -932,7 +932,9 @@ function padZero(num) {
 (function() {
     const allowedUrls = [
         'www.grouvex.com',
-        'grouvex.com', 
+        'grouvex.com',
+        'panel.grouvex.com',
+        'ddoo.grouvex.com', 
         'grouvex.github.io',
         GAS_API_URL,
         'https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link'
