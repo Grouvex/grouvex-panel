@@ -587,7 +587,7 @@ function handleRegistrationError(error) {
 function openMemberPortal() {
     if (!currentUser) return;
     
-    const url = `${WEB_LINK}member?id={currentUser.uid}`;
+    const url = `${WEB_LINK}member?id=${currentUser?.uid}`;
     window.open(url);
 }
 
@@ -1383,10 +1383,12 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Obtener el ID del usuario desde la URL (ej: ?id=GS-123)
   const urlParams = new URLSearchParams(window.location.search);
-  const userId = urlParams.get('id') || urlParams.get('userId');
-  
-  if (userId) {
-    loadArtistData(userId);
+  const userId = urlParams.get('id') || urlParams.get('userId') || (currentUser?.uid);
+  const staffId = urlParams.get('staffid') || urlParams.get('staffId') || (currentUser?.uid);
+  const targetId = urlParams.get('targetid') || urlParams.get('targetId') || (currentUser?.uid);
+  const mostrarID = urlParams.get('targetid') || urlParams.get('targetId') || urlParams.get('id') || urlParams.get('userId') || (currentUser?.uid);
+  if (mostrarID) {
+    loadArtistData(mostrarID);
   } else {
     console.warn("⚠️ No se encontró userId en la URL");
     const errorElement = document.getElementById('error-message');
