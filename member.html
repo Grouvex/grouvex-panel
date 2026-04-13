@@ -5697,7 +5697,7 @@ color: var(--accent-color);
 
           // Función para buscar canción por UPC
           function searchSongByUPC() {
-            const currentUserId = '<?= mostrarId ?>';
+            const currentUserId = mostrarId;
             const upc = document.getElementById('relatedId').value.trim();
             if (!upc) return;
             
@@ -7170,7 +7170,7 @@ color: var(--accent-color);
 // ============================================
 
 // ID del usuario actual (debes reemplazar esto con tu variable real)
-let currentUserId = '<?= mostrarId ?>'; // O la variable que contenga el ID del usuario
+let currentUserId = mostrarId; // O la variable que contenga el ID del usuario
 
 // Estado de privacidad actual
 let currentPrivacy = '';
