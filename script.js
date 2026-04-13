@@ -278,6 +278,7 @@ function handleLogin() {
                 loginText.classList.remove('hidden');
                 loginSpinner.classList.add('hidden');
                 loginBtn.disabled = false;
+                registerBtn.disabled = true;
                 return;
             }
             
@@ -881,15 +882,16 @@ function startTimeCounters() {
     
     // These timestamps would come from your backend normally
     // For now, we'll use placeholder logic
-    const webCloseTimestamp = 1764099000; // Example timestamp
-    const webOpenTimestamp = 1764522000; // Example timestamp
+    const webCloseTimestamp = 1775996430; // Example timestamp
+    const webOpenTimestamp = 1791353230; // Example timestamp
     
     function updateCounters() {
         const now = Math.floor(Date.now() / 1000);
         let messages = '';
         
-        // Close counter
+        // Counter
         const closeDiff = webCloseTimestamp - now;
+        const openDiff = webOpenTimestamp - now;
         if (closeDiff > 0) {
             const days = Math.floor(closeDiff / (60 * 60 * 24));
             const hours = Math.floor((closeDiff % (60 * 60 * 24)) / (60 * 60));
@@ -897,21 +899,16 @@ function startTimeCounters() {
             const seconds = closeDiff % 60;
             
             messages += `<div>Se cierra el Portal de Miembros por Mantenimientos: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s</div>`;
-        } else {
-            messages += `<div>Portal de Miembros Cerrado</div>`;
-        }
-        
-        // Open counter
-        const openDiff = webOpenTimestamp - now;
-        if (openDiff > 0) {
+        } else if(openDiff > 0) {
             const days = Math.floor(openDiff / (60 * 60 * 24));
             const hours = Math.floor((openDiff % (60 * 60 * 24)) / (60 * 60));
             const minutes = Math.floor((openDiff % (60 * 60)) / 60);
             const seconds = openDiff % 60;
             
             messages += `<div>Se abre el Portal de Miembros, cerrado por Mantenimientos: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s</div>`;
-        } else {
-            messages += `<div>Portal de Miembros Abierto</div>`;
+            messages += `<div>Portal de Miembros Cerrado</div>`;
+            loginBtn.disabled = true;
+            
         }
         
         webStatusMessages.innerHTML = messages;
