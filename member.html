@@ -3798,10 +3798,9 @@ color: var(--accent-color);
       </div>
     </div>
     <!-- Pagina Web -->
-    <? 
+    <script>
       // Determinar qué datos mostrar
       const mostrarDatos = targetFilaArtista && isViewingOtherProfile ? targetFilaArtista : filaArtista;
-      const mostrarId = isViewingOtherProfile && targetId ? targetId : id;
       const mostrarInsignias = isViewingOtherProfile && targetInsigniaUrls ? targetInsigniaUrls : insigniaUrls;
       // Procesar insignias al inicio
       let insigniasEspeciales = {
@@ -3844,7 +3843,7 @@ color: var(--accent-color);
           if (badgeName === 'owner') insigniasEspeciales.owner = true;
         });
       }
-    ?>
+    </script>
     <!-- Verificación de Usuario -->
       <!-- Inicio de Sesión -->
       <div id="loginForm" class="loginForm">
@@ -4975,9 +4974,14 @@ color: var(--accent-color);
             resetSessionTimer();
             setupActivityListeners();
             const currentUrl = window.location.href;
-            const fireID = `GS-${user.uid}`;
-            const id = '<?= id ?>'; // ID del usuario actual
-            const urlTargetId = '<?= targetId ?>'; // ID del target (si existe)
+            const fireID = `GS-${user.uid}`; // Tu ID (el usuario logueado)
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id'); // El ID que viene en la URL
+            const urlTargetId = params.get('targetId');
+            // Si 'id' en la URL es distinto a mi 'fireID', significa que estoy viendo a otro
+            const isViewingOtherProfile = id !== null && id !== fireID;
+            // Ahora tus constantes funcionarán correctamente:
+            const mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : id;
           document.getElementById('gs-user-id').value = fireID;
                   // Mostrar imagen de perfil si existe
               const userAvatar = document.getElementById('user-avatar');
