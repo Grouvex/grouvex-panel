@@ -1,3 +1,4 @@
+!function(){'use strict';const n=(m,t="🚫 ACCIÓN BLOQUEADA")=>{const e=document.createElement("div");e.style.cssText="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:2147483647;display:flex;align-items:center;justify-content:center;color:#ff4444;font-family:Arial,sans-serif;text-align:center;flex-direction:column;backdrop-filter:blur(5px)",e.innerHTML=`<div style="font-size:28px;font-weight:bold;margin-bottom:15px">${t}</div><div style="font-size:16px;color:#ff9999;max-width:80%;margin:0 auto">${m}</div><div style="font-size:12px;color:#ccc;margin-top:25px">Desaparece en <span id="cnt">10</span>s</div>`,document.body.appendChild(e);let s=10;const i=setInterval(()=>{s--,document.getElementById("cnt")&&(document.getElementById("cnt").textContent=s),s<=0&&(clearInterval(i),e.remove())},1e3)};document.addEventListener("keydown",e=>{if(e.key==="p"&&(e.ctrlKey||e.metaKey))return e.preventDefault(),e.stopImmediatePropagation(),n("No se permite imprimir esta página","🚫 IMPRESIÓN BLOQUEADA"),!1;if((e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="J"||e.key==="C"||e.key==="U"))||e.key==="F12"||e.keyCode===123)return e.preventDefault(),e.stopImmediatePropagation(),n("Acceso restringido","🔧 ACCIÓN BLOQUEADA"),!1},!0);["copy","cut","paste","contextmenu","selectstart","dragstart"].forEach(e=>{document.addEventListener(e,t=>{t.preventDefault(),t.stopImmediatePropagation()},!0)});const e=document.createElement("style");e.textContent="*{user-select:none!important;-webkit-user-select:none!important;-moz-user-select:none!important;-ms-user-select:none!important}input,textarea,[contenteditable]{user-select:text!important}@media print{*{display:none!important}body::before{content:'IMPRESIÓN BLOQUEADA';display:block!important;font-size:24px;color:red;text-align:center;margin-top:100px;font-weight:bold}}",document.head.appendChild(e);window.matchMedia("print").addListener(t=>{t.matches&&n("No se permite imprimir esta página","🚫 IMPRESIÓN BLOQUEADA")});setInterval(()=>{try{const e=performance.now();let t=0;for(let n=0;n<5e5;n++)t+=Math.random();performance.now()-e>500&&n("Comportamiento inusual detectado","⚠️ ADVERTENCIA")}catch{}},5e3);document.addEventListener("visibilitychange",()=>{document.hidden&&setTimeout(()=>{n("La página fue minimizada","📋 ATENCIÓN")},500)})}();
 // ============================================
 // FIREBASE CONFIGURATION
 // ============================================
@@ -875,7 +876,7 @@ function showTimeExpiredMessage(userEmail) {
 }
 
 // ============================================
-// TIME COUNTERS (replacing <?!= ... ?>)
+// TIME COUNTERS
 // ============================================
 function startTimeCounters() {
     const webStatusMessages = document.getElementById('webStatusMessages');
@@ -883,8 +884,8 @@ function startTimeCounters() {
     
     // These timestamps would come from your backend normally
     // For now, we'll use placeholder logic
-    const webCloseTimestamp = 1775996430; // Example timestamp
-    const webOpenTimestamp = 1791353230; // Example timestamp
+    const webCloseTimestamp = 1776204000; // Example timestamp
+    const webOpenTimestamp = 1784066400; // Example timestamp
     
     function updateCounters() {
         const now = Math.floor(Date.now() / 1000);
@@ -899,14 +900,14 @@ function startTimeCounters() {
             const minutes = Math.floor((closeDiff % (60 * 60)) / 60);
             const seconds = closeDiff % 60;
             
-            messages += `<div>Se cierra el Portal de Miembros por Mantenimientos: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s</div>`;
+            messages += `<div>Se cerrará el Portal de Miembros por Mantenimientos en: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s</div>`;
         } else if(openDiff > 0) {
             const days = Math.floor(openDiff / (60 * 60 * 24));
             const hours = Math.floor((openDiff % (60 * 60 * 24)) / (60 * 60));
             const minutes = Math.floor((openDiff % (60 * 60)) / 60);
             const seconds = openDiff % 60;
             
-            messages += `<div>Se abre el Portal de Miembros, cerrado por Mantenimientos: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s</div>`;
+            messages += `<div>El Portal de Miembros, cerrado por Mantenimientos, se abrirá en: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s</div>`;
             messages += `<div>Portal de Miembros Cerrado</div>`;
             loginBtn.disabled = true;
             registerBtn.disabled = true;
