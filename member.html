@@ -4982,6 +4982,9 @@ color: var(--accent-color);
             const isViewingOtherProfile = id !== null && id !== fireID;
             // Ahora tus constantes funcionarán correctamente:
             const mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : id;
+            document.querySelectorAll('.mostrarId').forEach(el => {
+                el.textContent = mostrarId;
+            });
           document.getElementById('gs-user-id').value = fireID;
                   // Mostrar imagen de perfil si existe
               const userAvatar = document.getElementById('user-avatar');
@@ -5426,7 +5429,7 @@ color: var(--accent-color);
         <p>Al usar esta app, acepta los <a href="https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline"><i class="fa-solid fa-shield-halved"></i>Documentos Oficiales de Grouvex Studios<i class="fa-solid fa-shield-halved"></i></a></p>
         <p>Ante cualquier duda de que correo se debe usar en cada situación, enviar un correo al <strong><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>Centro de Ayudas > Otro</strong></p>
         <details><summary><i class="fa-solid fa-circle-exclamation"></i> Información Importante</summary>
-        <p><strong>Al enviar un correo es importante usar el correo que aparece en la sección "Dirección de correo electrónico", y que el asunto se mantenga. En caso de que este vacio, indicar el tema del correo, pero nunca dejar el Asunto vacio. En el correo siempre tiene que aparecer <?= mostrarId ?> en el asunto. Delante de <?= mostrarId ?>, podeis indicar el tema a tratar.</strong></p>
+        <p><strong>Al enviar un correo es importante usar el correo que aparece en la sección "Dirección de correo electrónico", y que el asunto se mantenga. En caso de que este vacio, indicar el tema del correo, pero nunca dejar el Asunto vacio. En el correo siempre tiene que aparecer <span class="mostrarId"></span> en el asunto. Delante de <span class="mostrarId"></span>, podeis indicar el tema a tratar.</strong></p>
         <hr>
         <p>Si desea modificar alguna información del DataBase, consulte a <strong><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>Centro de Contacto > Grouvex Studios > Gestión de Cuentas > Modificar datos de cuenta</strong>, indique su GS-UserID en el correo y que información desea modificar de su perfil de miembro. Tenga en cuenta que se modificará tambien en todas las plataformas de música. El estado de su contrato pasará a ser: <strong>Comprobando</strong>, hasta que se complete el proceso y se le informe por correo electrónico.</p>
         <hr>
@@ -5459,7 +5462,7 @@ color: var(--accent-color);
               <p style="color:red">Los campos con asterisco (*) son obligatorios a la hora de poder enviar el formulario.</p>
               
               <form id="changeRequestForm">
-                <input type="hidden" id="crUserId" value="<?= mostrarId ?>">
+                <input type="hidden" id="crUserId" value="<span class="mostrarId"></span>">
                 
                 <div class="form-group">
                   <label for="requestType">Tipo de Solicitud*:</label>
@@ -6194,7 +6197,7 @@ color: var(--accent-color);
             </div>
             <? } ?>
               <h2 class="artist-title"><i class="fa-solid fa-user"></i> <?= filaArtista[headersArtistas.indexOf("Nombre de Usuario")] || 'Nombre no disponible' ?></h2>
-              <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <?= mostrarId ?></p>
+              <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
           <h4>Insignias</h4>
           <div class="insignia-container">
@@ -7718,7 +7721,7 @@ if (window.history && window.history.pushState) {
                   </div>
                 <? } ?>
               <h2 class="artist-title"><i class="fa-solid fa-user"></i> <?= filaArtista[headersArtistas.indexOf("Nombre del Artista/Banda")] || 'Nombre no disponible' ?></h2>
-              <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <?= mostrarId ?></p>
+              <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
               <h4>Insignias</h4>
                 <div class="insignia-container">
@@ -7907,7 +7910,7 @@ if (window.history && window.history.pushState) {
                   <p><strong>Fecha:</strong> <?= new Date().toLocaleDateString('es-ES') ?></p>
                   <p><strong>Grouvex Studios Records</strong></p>
                   <p>España, Madrid, 28002</p>
-                  <p><a href="mailto:moderacion@grouvex.com?subject=Tema - (<?= mostrarId ?>)" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-envelope"></i> moderacion@grouvex.com</a></p>
+                  <p><a href="mailto:moderacion@grouvex.com?subject=Tema - (<span class="mostrarId"></span>)" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-envelope"></i> moderacion@grouvex.com</a></p>
                   <p><strong>Estado del Contrato:</strong> <em><?= filaArtista ? filaArtista[headersArtistas.indexOf("Estado del Contrato GSRecords")] : 'N/A' ?></em></p>
                   <p><strong>Razón:</strong> <em><?= filaArtista ? filaArtista[headersArtistas.indexOf("Razón GSRecords")] : 'N/A' ?></em></p>
                   <p>Estimados Señores de Grouvex Studios Records:</p>
@@ -7985,8 +7988,8 @@ if (window.history && window.history.pushState) {
                 <details>
                   <summary><i class="fa-solid fa-circle-exclamation"></i> Información Importante</summary>
                     <p>Ciertas modificaciones, como el nombre del artista, pueden alterar que se cree un nuevo perfil de artista y por tando los datos anteriores como seguidores, no se guarden en algunas plataformas.</p>
-                    <p>En caso de tener más perfiles de artistas, asociados a <?= mostrarId ?>, el id de ese artista será <?= mostrarId ?> más "-NombreArtista".</p>
-                    <p>Por ejemplo <?= mostrarId ?> (Sería <?= filaArtista[headersArtistas.indexOf("Nombre del Artista/Banda")] || 'Nombre no disponible' ?>), <?= mostrarId ?>-vGalio (Sería tu perfil de artista llamado Galio). El nombre de artita no puede ser igual que otro que ya tengas asociado a <?= mostrarId ?>.</p>
+                    <p>En caso de tener más perfiles de artistas, asociados a <span class="mostrarId"></span>, el id de ese artista será <span class="mostrarId"></span> más "-NombreArtista".</p>
+                    <p>Por ejemplo <span class="mostrarId"></span> (Sería <?= filaArtista[headersArtistas.indexOf("Nombre del Artista/Banda")] || 'Nombre no disponible' ?>), <span class="mostrarId"></span>-vGalio (Sería tu perfil de artista llamado Galio). El nombre de artita no puede ser igual que otro que ya tengas asociado a <span class="mostrarId"></span>.</p>
                     <p>Para ver los archivos (imagen, sonido, etc) deberá solicitar la información en el <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>Centro de Ayuda</p>
                     <hr>
                   <p>Si desea modificar alguna información de una canción, consulte en el <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>Centro de Ayuda, indique su GS-UserID y UPC/EAN de la canción y que información desea modificar de su lanzamiento. Tenga en cuenta que se modificará tambien en todas las plataformas de música. El estado de su lanzamiento pasará a ser: <strong>Revisando</strong>, hasta que se complete el proceso y se le informe por correo electrónico.</p>
@@ -9619,7 +9622,7 @@ if (window.history && window.history.pushState) {
 
     // Cargar datos del usuario desde la sesión
     function loadUserDataFromSession() {
-      let userID = '<?= mostrarId ?>';
+      let userID = '<span class="mostrarId"></span>';
       try {
         // Obtener datos del usuario desde el contexto de Apps Script
         google.script.run
@@ -11915,7 +11918,7 @@ if (window.history && window.history.pushState) {
                                 
                                 <form class="change-request-form" data-lanzamiento="<?= lanzamientoData.upcEan ?>" 
                                       onsubmit="event.preventDefault(); submitChangeRequestLanzamiento(<?= index ?>)">
-                                  <input type="hidden" id="crUserId-<?= index ?>" value="<?= mostrarId ?>">
+                                  <input type="hidden" id="crUserId-<?= index ?>" value="<span class="mostrarId"></span>">
                                   <input type="hidden" id="relatedId-<?= index ?>" value="<?= lanzamientoData.upcEan ?>">
                                   <input type="hidden" id="requestType-<?= index ?>" value="music">
                                   
@@ -12568,7 +12571,7 @@ if (window.history && window.history.pushState) {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="form-group">
               <label class="form-label !text-gray-200">Grouvex Studios UserID *</label>
-              <input type="text" id="gsrecordsUserId" class="form-input" value="<?= mostrarId ?>" readonly>
+              <input type="text" id="gsrecordsUserId" class="form-input" value="<span class="mostrarId"></span>" readonly>
               <small class="text-xs text-white">ID obtenido de tu perfil</small>
             </div>
             
@@ -12941,7 +12944,7 @@ if (window.history && window.history.pushState) {
             <label class="form-label !text-gray-200">Firma *</label>
             <div class="info-text">
               <i class="fas fa-paperclip mr-2"></i>
-              <strong>Instrucciones para firma:</strong> Envía el documento firmado por correo a <strong>records.gstudios@gmail.com</strong> (puede adjuntar su documento de identidad o la Tarjeta de Identidad de Grouvex Studios) con asunto: "Firma e Identificación - <?= mostrarId ?>"
+              <strong>Instrucciones para firma:</strong> Envía el documento firmado por correo a <strong>records.gstudios@gmail.com</strong> (puede adjuntar su documento de identidad o la Tarjeta de Identidad de Grouvex Studios) con asunto: "Firma e Identificación - <span class="mostrarId"></span>"
             </div>
           </div>
           
@@ -13021,7 +13024,7 @@ if (window.history && window.history.pushState) {
 
       // Verificar estado GSRecords directamente desde Sheets
       function checkGSRecordsStatus() {
-        const userId = "<?= mostrarId ?>"; // ID obtenido de PHP
+        const userId = "<span class="mostrarId"></span>"; // ID obtenido de PHP
         
         if (!userId) {
           showGSRecordsStatus("No se pudo obtener tu ID de usuario", "error");
@@ -13338,7 +13341,7 @@ if (window.history && window.history.pushState) {
       <? } else { ?>
       <div class="not-found">
         <h1>Miembro no encontrado</h1>
-        <p>No se encontró ningún miembro con el ID: <?= mostrarId ?></p>
+        <p>No se encontró ningún miembro con el ID: <span class="mostrarId"></span></p>
       </div>
       <? } ?>
 
