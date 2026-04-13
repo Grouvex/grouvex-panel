@@ -165,11 +165,12 @@ function initializeUI() {
     passwordInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleLogin();
     });
-    
-    if (registerConfirmPasswordInput) {
-        registerConfirmPasswordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleRegister();
-        });
+    if(!loginBtn.disabled){
+        if (registerConfirmPasswordInput) {
+            registerConfirmPasswordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleRegister();
+            });
+        }
     }
 }
 
@@ -908,7 +909,8 @@ function startTimeCounters() {
             messages += `<div>Se abre el Portal de Miembros, cerrado por Mantenimientos: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s</div>`;
             messages += `<div>Portal de Miembros Cerrado</div>`;
             loginBtn.disabled = true;
-            
+            registerBtn.disabled = true;
+            memberPortalBtn.disabled = true;
         }
         
         webStatusMessages.innerHTML = messages;
