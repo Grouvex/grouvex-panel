@@ -884,8 +884,8 @@ function startTimeCounters() {
     
     // These timestamps would come from your backend normally
     // For now, we'll use placeholder logic
-    const webCloseTimestamp = 1776204000; // Example timestamp
-    const webOpenTimestamp = 1784066400; // Example timestamp
+    const webCloseTimestamp = 1776201000;
+    const webOpenTimestamp = 1784066400;
     
     function updateCounters() {
         const now = Math.floor(Date.now() / 1000);
