@@ -343,15 +343,34 @@ function handleRegister() {
         return;
     }
     
+    // LOG: Verificar que formData tiene email
+    console.log("=== CLIENTE: Verificando formData ===");
+    console.log("formData completo:", formData);
+    console.log("formData.email:", formData.email);
+    console.log("formData.email tipo:", typeof formData.email);
+    console.log("formData.email length:", formData.email ? formData.email.length : 0);
+    
+    if (!formData.email) {
+        console.error("ERROR: formData.email está vacío en el cliente");
+        alert("Error: El correo electrónico no se ha capturado correctamente");
+        return;
+    }
+    
     registerText.classList.add('hidden');
     registerSpinner.classList.remove('hidden');
     registerBtn.disabled = true;
     
-    console.log("Enviando datos de registro:", formData);
+    console.log("Enviando datos de registro al servidor...");
     
     google.script.run
-        .withSuccessHandler(handleRegistrationSuccess)
-        .withFailureHandler(handleRegistrationError)
+        .withSuccessHandler(function(result) {
+            console.log("Respuesta exitosa del servidor:", result);
+            handleRegistrationSuccess(result);
+        })
+        .withFailureHandler(function(error) {
+            console.error("Error del servidor:", error);
+            handleRegistrationError(error);
+        })
         .validateAndProcessRegistration(formData);
 }
 
@@ -722,9 +741,19 @@ function toggleStripeSection() {
 // VERIFICATION SCREEN
 // ============================================
 function showVerificationPendingScreen(result) {
-    if (!registerForm) return;
+    // En lugar de modificar registerForm directamente, crea un contenedor nuevo
+    const authContent = document.querySelector('.auth-content');
+    const originalRegisterForm = document.getElementById('registerForm');
     
-    registerForm.innerHTML = `
+    if (!originalRegisterForm) return;
+    
+    // Guarda el contenido original para poder volver
+    if (!window.originalRegisterContent) {
+        window.originalRegisterContent = originalRegisterForm.innerHTML;
+    }
+    
+    // Reemplaza el contenido
+    originalRegisterForm.innerHTML = `
         <div class="text-center py-8">
             <div class="mb-6">
                 <i class="fas fa-envelope text-5xl text-secondary mb-4"></i>
@@ -765,17 +794,30 @@ function showVerificationPendingScreen(result) {
     
     startCountdown(30, result.userEmail, result.userId);
     
-    document.getElementById('checkVerificationBtn')?.addEventListener('click', () => {
-        checkEmailVerification(result.userId, result.userEmail);
-    });
-    
-    document.getElementById('resendEmailBtn')?.addEventListener('click', () => {
-        resendVerificationEmail(result.userId, result.userEmail);
-    });
-    
-    document.getElementById('backToRegisterBtn')?.addEventListener('click', () => {
-        location.reload();
-    });
+    // Usar event listeners con verificación de existencia
+    setTimeout(() => {
+        const checkBtn = document.getElementById('checkVerificationBtn');
+        const resendBtn = document.getElementById('resendEmailBtn');
+        const backBtn = document.getElementById('backToRegisterBtn');
+        
+        if (checkBtn) {
+            checkBtn.addEventListener('click', () => {
+                checkEmailVerification(result.userId, result.userEmail);
+            });
+        }
+        
+        if (resendBtn) {
+            resendBtn.addEventListener('click', () => {
+                resendVerificationEmail(result.userId, result.userEmail);
+            });
+        }
+        
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                location.reload();
+            });
+        }
+    }, 100);
 }
 
 function startCountdown(minutes, userEmail, userId) {
