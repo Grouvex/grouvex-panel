@@ -471,17 +471,28 @@ function validateFormData(formData) {
         isValid = false;
     }
     
+    // 🔧 CORRECCIÓN: Manejar el error de teléfono correctamente
+    let phoneError = "";
+    
     if (!formData.phonePrefix) {
-        errors.phone = "❌ Por favor selecciona el prefijo del teléfono";
+        phoneError = "❌ Por favor selecciona el prefijo del teléfono";
         isValid = false;
     }
+    
     if (!formData.phone) {
-        errors.phone = errors.phone ? errors.phone + " y " : "❌ ";
-        errors.phone += "ingresa tu número de teléfono";
+        if (phoneError) {
+            phoneError += " y ❌ ingresa tu número de teléfono";
+        } else {
+            phoneError = "❌ Por favor ingresa tu número de teléfono";
+        }
         isValid = false;
     } else if (!isValidPhone(formData.phone)) {
-        errors.phone = "❌ Por favor ingresa un número de teléfono válido";
+        phoneError = "❌ Por favor ingresa un número de teléfono válido";
         isValid = false;
+    }
+    
+    if (phoneError) {
+        errors.phone = phoneError;
     }
     
     if (!formData.city) {
@@ -527,7 +538,7 @@ function validateFormData(formData) {
         isValid = false;
     }
     
-    if (formData.profileDescription.length > 200) {
+    if (formData.profileDescription && formData.profileDescription.length > 200) {
         errors.profileDescription = "❌ La descripción no puede exceder los 200 caracteres";
         isValid = false;
     }
@@ -536,36 +547,83 @@ function validateFormData(formData) {
 }
 
 function showValidationErrors(errors) {
-    hideError(registerEmailError);
-    hideError(registerPasswordError);
-    hideError(registerConfirmPasswordError);
-    hideError(registerUsernameError);
-    hideError(registerPhoneError);
-    hideError(registerAddressError);
-    hideError(registerCityError);
-    hideError(registerPostalCodeError);
-    hideError(registerClientNameError);
-    hideError(registerClientEmailError);
-    hideError(registerFullNameError);
-    hideError(registerConflictResolutionError);
-    hideError(registerContactRightsError);
-    hideError(registerOtherRightsError);
-    hideError(registerAcceptTermsError);
-    hideError(registerProfileDescriptionError);
-    hideError(registerInfoToShowError);
+    console.log("=== DEPURACIÓN DE ERRORES ===");
+    console.log("errors recibido:", errors);
     
-    if (errors.email) showError(registerEmailError, errors.email);
-    if (errors.password) showError(registerPasswordError, errors.password);
-    if (errors.confirmPassword) showError(registerConfirmPasswordError, errors.confirmPassword);
-    if (errors.phone) showError(registerPhoneError, errors.phone);
-    if (errors.city) showError(registerCityError, errors.city);
-    if (errors.postalCode) showError(registerPostalCodeError, errors.postalCode);
-    if (errors.clientName) showError(registerClientNameError, errors.clientName);
-    if (errors.clientEmail) showError(registerClientEmailError, errors.clientEmail);
-    if (errors.fullName) showError(registerFullNameError, errors.fullName);
-    if (errors.conflictResolution) showError(registerConflictResolutionError, errors.conflictResolution);
-    if (errors.acceptTerms) showError(registerAcceptTermsError, errors.acceptTerms);
-    if (errors.profileDescription) showError(registerProfileDescriptionError, errors.profileDescription);
+    // Verificar cada error individualmente
+    for (const [key, value] of Object.entries(errors)) {
+        console.log(`errors.${key}:`, value);
+        console.log(`tipo de errors.${key}:`, typeof value);
+        console.log(`es objeto?`, value instanceof HTMLElement);
+        console.log(`es string?`, typeof value === 'string');
+    }
+    
+    // Limpiar todos los errores primero
+    const allErrorElements = [
+        registerEmailError, registerPasswordError, registerConfirmPasswordError,
+        registerUsernameError, registerPhoneError, registerAddressError,
+        registerCityError, registerPostalCodeError, registerClientNameError,
+        registerClientEmailError, registerFullNameError, registerConflictResolutionError,
+        registerContactRightsError, registerOtherRightsError, registerAcceptTermsError,
+        registerProfileDescriptionError, registerInfoToShowError
+    ];
+    
+    allErrorElements.forEach(element => {
+        if (element) {
+            element.textContent = '';
+            element.style.display = 'none';
+        }
+    });
+    
+    // Mostrar errores con conversión forzada a string
+    if (errors.email && registerEmailError) {
+        registerEmailError.textContent = String(errors.email);
+        registerEmailError.style.display = 'block';
+    }
+    if (errors.password && registerPasswordError) {
+        registerPasswordError.textContent = String(errors.password);
+        registerPasswordError.style.display = 'block';
+    }
+    if (errors.confirmPassword && registerConfirmPasswordError) {
+        registerConfirmPasswordError.textContent = String(errors.confirmPassword);
+        registerConfirmPasswordError.style.display = 'block';
+    }
+    if (errors.phone && registerPhoneError) {
+        registerPhoneError.textContent = String(errors.phone);
+        registerPhoneError.style.display = 'block';
+    }
+    if (errors.city && registerCityError) {
+        registerCityError.textContent = String(errors.city);
+        registerCityError.style.display = 'block';
+    }
+    if (errors.postalCode && registerPostalCodeError) {
+        registerPostalCodeError.textContent = String(errors.postalCode);
+        registerPostalCodeError.style.display = 'block';
+    }
+    if (errors.clientName && registerClientNameError) {
+        registerClientNameError.textContent = String(errors.clientName);
+        registerClientNameError.style.display = 'block';
+    }
+    if (errors.clientEmail && registerClientEmailError) {
+        registerClientEmailError.textContent = String(errors.clientEmail);
+        registerClientEmailError.style.display = 'block';
+    }
+    if (errors.fullName && registerFullNameError) {
+        registerFullNameError.textContent = String(errors.fullName);
+        registerFullNameError.style.display = 'block';
+    }
+    if (errors.conflictResolution && registerConflictResolutionError) {
+        registerConflictResolutionError.textContent = String(errors.conflictResolution);
+        registerConflictResolutionError.style.display = 'block';
+    }
+    if (errors.acceptTerms && registerAcceptTermsError) {
+        registerAcceptTermsError.textContent = String(errors.acceptTerms);
+        registerAcceptTermsError.style.display = 'block';
+    }
+    if (errors.profileDescription && registerProfileDescriptionError) {
+        registerProfileDescriptionError.textContent = String(errors.profileDescription);
+        registerProfileDescriptionError.style.display = 'block';
+    }
     
     const firstErrorElement = document.querySelector('.error-message[style*="display: block"]');
     if (firstErrorElement) {
@@ -634,8 +692,20 @@ function searchOtherMember() {
 // HELPER FUNCTIONS
 // ============================================
 function showError(element, message) {
+    console.log("showError llamado con:", {
+        elementId: element?.id,
+        messageType: typeof message,
+        messageValue: message
+    });
+    
     if (element) {
-        element.textContent = message;
+        // Asegurar que message es string
+        let finalMessage = message;
+        if (typeof message !== 'string') {
+            finalMessage = String(message);
+            console.warn("Mensaje no era string, convertido a:", finalMessage);
+        }
+        element.textContent = finalMessage;
         element.style.display = 'block';
     }
 }
