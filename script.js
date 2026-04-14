@@ -884,8 +884,8 @@ function startTimeCounters() {
     
     // These timestamps would come from your backend normally
     // For now, we'll use placeholder logic
-    const webCloseTimestamp = 1776150000;
-    const webOpenTimestamp = 1784066400;
+    const webCloseTimestamp = 1776268800;
+    const webOpenTimestamp = 1780460000;
     
     function updateCounters() {
         const now = Math.floor(Date.now() / 1000);
@@ -899,16 +899,16 @@ function startTimeCounters() {
             const hours = Math.floor((closeDiff % (60 * 60 * 24)) / (60 * 60));
             const minutes = Math.floor((closeDiff % (60 * 60)) / 60);
             const seconds = closeDiff % 60;
-            
-            messages += `<div>Se cerrará el Portal de Miembros por Mantenimientos en: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s</div>`;
+            const eventDate = new Date(webCloseTimestamp * 1000).toUTCString();
+            messages += `<div style="color: white">El Portal de Miembros, <strong style="color:red">se cerrará por Mantenimientos en: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s<br><small>(Fecha: ${eventDate})</small></strong></div>`;
         } else if(openDiff > 0) {
             const days = Math.floor(openDiff / (60 * 60 * 24));
             const hours = Math.floor((openDiff % (60 * 60 * 24)) / (60 * 60));
             const minutes = Math.floor((openDiff % (60 * 60)) / 60);
             const seconds = openDiff % 60;
-            
-            messages += `<div>El Portal de Miembros, cerrado por Mantenimientos, se abrirá en: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s</div>`;
-            messages += `<div>Portal de Miembros Cerrado</div>`;
+            const eventDate = new Date(webOpenTimestamp * 1000).toUTCString();
+            messages += `<div style="color: red"><strong>Portal de Miembros Cerrado</strong></div>`;
+            messages += `<div style="color: white">El Portal de Miembros, cerrado por Mantenimientos, <strong style="color:green">se abrirá en: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s<br><small>(Fecha: ${eventDate})</small></strong></div>`;
             loginBtn.disabled = true;
             registerBtn.disabled = true;
             memberPortalBtn.disabled = true;
