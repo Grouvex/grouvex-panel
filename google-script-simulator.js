@@ -7,57 +7,92 @@ const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDea
 // SIMULADOR DEFINITIVO (JSON-SAFE)
 // ============================================
 (function(global) {
-    // Definimos la URL de tu Web App de Google
-
     global.google = global.google || {};
     global.google.script = (function() {
-        let _h = { s: null, f: null, obj: null };
-        const reset = () => { _h = { s: null, f: null, obj: null }; };
-
-        const execute = (name, args) => {
-            // Recogemos los handlers actuales
-            const success = _h.s;
-            const failure = _h.f;
-            const userObj = _h.obj;
-            reset(); // Limpiamos para la siguiente llamada
-
-            // Enviamos siempre como Array de Strings para evitar errores de tipo
-            const payloadData = args.map(arg => String(arg || "").trim());
-
+        let _successHandler = null;
+        let _failureHandler = null;
+        let _userObject = null;
+        
+        const resetHandlers = () => {
+            _successHandler = null;
+            _failureHandler = null;
+            _userObject = null;
+        };
+        
+        const execute = (functionName, args) => {
+            const success = _successHandler;
+            const failure = _failureHandler;
+            const userObj = _userObject;
+            
+            resetHandlers();
+            
+            // Preparar payload - mantener como objeto, NO convertir a string individualmente
+            let payload = args;
+            if (args.length === 1) {
+                payload = args[0];
+            }
+            
+            console.log(`📤 Llamando a ${functionName} con:`, payload);
+            
+            // IMPORTANTE: Usar text/plain para evitar CORS, pero enviar JSON en el body
             fetch(GAS_API_URL, {
                 method: 'POST',
                 mode: 'cors',
-                headers: { 'Content-Type': 'text/plain' },
+                headers: { 
+                    'Content-Type': 'text/plain'  // ← CRUCIAL: text/plain, NO application/json
+                },
                 body: JSON.stringify({
-                    endpoint: name,
-                    payload: payloadData
+                    endpoint: functionName,
+                    payload: payload  // ← Enviar el objeto directamente, no convertido a string
                 })
             })
-            .then(resp => resp.json())
-            .then(data => {
-                if (data.success) {
-                    if (success) success(data.data, userObj);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                console.log(`📥 Respuesta de ${functionName}:`, result);
+                if (result.success) {
+                    if (success) success(result.data, userObj);
                 } else {
-                    if (failure) failure(data.error, userObj);
+                    if (failure) failure(result.error, userObj);
                 }
             })
-            .catch(err => {
-                if (failure) failure(err.message, userObj);
+            .catch(error => {
+                console.error(`❌ Error en ${functionName}:`, error);
+                if (failure) failure(error.message, userObj);
             });
         };
-
-        // El Proxy hace la magia: intercepta cualquier nombre de función
-        const proxy = new Proxy({}, {
-            get: (target, prop) => {
-                if (prop === 'withSuccessHandler') return (h) => { _h.s = h; return proxy; };
-                if (prop === 'withFailureHandler') return (h) => { _h.f = h; return proxy; };
-                if (prop === 'withUserObject') return (o) => { _h.obj = o; return proxy; };
+        
+        const handler = {
+            get: function(target, prop) {
+                if (prop === 'withSuccessHandler') {
+                    return function(handler) {
+                        _successHandler = handler;
+                        return this;
+                    };
+                }
+                if (prop === 'withFailureHandler') {
+                    return function(handler) {
+                        _failureHandler = handler;
+                        return this;
+                    };
+                }
+                if (prop === 'withUserObject') {
+                    return function(obj) {
+                        _userObject = obj;
+                        return this;
+                    };
+                }
                 
-                // Si no es un handler, es el nombre de la función (ej: getRelatedArtistIds)
-                return (...args) => execute(prop, args);
+                return function(...args) {
+                    return execute(prop, args);
+                };
             }
-        });
-
-        return { run: proxy };
+        };
+        
+        return { run: new Proxy({}, handler) };
     })();
 })(window);
