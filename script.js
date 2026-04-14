@@ -163,10 +163,10 @@ function initializeUI() {
     searchOtherBtn.addEventListener('click', searchOtherMember);
     
     // Enter key press
-    passwordInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleLogin();
-    });
     if(!loginBtn.disabled){
+            passwordInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
         if (registerConfirmPasswordInput) {
             registerConfirmPasswordInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') handleRegister();
