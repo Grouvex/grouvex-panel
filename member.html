@@ -5217,8 +5217,7 @@ color: var(--accent-color);
               console.error("Logout error:", error);
             });
           });
-          
-          
+  
           // Helper functions
           function showError(element, message) {
             element.textContent = message;
@@ -5697,10 +5696,13 @@ color: var(--accent-color);
               });
             }
           }
-
+          function getCurrentUserId() {
+              const elemento = document.querySelector('.mostrarId');
+              return elemento ? elemento.textContent : null;
+          }
+          const currentUserId = getCurrentUserId();
           // Función para buscar canción por UPC
           function searchSongByUPC() {
-            const currentUserId = mostrarId;
             const upc = document.getElementById('relatedId').value.trim();
             if (!upc) return;
             
@@ -7173,7 +7175,6 @@ color: var(--accent-color);
 // ============================================
 
 // ID del usuario actual (debes reemplazar esto con tu variable real)
-let currentUserId = mostrarId; // O la variable que contenga el ID del usuario
 
 // Estado de privacidad actual
 let currentPrivacy = '';
@@ -7901,7 +7902,7 @@ if (window.history && window.history.pushState) {
                 <div class="contract-content">
                   <h3><i class="fa-solid fa-file-certificate"></i> Grouvex Studios Records - Aceptación de Contrato</h3>
                   <p><strong>Nombre del Artista:</strong> <?= filaArtista ? filaArtista[headersArtistas.indexOf("Nombre del Artista/Banda")] : 'N/A' ?></p>
-                  <p><strong>Grouvex Studios UserID:</strong> <?= mostrarId || 'N/A' ?></p>
+                  <p><strong>Grouvex Studios UserID:</strong> <span class="mostrarId"></span></p>
                   <p>El Grouvex Studios UserID, en adelante GSUserID, es único y por lo tanto, no debe compartirlo con nadie. El GSUserID le servirá para acceder al formulario de contrato de proyecto, y también para en caso de olvidar alguna información sobre un proyecto o tu contrato o algo que tenga que ver con Grouvex Studios, proporcionando el GSUserID nosotros podremos saber su información.</p>
                   <p><strong>Dirección:</strong> <em><?= filaArtista ? filaArtista[headersArtistas.indexOf("Dirección")] : 'N/A' ?></em></p>
                   <p><strong>Ciudad, Código Postal:</strong> <em><?= filaArtista ? filaArtista[headersArtistas.indexOf("Ciudad, Código Postal")] : 'N/A' ?></em></p>
