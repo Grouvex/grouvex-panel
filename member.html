@@ -4963,10 +4963,11 @@ color: var(--accent-color);
           let currentUser = null;
           let isStaff = false;
           let isVerifiedTeam = false;
-            function isStaffAccessUrl() {
-          const urlParams = new URLSearchParams(window.location.search);
-          return urlParams.has('targetId') && urlParams.get('isStaff') === 'true';
-        }
+          let mostrarId = null;
+          function isStaffAccessUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.has('targetId') && urlParams.get('isStaff') === 'true';
+          }
           // Auth state observer
           auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -4981,7 +4982,7 @@ color: var(--accent-color);
             // Si 'id' en la URL es distinto a mi 'fireID', significa que estoy viendo a otro
             const isViewingOtherProfile = id !== null && id !== fireID;
             // Ahora tus constantes funcionarán correctamente:
-            const mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : id;
+            mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : id;
             document.querySelectorAll('.mostrarId').forEach(el => {
                 el.textContent = mostrarId;
             });
@@ -9623,7 +9624,7 @@ if (window.history && window.history.pushState) {
 
     // Cargar datos del usuario desde la sesión
     function loadUserDataFromSession() {
-      let userID = '<span class="mostrarId"></span>';
+      let userID = mostrarId;
       try {
         // Obtener datos del usuario desde el contexto de Apps Script
         google.script.run
