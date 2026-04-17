@@ -5096,7 +5096,14 @@ color: var(--accent-color);
             }
           });
           
-
+          function getCurrentUserId() {
+            if (!mostrarId) {
+              // Si es null, intentamos sacarlo de la URL rápido como plan B
+              const params = new URLSearchParams(window.location.search);
+              return params.get('targetId') || params.get('id') || fireID;
+            }
+            return mostrarId;
+          }
           
           // Login handler
           loginBtn.addEventListener('click', () => {
@@ -5696,10 +5703,6 @@ color: var(--accent-color);
                 change.setAttribute('data-change-id', newId);
               });
             }
-          }
-          function getCurrentUserId() {
-              const elemento = document.querySelector('.mostrarId');
-              return elemento ? elemento.textContent : null;
           }
           const currentUserId = getCurrentUserId();
           // Función para buscar canción por UPC
@@ -9624,7 +9627,7 @@ if (window.history && window.history.pushState) {
 
     // Cargar datos del usuario desde la sesión
     function loadUserDataFromSession() {
-      let userID = mostrarId;
+      let userID = getCurrentUserId();
       try {
         // Obtener datos del usuario desde el contexto de Apps Script
         google.script.run
