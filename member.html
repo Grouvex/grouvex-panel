@@ -13029,7 +13029,7 @@ if (window.history && window.history.pushState) {
 
       // Verificar estado GSRecords directamente desde Sheets
       function checkGSRecordsStatus() {
-        const userId = "<span class="mostrarId"></span>"; // ID obtenido de PHP
+        const userId = getCurrentUserId(); // ID obtenido de PHP
         
         if (!userId) {
           showGSRecordsStatus("No se pudo obtener tu ID de usuario", "error");
