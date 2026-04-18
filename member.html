@@ -11461,7 +11461,7 @@ if (window.history && window.history.pushState) {
                         
                         <!-- Encabezado con imagen -->
                         <div style="position: relative; height: 220px; overflow: hidden; cursor: pointer;" 
-                            onclick="toggleDetailsLanzamiento('details-<?= index ?>')">
+                            onclick="toggleDetailsLanzamiento('details-1')">
                           <? if (lanzamientoData.imagenUrl) { ?>
                             <img src="<?= lanzamientoData.imagenUrl ?>" 
                                 alt="<?= lanzamientoData.tituloAlbum ?>"
@@ -11682,7 +11682,7 @@ if (window.history && window.history.pushState) {
                             border-top: 1px solid #e5e7eb;
                             padding-top: 16px;
                           ">
-                            <button onclick="toggleDetailsLanzamiento('details-<?= index ?>')" style="
+                            <button onclick="toggleDetailsLanzamiento('details-1')" style="
                               background: transparent;
                               color: #3b82f6;
                               border: 2px solid #3b82f6;
@@ -11954,7 +11954,7 @@ if (window.history && window.history.pushState) {
                                 </p>
                                 
                                 <form class="change-request-form" data-lanzamiento="<?= lanzamientoData.upcEan ?>" 
-                                      onsubmit="event.preventDefault(); submitChangeRequestLanzamiento(<?= index ?>)">
+                                      onsubmit="event.preventDefault(); submitChangeRequestLanzamiento(1)">
                                   <input type="hidden" id="crUserId-<?= index ?>" value="<span class="mostrarId"></span>">
                                   <input type="hidden" id="relatedId-<?= index ?>" value="<?= lanzamientoData.upcEan ?>">
                                   <input type="hidden" id="requestType-<?= index ?>" value="music">
@@ -11983,7 +11983,7 @@ if (window.history && window.history.pushState) {
                                     <div class="change-item-form" data-change-id="1">
                                       <div class="change-header">
                                         <h4 style="margin: 0; color: #2d3748; font-size: 1rem;">Cambio 1</h4>
-                                        <button type="button" class="btn-remove-change" onclick="removeChangeLanzamiento(1, <?= index ?>)" 
+                                        <button type="button" class="btn-remove-change" onclick="removeChangeLanzamiento(1, 1)" 
                                                 style="display: none; background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
                                           <svg style="width: 12px; height: 12px; fill: white; vertical-align: middle;" viewBox="0 0 24 24">
                                             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -12001,7 +12001,7 @@ if (window.history && window.history.pushState) {
                                           Póngase en contacto con legal@grouvex.com, indicando que desea modificar un campo privado.
                                         </p>
                                         <select id="fieldToModify1-<?= index ?>" required 
-                                                onchange="updateCurrentValueLanzamiento(1, <?= index ?>)" 
+                                                onchange="updateCurrentValueLanzamiento(1, 1)" 
                                                 style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
                                           <option value="">Seleccionar campo...</option>
                                           <option value="Título del álbum/sencillo/EP">Título del álbum/sencillo/EP</option>
@@ -12047,7 +12047,7 @@ if (window.history && window.history.pushState) {
                                     </div>
                                   </div>
                                   
-                                  <button type="button" id="addChangeBtn-<?= index ?>" onclick="addChangeLanzamiento(<?= index ?>)" 
+                                  <button type="button" id="addChangeBtn-<?= index ?>" onclick="addChangeLanzamiento(1)" 
                                           style="background: #38a169; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;">
                                     <svg style="width: 16px; height: 16px; fill: white;" viewBox="0 0 24 24">
                                       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -12097,7 +12097,7 @@ if (window.history && window.history.pushState) {
                             
                             <!-- Botón para compactar -->
                             <div style="text-align: center; margin-top: 20px;">
-                              <button onclick="toggleDetailsLanzamiento('details-<?= index ?>')" style="
+                              <button onclick="toggleDetailsLanzamiento('details-1')" style="
                                 background: #6b7280;
                                 color: white;
                                 border: none;
