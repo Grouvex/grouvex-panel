@@ -114,24 +114,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeUI() {
-    // Tab switching
-    loginTab.addEventListener('click', () => {
-        loginTab.classList.add('active');
-        registerTab.classList.remove('active');
-        loginForm.classList.add('active');
-        registerForm.classList.remove('active');
-        unverifiedWarning.classList.add('hidden');
-    });
+    // Verificar que los elementos existen antes de añadir event listeners
+    if (loginTab && registerTab) {
+        loginTab.addEventListener('click', () => {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            if (loginForm) loginForm.classList.add('active');
+            if (registerForm) registerForm.classList.remove('active');
+            if (unverifiedWarning) unverifiedWarning.classList.add('hidden');
+        });
 
-    registerTab.addEventListener('click', () => {
-        registerTab.classList.add('active');
-        loginTab.classList.remove('active');
-        registerForm.classList.add('active');
-        loginForm.classList.remove('active');
-    });
+        registerTab.addEventListener('click', () => {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            if (registerForm) registerForm.classList.add('active');
+            if (loginForm) loginForm.classList.remove('active');
+        });
+    }
     
     // Profile description counter
-    if (registerProfileDescriptionInput) {
+    if (registerProfileDescriptionInput && profileDescriptionCounter) {
         registerProfileDescriptionInput.addEventListener('input', function() {
             const length = this.value.length;
             profileDescriptionCounter.textContent = `${length}/200`;
@@ -149,29 +151,29 @@ function initializeUI() {
     }
     
     // Stripe section toggle
-    if (enableStripeCheckbox) {
+    if (enableStripeCheckbox && stripeInfoSection) {
         enableStripeCheckbox.addEventListener('change', toggleStripeSection);
         toggleStripeSection();
     }
     
-    // Event listeners for buttons
-    loginBtn.addEventListener('click', handleLogin);
-    registerBtn.addEventListener('click', handleRegister);
-    logoutBtn.addEventListener('click', handleLogout);
-    memberPortalBtn.addEventListener('click', openMemberPortal);
-    staffPortalBtn.addEventListener('click', openStaffPortal);
-    searchOtherBtn.addEventListener('click', searchOtherMember);
+    // Event listeners for buttons - verificar que existan
+    if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+    if (registerBtn) registerBtn.addEventListener('click', handleRegister);
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+    if (memberPortalBtn) memberPortalBtn.addEventListener('click', openMemberPortal);
+    if (staffPortalBtn) staffPortalBtn.addEventListener('click', openStaffPortal);
+    if (searchOtherBtn) searchOtherBtn.addEventListener('click', searchOtherMember);
     
     // Enter key press
-    if(!loginBtn.disabled){
-            passwordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleLogin();
-            });
-        if (registerConfirmPasswordInput) {
-            registerConfirmPasswordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') handleRegister();
-            });
-        }
+    if (passwordInput && !loginBtn?.disabled) {
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleLogin();
+        });
+    }
+    if (registerConfirmPasswordInput && !registerBtn?.disabled) {
+        registerConfirmPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleRegister();
+        });
     }
 }
 
