@@ -1854,8 +1854,6 @@ color: var(--accent-color);
 // DECLARACIONES DE VARIABLES GLOBALES
 // ============================================
 
-// Variables de autenticación
-let currentUserId = null;
 let mostrarId = null;
  
 </script>
@@ -5101,10 +5099,7 @@ function getCurrentUserId() {
     
     return userId || null;
 }
-
-// Variable global para el ID del usuario actual
-let currentUserId = null;
-
+const currentUserId = getCurrentUserId();
 // Actualizar currentUserId cuando cambie el estado de autenticación
 if (typeof auth !== 'undefined') {
     auth.onAuthStateChanged((user) => {
@@ -5720,7 +5715,7 @@ if (typeof auth !== 'undefined') {
               });
             }
           }
-          const currentUserId = getCurrentUserId();
+            
           // Función para buscar canción por UPC
           function searchSongByUPC() {
             const upc = document.getElementById('relatedId').value.trim();
