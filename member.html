@@ -1848,6 +1848,78 @@ padding: 40px 20px;
 color: var(--accent-color);
 }
 </style>
+<!-- Variables Globales -->
+<script>
+// ============================================
+// DECLARACIONES DE VARIABLES GLOBALES
+// ============================================
+
+// Variables de autenticación
+let currentUser = null;
+let isStaff = false;
+let isVerifiedTeam = false;
+let currentUserId = null;
+
+// Elementos del DOM que podrían no existir en todas las páginas
+const loginTab = document.getElementById('loginTab');
+const registerTab = document.getElementById('registerTab');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const loginBtn = document.getElementById('loginBtn');
+const registerBtn = document.getElementById('registerBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const memberPortalBtn = document.getElementById('memberPortalBtn');
+const staffPortalBtn = document.getElementById('staffPortalBtn');
+const searchOtherBtn = document.getElementById('searchOtherBtn');
+const unverifiedWarning = document.getElementById('unverifiedWarning');
+
+// Elementos del formulario de registro
+const registerEmailInput = document.getElementById('registerEmail');
+const registerPasswordInput = document.getElementById('registerPassword');
+const registerConfirmPasswordInput = document.getElementById('registerConfirmPassword');
+const registerUsernameInput = document.getElementById('registerUsername');
+const registerPhonePrefixInput = document.getElementById('registerPhonePrefix');
+const registerPhoneInput = document.getElementById('registerPhone');
+const registerAddressInput = document.getElementById('registerAddress');
+const registerCityInput = document.getElementById('registerCity');
+const registerPostalCodeInput = document.getElementById('registerPostalCode');
+const registerInstagramInput = document.getElementById('registerInstagram');
+const registerTikTokInput = document.getElementById('registerTikTok');
+const registerYouTubeInput = document.getElementById('registerYouTube');
+const registerDiscordInput = document.getElementById('registerDiscord');
+const registerXInput = document.getElementById('registerX');
+const registerFacebookInput = document.getElementById('registerFacebook');
+const registerClientNameInput = document.getElementById('registerClientName');
+const registerClientEmailInput = document.getElementById('registerClientEmail');
+const registerFullNameInput = document.getElementById('registerFullName');
+const registerConflictResolutionInput = document.getElementById('registerConflictResolution');
+const registerProfileDescriptionInput = document.getElementById('registerProfileDescription');
+const profileDescriptionCounter = document.getElementById('profileDescriptionCounter');
+const registerAcceptTermsInput = document.getElementById('registerAcceptTerms');
+const enableStripeCheckbox = document.getElementById('enableStripeSection');
+const stripeInfoSection = document.getElementById('stripeInfoSection');
+
+// Elementos de error del registro
+const registerEmailError = document.getElementById('registerEmailError');
+const registerPasswordError = document.getElementById('registerPasswordError');
+const registerConfirmPasswordError = document.getElementById('registerConfirmPasswordError');
+const registerUsernameError = document.getElementById('registerUsernameError');
+const registerPhoneError = document.getElementById('registerPhoneError');
+const registerAddressError = document.getElementById('registerAddressError');
+const registerCityError = document.getElementById('registerCityError');
+const registerPostalCodeError = document.getElementById('registerPostalCodeError');
+const registerClientNameError = document.getElementById('registerClientNameError');
+const registerClientEmailError = document.getElementById('registerClientEmailError');
+const registerFullNameError = document.getElementById('registerFullNameError');
+const registerConflictResolutionError = document.getElementById('registerConflictResolutionError');
+const registerContactRightsError = document.getElementById('registerContactRightsError');
+const registerOtherRightsError = document.getElementById('registerOtherRightsError');
+const registerAcceptTermsError = document.getElementById('registerAcceptTermsError');
+const registerProfileDescriptionError = document.getElementById('registerProfileDescriptionError');
+const registerInfoToShowError = document.getElementById('registerInfoToShowError');
+</script>
 </head>
   <body>
     <!-- Particulas Intro-->
@@ -2309,6 +2381,7 @@ color: var(--accent-color);
         </div>
 
       <!-- Contenido del Centro de Ayuda -->
+      <div>
           <div id="help-content" class="content-container">
               <h2 class="text-xl font-bold text-green-600 mb-4 flex items-center">
                   <i class="fas fa-question-circle mr-2"></i> Centro de Ayuda
@@ -2755,6 +2828,7 @@ color: var(--accent-color);
                   });
               });
           </script>
+      </div>
       <!-- Cierre Botón flotante para el Centro de Ayuda -->
 
       <!-- Botón flotante para el Centro de Contacto -->
@@ -3799,9 +3873,6 @@ color: var(--accent-color);
     </div>
     <!-- Pagina Web -->
     <script>
-      // Determinar qué datos mostrar
-      const mostrarDatos = targetFilaArtista && isViewingOtherProfile ? targetFilaArtista : filaArtista;
-      const mostrarInsignias = isViewingOtherProfile && targetInsigniaUrls ? targetInsigniaUrls : insigniaUrls;
       // Procesar insignias al inicio
       let insigniasEspeciales = {
         verified: false, gsmember: false, partner: false, verifiedPartner: false,
@@ -5096,14 +5167,48 @@ color: var(--accent-color);
             }
           });
           
-          function getCurrentUserId() {
-            if (!mostrarId) {
-              // Si es null, intentamos sacarlo de la URL rápido como plan B
-              const params = new URLSearchParams(window.location.search);
-              return params.get('targetId') || params.get('id') || fireID;
+/**
+ * Obtiene el ID del usuario actual desde la URL o del usuario autenticado
+ */
+function getCurrentUserId() {
+    // Intentar obtener de la URL primero
+    const urlParams = new URLSearchParams(window.location.search);
+    let userId = urlParams.get('targetId') || urlParams.get('id');
+    
+    // Si no hay en URL, intentar del usuario autenticado
+    if (!userId && currentUser) {
+        userId = `GS-${currentUser.uid}`;
+    }
+    
+    // Si aún no hay, intentar del elemento del DOM
+    if (!userId) {
+        const userIdElement = document.getElementById('gs-user-id');
+        if (userIdElement && userIdElement.value && userIdElement.value !== 'Not Defined') {
+            userId = userIdElement.value;
+        }
+    }
+    
+    return userId || null;
+}
+
+// Variable global para el ID del usuario actual
+let currentUserId = null;
+
+// Actualizar currentUserId cuando cambie el estado de autenticación
+if (typeof auth !== 'undefined') {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            currentUserId = `GS-${user.uid}`;
+            // Actualizar también el campo del formulario si existe
+            const gsUserIdInput = document.getElementById('gs-user-id');
+            if (gsUserIdInput) {
+                gsUserIdInput.value = currentUserId;
             }
-            return mostrarId;
-          }
+        } else {
+            currentUserId = null;
+        }
+    });
+}
           
           // Login handler
           loginBtn.addEventListener('click', () => {
@@ -7191,21 +7296,32 @@ let currentPrivacy = '';
  * Cargar la sección de perfiles de miembros
  */
 function loadMemberProfilesSection() {
-  google.script.run
-    .withSuccessHandler(function(result) {
-      if (result.success) {
-        document.getElementById('member-profiles-section').innerHTML = result.html;
-        initMemberActionButtons();
-        initMemberModalFunctions();
-      } else {
-        showMemberError(result.message || 'Error al cargar perfiles');
-      }
-    })
-    .withFailureHandler(function(error) {
-      console.error('Error al cargar perfiles:', error);
-      showMemberError('No se pudieron cargar los perfiles de miembros');
-    })
-    .getMemberProfilesIndependent(currentUserId);
+    const userId = getCurrentUserId();
+    
+    if (!userId) {
+        console.warn('No se pudo obtener ID de usuario para cargar perfiles de miembros');
+        showMemberError('No se pudo identificar al usuario');
+        return;
+    }
+    
+    google.script.run
+        .withSuccessHandler(function(result) {
+            if (result.success) {
+                const memberProfilesSection = document.getElementById('member-profiles-section');
+                if (memberProfilesSection) {
+                    memberProfilesSection.innerHTML = result.html;
+                    initMemberActionButtons();
+                    initMemberModalFunctions();
+                }
+            } else {
+                showMemberError(result.message || 'Error al cargar perfiles');
+            }
+        })
+        .withFailureHandler(function(error) {
+            console.error('Error al cargar perfiles:', error);
+            showMemberError('No se pudieron cargar los perfiles de miembros');
+        })
+        .getMemberProfilesIndependent(userId);
 }
 
 /**
@@ -9628,34 +9744,44 @@ if (window.history && window.history.pushState) {
     // Cargar datos del usuario desde la sesión
     function loadUserDataFromSession() {
       let userID = getCurrentUserId();
+      
+      if (!userID) {
+          console.warn('No se pudo obtener el ID de usuario');
+          return;
+      }
+      
       try {
-        // Obtener datos del usuario desde el contexto de Apps Script
-        google.script.run
-          .withSuccessHandler(function(response) {
-            if (response && response.success && response.userData) {
-              // Rellenar campos automáticos
-              const userData = response.userData;
-              document.getElementById('user-id').value = userID || '';
-              document.getElementById('artist').value = userData.artist || '';
-              document.getElementById('email').value = userData.email || '';
-              
-              // Mostrar advertencia si tiene lanzamientos pendientes
-              if (response.pendingReleases && response.pendingReleases.pending) {
-                showNotification(
-                  `⚠️ ${response.pendingReleases.message}`,
-                  'warning'
-                );
-              }
-            } else {
-              console.error('No se pudo cargar la información del usuario:', response?.message);
-            }
-          })
-          .withFailureHandler(function(error) {
-            console.error('Error cargando datos del usuario:', error);
-          })
-          .getReleaseFormInitialData(userID);
+          // Obtener datos del usuario desde el contexto de Apps Script
+          google.script.run
+              .withSuccessHandler(function(response) {
+                  if (response && response.success && response.userData) {
+                      // Rellenar campos automáticos
+                      const userData = response.userData;
+                      const userIdInput = document.getElementById('user-id');
+                      const artistInput = document.getElementById('artist');
+                      const emailInput = document.getElementById('email');
+                      
+                      if (userIdInput) userIdInput.value = userID || '';
+                      if (artistInput) artistInput.value = userData.artist || '';
+                      if (emailInput) emailInput.value = userData.email || '';
+                      
+                      // Mostrar advertencia si tiene lanzamientos pendientes
+                      if (response.pendingReleases && response.pendingReleases.pending) {
+                          showNotification(
+                              `⚠️ ${response.pendingReleases.message}`,
+                              'warning'
+                          );
+                      }
+                  } else {
+                      console.error('No se pudo cargar la información del usuario:', response?.message);
+                  }
+              })
+              .withFailureHandler(function(error) {
+                  console.error('Error cargando datos del usuario:', error);
+              })
+              .getReleaseFormInitialData(userID);
       } catch (error) {
-        console.error('Error al cargar datos del usuario:', error);
+          console.error('Error al cargar datos del usuario:', error);
       }
     }
 
@@ -13029,22 +13155,23 @@ if (window.history && window.history.pushState) {
 
       // Verificar estado GSRecords directamente desde Sheets
       function checkGSRecordsStatus() {
-        const userId = getCurrentUserId(); // ID obtenido de PHP
-        
-        if (!userId) {
-          showGSRecordsStatus("No se pudo obtener tu ID de usuario", "error");
-          disableGSRecordsForm();
-          return;
-        }
-        
-        // Mostrar mensaje de carga
-        showGSRecordsStatus("Verificando tu estado en GSRecords...", "loading");
-        
-        // Llamar a Google Apps Script para verificar estado
-        google.script.run
-          .withSuccessHandler(handleGSRecordsStatusResponse)
-          .withFailureHandler(handleGSRecordsStatusError)
-          .checkUserGSRecordsStatus(userId);
+          const userId = getCurrentUserId();
+          
+          if (!userId) {
+              console.warn('No se pudo obtener ID de usuario para verificar estado GSRecords');
+              showGSRecordsStatus("No se pudo obtener tu ID de usuario", "error");
+              disableGSRecordsForm();
+              return;
+          }
+          
+          // Mostrar mensaje de carga
+          showGSRecordsStatus("Verificando tu estado en GSRecords...", "loading");
+          
+          // Llamar a Google Apps Script para verificar estado
+          google.script.run
+              .withSuccessHandler(handleGSRecordsStatusResponse)
+              .withFailureHandler(handleGSRecordsStatusError)
+              .checkUserGSRecordsStatus(userId);
       }
 
       // Manejar respuesta del estado
