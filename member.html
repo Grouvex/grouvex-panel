@@ -1855,70 +1855,9 @@ color: var(--accent-color);
 // ============================================
 
 // Variables de autenticación
-let currentUser = null;
-let isStaff = false;
-let isVerifiedTeam = false;
 let currentUserId = null;
-
-// Elementos del DOM que podrían no existir en todas las páginas
-const loginTab = document.getElementById('loginTab');
-const registerTab = document.getElementById('registerTab');
-const loginForm = document.getElementById('loginForm');
-const registerForm = document.getElementById('registerForm');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const loginBtn = document.getElementById('loginBtn');
-const registerBtn = document.getElementById('registerBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const memberPortalBtn = document.getElementById('memberPortalBtn');
-const staffPortalBtn = document.getElementById('staffPortalBtn');
-const searchOtherBtn = document.getElementById('searchOtherBtn');
-const unverifiedWarning = document.getElementById('unverifiedWarning');
-
-// Elementos del formulario de registro
-const registerEmailInput = document.getElementById('registerEmail');
-const registerPasswordInput = document.getElementById('registerPassword');
-const registerConfirmPasswordInput = document.getElementById('registerConfirmPassword');
-const registerUsernameInput = document.getElementById('registerUsername');
-const registerPhonePrefixInput = document.getElementById('registerPhonePrefix');
-const registerPhoneInput = document.getElementById('registerPhone');
-const registerAddressInput = document.getElementById('registerAddress');
-const registerCityInput = document.getElementById('registerCity');
-const registerPostalCodeInput = document.getElementById('registerPostalCode');
-const registerInstagramInput = document.getElementById('registerInstagram');
-const registerTikTokInput = document.getElementById('registerTikTok');
-const registerYouTubeInput = document.getElementById('registerYouTube');
-const registerDiscordInput = document.getElementById('registerDiscord');
-const registerXInput = document.getElementById('registerX');
-const registerFacebookInput = document.getElementById('registerFacebook');
-const registerClientNameInput = document.getElementById('registerClientName');
-const registerClientEmailInput = document.getElementById('registerClientEmail');
-const registerFullNameInput = document.getElementById('registerFullName');
-const registerConflictResolutionInput = document.getElementById('registerConflictResolution');
-const registerProfileDescriptionInput = document.getElementById('registerProfileDescription');
-const profileDescriptionCounter = document.getElementById('profileDescriptionCounter');
-const registerAcceptTermsInput = document.getElementById('registerAcceptTerms');
-const enableStripeCheckbox = document.getElementById('enableStripeSection');
-const stripeInfoSection = document.getElementById('stripeInfoSection');
-
-// Elementos de error del registro
-const registerEmailError = document.getElementById('registerEmailError');
-const registerPasswordError = document.getElementById('registerPasswordError');
-const registerConfirmPasswordError = document.getElementById('registerConfirmPasswordError');
-const registerUsernameError = document.getElementById('registerUsernameError');
-const registerPhoneError = document.getElementById('registerPhoneError');
-const registerAddressError = document.getElementById('registerAddressError');
-const registerCityError = document.getElementById('registerCityError');
-const registerPostalCodeError = document.getElementById('registerPostalCodeError');
-const registerClientNameError = document.getElementById('registerClientNameError');
-const registerClientEmailError = document.getElementById('registerClientEmailError');
-const registerFullNameError = document.getElementById('registerFullNameError');
-const registerConflictResolutionError = document.getElementById('registerConflictResolutionError');
-const registerContactRightsError = document.getElementById('registerContactRightsError');
-const registerOtherRightsError = document.getElementById('registerOtherRightsError');
-const registerAcceptTermsError = document.getElementById('registerAcceptTermsError');
-const registerProfileDescriptionError = document.getElementById('registerProfileDescriptionError');
-const registerInfoToShowError = document.getElementById('registerInfoToShowError');
+let mostrarId = null;
+ 
 </script>
 </head>
   <body>
@@ -2168,7 +2107,6 @@ const registerInfoToShowError = document.getElementById('registerInfoToShowError
                 'www.grouvex.com',
                 'grouvex.com', 
                 'grouvex.github.io',
-                '<?= BASE_APPS_SCRIPT_URL ?>',
                 'https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link'
             ];
 
@@ -4703,12 +4641,12 @@ const registerInfoToShowError = document.getElementById('registerInfoToShowError
                   
                   if (belongsToUser) {
                     // Usuario viendo su propio perfil - no necesita permisos de staff
-                    const url = `${BASE_APPS_SCRIPT_URL}?id=GS-${fireID}&targetId=${encodeURIComponent(profileId)}`;
+                    const url = `https://panel.grouvex.com/member?id=GS-${fireID}&targetId=${encodeURIComponent(profileId)}`;
                     window.open(url, '_blank');
                   } else {
                     // Usuario intentando ver perfil ajeno - requiere staff
                     if (isStaff) {
-                      const url = `${BASE_APPS_SCRIPT_URL}?id=GS-${fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
+                      const url = `https://panel.grouvex.com/member?id=GS-${fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
                       window.open(url, '_blank');
                     } else {
                       alert("Solo el staff puede ver perfiles de otros usuarios.");
@@ -4801,7 +4739,7 @@ const registerInfoToShowError = document.getElementById('registerInfoToShowError
                       const targetId = document.getElementById('targetId').value.trim();
                       const staffId = document.getElementById('staffId').value.trim();
                       if (targetId) {
-                        const url = `${BASE_APPS_SCRIPT_URL}?id=GS-${staffId}&targetId=${targetId}&isStaff=true`;
+                        const url = `https://panel.grouvex.com/member?id=GS-${staffId}&targetId=${targetId}&isStaff=true`;
                       window.open(url, '_blank');
 
                       }
@@ -4809,14 +4747,14 @@ const registerInfoToShowError = document.getElementById('registerInfoToShowError
                         
                     // Staff portal handler
                     staffPortalBtn.addEventListener('click', () => {      
-                      const url = `${BASE_APPS_SCRIPT_URL}?staffid=GS-${encodeURIComponent(currentUser.uid)}&isStaff=true`;
+                      const url = `https://panel.grouvex.com/staff?staffid=GS-${encodeURIComponent(currentUser.uid)}&isStaff=true`;
                       window.open(url, '_blank');
                     });
 
                   // View own profile handler
                   if (document.getElementById('viewOwnProfileBtn')) {
                     document.getElementById('viewOwnProfileBtn').addEventListener('click', () => {
-                      const url = `${BASE_APPS_SCRIPT_URL}?id=GS-${encodeURIComponent(currentUser.uid)}`;
+                      const url = `https://panel.grouvex.com/member?id=GS-${encodeURIComponent(currentUser.uid)}`;
                       window.open(url, '_blank');
                     });
                   }
@@ -5007,34 +4945,7 @@ const registerInfoToShowError = document.getElementById('registerInfoToShowError
           setupActivityListeners();
           console.log('Sistema de timeout de sesión iniciado');
       }
-          
-          // DOM elements
-          const loginForm = document.getElementById('loginForm');
-          const userDashboard = document.getElementById('userDashboard');
-          const emailInput = document.getElementById('email');
-          const passwordInput = document.getElementById('password');
-          const loginBtn = document.getElementById('loginBtn');
-          const loginText = document.getElementById('loginText');
-          const loginSpinner = document.getElementById('loginSpinner');
-          const emailError = document.getElementById('emailError');
-          const passwordError = document.getElementById('passwordError');
-          const userEmail = document.getElementById('userEmail');
-          const staffBadge = document.getElementById('staffBadge');
-          const verifiedTeamBadge = document.getElementById('verifiedTeamBadge');
-          const logoutBtn = document.getElementById('logoutBtn');
-          const memberPortalBtn = document.getElementById('memberPortalBtn');
-          const staffPortalBtn = document.getElementById('staffPortalBtn');
-          const portalMember = document.getElementById('portalMember');
-          const mainCentros = document.getElementById('main-centros-btn');
-          // App constants
-          const BASE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec";
-          const LOGIN_URL = "https://grouvex.github.io/login";
-          
-          // State variables
-          let currentUser = null;
-          let isStaff = false;
-          let isVerifiedTeam = false;
-          let mostrarId = null;
+        
           function isStaffAccessUrl() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.has('targetId') && urlParams.get('isStaff') === 'true';
@@ -5407,7 +5318,7 @@ if (typeof auth !== 'undefined') {
           document.body.appendChild(overlay);
           
           document.getElementById('goToMyProfile').addEventListener('click', function() {
-            window.open(`${BASE_APPS_SCRIPT_URL}?id=GS-${firebase.auth().currentUser.uid}`);
+            window.open(`https://panel.grouvex.com/member?id=GS-${firebase.auth().currentUser.uid}`);
           });
         }
 
@@ -5469,11 +5380,11 @@ if (typeof auth !== 'undefined') {
           document.body.appendChild(overlay);
           
           document.getElementById('goToMyProfile').addEventListener('click', function() {
-            window.open(`${BASE_APPS_SCRIPT_URL}?id=GS-${firebase.auth().currentUser.uid}`);
+            window.open(`https://panel.grouvex.com/member?id=GS-${firebase.auth().currentUser.uid}`);
           });
           
           document.getElementById('goToStaffSearch').addEventListener('click', function() {
-            window.open(`${BASE_APPS_SCRIPT_URL}?id=GS-${firebase.auth().currentUser.uid}`);
+            window.open(`https://panel.grouvex.com/member?id=GS-${firebase.auth().currentUser.uid}`);
           });
         }
 
@@ -9759,7 +9670,7 @@ if (window.history && window.history.pushState) {
                       const userData = response.userData;
                       const userIdInput = document.getElementById('user-id');
                       const artistInput = document.getElementById('artist');
-                      const emailInput = document.getElementById('email');
+                      emailInput = document.getElementById('email');
                       
                       if (userIdInput) userIdInput.value = userID || '';
                       if (artistInput) artistInput.value = userData.artist || '';
