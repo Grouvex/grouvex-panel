@@ -4966,6 +4966,10 @@ let mostrarId = null;
             document.querySelectorAll('.mostrarId').forEach(el => {
                 el.textContent = mostrarId;
             });
+            const crUserIdInput = document.getElementById('crUserId');
+            if (crUserIdInput) {
+                crUserIdInput.value = mostrarId;
+            }
           document.getElementById('gs-user-id').value = fireID;
                   // Mostrar imagen de perfil si existe
               const userAvatar = document.getElementById('user-avatar');
@@ -5480,7 +5484,7 @@ if (typeof auth !== 'undefined') {
               <p style="color:red">Los campos con asterisco (*) son obligatorios a la hora de poder enviar el formulario.</p>
               
               <form id="changeRequestForm">
-                <input type="hidden" id="crUserId" value="<span class="mostrarId"></span>">
+                <input type="hidden" id="crUserId" value="">
                 
                 <div class="form-group">
                   <label for="requestType">Tipo de Solicitud*:</label>
@@ -5782,7 +5786,7 @@ if (typeof auth !== 'undefined') {
                   document.getElementById(`currentValue${changeId}`).value = "Error al cargar valor";
                   console.error('Error:', error);
                 })
-                .getCurrentFieldValue(userId, field);
+                .getCurrentFieldValue(userId, field, requestType, relatedId);
             }
           }
 
