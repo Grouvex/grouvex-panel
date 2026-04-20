@@ -9632,7 +9632,7 @@ console.log('URLs de insignias:', currentArtistInsigniaUrls);
 document.addEventListener('DOMContentLoaded', function() {
     // Cargar datos del usuario
     const userData = loadUserDataFromSession();
-    
+    console.log('📊 Datos del usuario:', userData);
     if (userData && userData.found) {
         // Obtener campos específicos del artista
         const nombreCompleto = getArtistField('Nombre completo') || getArtistField('Nombre') || 'Usuario';
