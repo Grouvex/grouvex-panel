@@ -3901,79 +3901,68 @@ let mostrarId = null;
       <!-- User Dashboard (hidden by default) -->
       <div id="userDashboard" class="user-info hidden">
         <details id="portalMember">
-          <summary>
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; z-index: 2; flex-wrap: wrap; width: 100%; box-sizing: border-box; flex-direction: row;">
-              <!-- Bloque 1: Información del usuario (avatar + datos) -->
-              <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0;">
-                <!-- Contenedor para avatares superpuestos -->
-                <div class="avatar-container" style="position: relative; flex-shrink: 0;">
-                  <!-- Imagen base (Avatar) - SE CARGA AUTOMÁTICAMENTE -->
-                  <img id="user-avatar" src="" alt="Avatar" style="width: 90px; height: 90px; border-radius: 50%; display: none; object-fit: cover;">
-                  <!-- Imagen decorativa superpuesta - SE SELECCIONA -->
-                  <img id="user-avatar-overlay" src="" alt="Decoración" 
-                      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; display: none; z-index: 3; object-fit: cover;">
-                </div>
-                
-                <!-- Contenedor de datos del usuario -->
-                <div style="flex: 1; min-width: 0;">
-                  <!-- Nombre y verificación en línea -->
-                  <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 4px; flex-wrap: wrap;">
-                    <strong id="user-name" style="font-size: 16px; line-height: 1.3; word-break: break-word; hyphens: auto;"></strong>
-                    <span id="email-verified" style="display: none; flex-shrink: 0;">
-                      <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/verified.png" alt="Verificado" style="width: 16px; height: 16px; vertical-align: middle;">
-                    </span>
-                    <span id="email-verified-x" style="display: none; flex-shrink: 0;"><i class="fa-solid fa-user-slash"></i></span>
-                  </div>
-                  
-                  <!-- Email y badges de staff -->
-                  <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 4px; flex-wrap: wrap;">
-                    <span id="userEmail" class="user-email" style="color: #666; font-size: 14px; line-height: 1.3; word-break: break-word; hyphens: auto;"></span>
-                    <? if (insigniasEspeciales.staff || (isStaff)) { ?>
-                      <div style="display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: 5px;">
-                        <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/verified-team.png" alt="Verificado" style="width: 16px; height: 16px; vertical-align: middle;">
-                        <span id="staffBadge" class="staff-badge" style="font-size: 12px; font-weight: bold; color: #007bff;">STAFF</span>
-                        <span id="verifiedTeamBadge" class="verified-team-badge" style="font-size: 12px; font-weight: bold; color: #28a745;">VERIFIED TEAM</span>
-                      </div>
-                    <? } ?>
-                  </div>
-                  
-                  <!-- Insignias en línea horizontal -->
-                    <div style="display: flex; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; max-width: 60%;">
-                        <div id="insignias"></div>
-                    </div>
-                  
-                  <!-- Último acceso -->
-                  <p style="margin: 0; color: #666; font-size: 13px; line-height: 1.3; word-break: break-word; hyphens: auto;">
-                    Ultimo acceso: <span id="userlastsing"></span>
-                  </p>
-                  
-                  <!-- Botón logout -->
-                  <button id="logoutBtn" class="btn-logout hidden" title="Cerrar sesión" style="margin-top: 8px; flex-shrink: 0;"><i class="fas fa-sign-out-alt"></i></button>
-                </div>
-              </div>
-              
-          <!-- Bloque 2: Imagen TIGS separada -->
-          <div style="flex-shrink: 0; margin-left: 20px; position: relative; display: flex; align-items: flex-start; pointer-events: none;">
-            <!-- Imagen TIGS de fondo -->
-            <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/TIGS%20(GS-ID).jpg" alt="TIGS" 
-                style="width: auto; height: auto; max-width: 250px; max-height: 170px; object-fit: contain; vertical-align: middle;">
-            <p style="position: absolute; font-size: 6px; top: 36px; left: 90px; color: black;"><?= id ?></p>
-            <!-- Avatar TIGS superpuesto -->
-            <img id="user-avatarTIGS" src="" alt="Avatar TIGS" 
-                style="position: absolute; top: 46px; left: 4px; width: 63px; height: auto; border-radius: 5.2%; display: block; object-fit: cover; margin-right: 1px; opacity: 90%;">
+<summary>
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; z-index: 2; flex-wrap: wrap; width: 100%; box-sizing: border-box; flex-direction: row;">
+    <!-- Bloque 1: Información del usuario (avatar + datos) -->
+    <div style="display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0;">
+      <!-- Contenedor para avatares superpuestos -->
+      <div class="avatar-container" style="position: relative; flex-shrink: 0;">
+        <!-- Imagen base (Avatar) - SE CARGA AUTOMÁTICAMENTE -->
+        <img id="user-avatar" src="" alt="Avatar" style="width: 90px; height: 90px; border-radius: 50%; display: none; object-fit: cover;">
+        <!-- Imagen decorativa superpuesta - SE SELECCIONA -->
+        <img id="user-avatar-overlay" src="" alt="Decoración" 
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; display: none; z-index: 3; object-fit: cover;">
+      </div>
+      
+      <!-- Contenedor de datos del usuario -->
+      <div style="flex: 1; min-width: 0;">
+        <!-- Nombre y verificación en línea -->
+        <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 4px; flex-wrap: wrap;">
+          <strong id="user-name" style="font-size: 16px; line-height: 1.3; word-break: break-word; hyphens: auto;"></strong>
+          <span id="email-verified" style="display: none; flex-shrink: 0;">
+            <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/verified.png" alt="Verificado" style="width: 16px; height: 16px; vertical-align: middle;">
+          </span>
+          <span id="email-verified-x" style="display: none; flex-shrink: 0;"><i class="fa-solid fa-user-slash"></i></span>
+        </div>
+        
+        <!-- Email y badges de staff -->
+        <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 4px; flex-wrap: wrap;">
+          <span id="userEmail" class="user-email" style="color: #666; font-size: 14px; line-height: 1.3; word-break: break-word; hyphens: auto;"></span>
+          <div id="staff-badges-container" style="display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: 5px;"></div>
+        </div>
+        
+        <!-- Insignias en línea horizontal -->
+        <div style="display: flex; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; max-width: 60%;">
+          <div id="insignias"></div>
+        </div>
+        
+        <!-- Último acceso -->
+        <p style="margin: 0; color: #666; font-size: 13px; line-height: 1.3; word-break: break-word; hyphens: auto;">
+          Ultimo acceso: <span id="userlastsing"></span>
+        </p>
+        
+        <!-- Botón logout -->
+        <button id="logoutBtn" class="btn-logout hidden" title="Cerrar sesión" style="margin-top: 8px; flex-shrink: 0;"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+    
+    <!-- Bloque 2: Imagen TIGS separada -->
+    <div style="flex-shrink: 0; margin-left: 20px; position: relative; display: flex; align-items: flex-start; pointer-events: none;">
+      <!-- Imagen TIGS de fondo -->
+      <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/TIGS%20(GS-ID).jpg" alt="TIGS" 
+          style="width: auto; height: auto; max-width: 250px; max-height: 170px; object-fit: contain; vertical-align: middle;">
+      <p id="tigs-id-text" style="position: absolute; font-size: 6px; top: 36px; left: 90px; color: black;"></p>
+      <!-- Avatar TIGS superpuesto -->
+      <img id="user-avatarTIGS" src="" alt="Avatar TIGS" 
+          style="position: absolute; top: 46px; left: 4px; width: 63px; height: auto; border-radius: 5.2%; display: block; object-fit: cover; margin-right: 1px; opacity: 90%;">
 
-            <!-- Insignias TIGS - posicionadas dentro del contenedor TIGS -->
-            <? if (insigniaUrls && insigniaUrls.length > 0) { ?>
-              <div style="position: absolute; bottom: 8px; left: 2px; width: 70px; height: 30px; display: flex; flex-wrap: wrap; gap: 1px; align-content: flex-start; overflow: visible;">
-                <? for (const url of insigniaUrls) { ?>
-                  <img src="<?= url ?>" alt="Insignias TIGS" style="width: 7px; height: 7px; flex-shrink: 0; display: block;">
-                <? } ?>
-              </div>
-            <? } ?>
-          </div>
-            </div>
-          </summary>
-
+      <!-- Insignias TIGS - posicionadas dentro del contenedor TIGS -->
+      <div id="tigs-insignias-container" style="position: absolute; bottom: 8px; left: 2px; width: 70px; height: 30px; display: flex; flex-wrap: wrap; gap: 1px; align-content: flex-start; overflow: visible;">
+        <!-- Las insignias se cargarán dinámicamente con JavaScript -->
+      </div>
+    </div>
+  </div>
+</summary>
 <style>
   @media (max-width: 768px) {
     summary > div {
@@ -9452,8 +9441,34 @@ if (window.history && window.history.pushState) {
       setupTrackSelector();
       setupEventListeners();
       loadUserDataFromSession();
+      loadReleaseDataFromSession();
     });
 
+// Función para cargar insignias TIGS dinámicamente
+function loadTIGSInsignias(insigniaUrls) {
+  const container = document.getElementById('tigs-insignias-container');
+  if (!container) return;
+  
+  // Limpiar contenedor
+  container.innerHTML = '';
+  
+  // Verificar si hay insignias
+  if (insigniaUrls && insigniaUrls.length > 0) {
+    // Crear y agregar cada insignia
+    insigniaUrls.forEach(url => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = 'Insignias TIGS';
+      img.style.cssText = 'width: 7px; height: 7px; flex-shrink: 0; display: block;';
+      container.appendChild(img);
+    });
+  }
+}
+
+// Ejemplo de uso cuando se cargan los datos del artista:
+// loadTIGSInsignias(artistData.insigniaUrls);
+
+      
     // Configurar selector de cantidad de tracks
     function setupTrackSelector() {
       const singleBtn = document.getElementById('single-track-btn');
@@ -9482,8 +9497,250 @@ if (window.history && window.history.pushState) {
       });
     }
 
+// Variables globales para almacenar los datos del artista
+let currentArtistData = null;
+let currentArtistRow = null;
+let currentArtistHeaders = null;
+let currentArtistInsignias = [];
+let currentArtistInsigniaUrls = [];
+let currentArtistIsStaff = false;
+let currentArtistRawData = {};
+
+// Cargar datos del usuario desde la sesión
+function loadUserDataFromSession() {
+    let userID = getCurrentUserId();
+    
+    if (!userID) {
+        console.warn("No hay UserID disponible en la sesión");
+        return null;
+    }
+    
+    try {
+        // Llamar a la función getArtistData (desde el .gs o simulador)
+        const result = getArtistData(userID);
+        
+        if (!result.found) {
+            console.warn(`No se encontró artista con ID: ${userID}`);
+            return null;
+        }
+        
+        // Almacenar todos los datos en variables
+        currentArtistData = result;
+        currentArtistRow = result.row;
+        currentArtistHeaders = result.headers;
+        currentArtistInsignias = result.insignias;
+        currentArtistInsigniaUrls = result.insigniaUrls;
+        currentArtistIsStaff = result.isStaff;
+        currentArtistRawData = result.artistData;
+        
+        console.log(`Datos del artista ${userID} cargados correctamente`);
+        console.log("Insignias:", currentArtistInsignias);
+        console.log("Es Staff:", currentArtistIsStaff);
+        
+        return result;
+        
+    } catch (error) {
+        console.error("Error al cargar datos del artista:", error);
+        return null;
+    }
+}
+
+// Función para obtener un campo específico del artista
+function getArtistField(fieldName) {
+    if (!currentArtistRawData) {
+        console.warn("No hay datos de artista cargados");
+        return null;
+    }
+    
+    return currentArtistRawData[fieldName] || null;
+}
+
+// Función para verificar si el usuario es staff
+function isCurrentUserStaff() {
+    return currentArtistIsStaff;
+}
+
+// Función para obtener las insignias del usuario actual
+function getCurrentUserInsignias() {
+    return currentArtistInsignias;
+}
+
+// Función para obtener las URLs de las insignias
+function getCurrentUserInsigniaUrls() {
+    return currentArtistInsigniaUrls;
+}
+
+// Función para obtener todos los datos del artista
+function getAllArtistData() {
+    return currentArtistData;
+}
+
+// Función para obtener el objeto raw del artista
+function getArtistRawData() {
+    return currentArtistRawData;
+}
+
+// Función para refrescar los datos del usuario
+function refreshUserData() {
+    // Limpiar variables
+    currentArtistData = null;
+    currentArtistRow = null;
+    currentArtistHeaders = null;
+    currentArtistInsignias = [];
+    currentArtistInsigniaUrls = [];
+    currentArtistIsStaff = false;
+    currentArtistRawData = {};
+    
+    // Cargar datos frescos
+    return loadUserDataFromSession();
+}
+
+// Ejemplo de uso:
+/*
+// Cargar datos al iniciar
+loadUserDataFromSession();
+
+// Acceder a campos específicos
+const nombreArtista = getArtistField('Nombre completo');
+const email = getArtistField('Correo electrónico');
+const telefono = getArtistField('Teléfono');
+
+console.log('Artista:', nombreArtista);
+console.log('Email:', email);
+console.log('Es Staff:', isCurrentUserStaff());
+
+// Recorrer todas las insignias
+const insignias = getCurrentUserInsignias();
+insignias.forEach(insignia => {
+    console.log(`Insignia: ${insignia.name} - Staff: ${insignia.isStaff}`);
+});
+
+// Acceder directamente a las variables globales
+console.log('Datos completos:', currentArtistRawData);
+console.log('URLs de insignias:', currentArtistInsigniaUrls);
+*/
+// Cargar los datos del artista al iniciar
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar datos del usuario
+    const userData = loadUserDataFromSession();
+    
+    if (userData && userData.found) {
+        // Obtener campos específicos del artista
+        const nombreCompleto = getArtistField('Nombre completo') || getArtistField('Nombre') || 'Usuario';
+        const email = getArtistField('Correo electrónico') || getArtistField('Email') || '';
+        const avatarUrl = getArtistField('Avatar URL') || getArtistField('Avatar') || '';
+        const ultimoAcceso = getArtistField('Último acceso') || getArtistField('Ultimo acceso') || 'No registrado';
+        const emailVerificado = getArtistField('Email verificado') === 'Sí' || getArtistField('Email verificado') === true;
+        
+        // Llenar datos básicos
+        document.getElementById('user-name').textContent = nombreCompleto;
+        document.getElementById('userEmail').textContent = email;
+        document.getElementById('userlastsing').textContent = ultimoAcceso;
+        
+        // Mostrar verificación de email
+        if (emailVerificado) {
+            document.getElementById('email-verified').style.display = 'inline-flex';
+        } else {
+            document.getElementById('email-verified-x').style.display = 'inline-flex';
+        }
+        
+        // Cargar avatar
+        if (avatarUrl) {
+            const avatarImg = document.getElementById('user-avatar');
+            avatarImg.src = avatarUrl;
+            avatarImg.style.display = 'block';
+            
+            // También cargar avatar en TIGS
+            const avatarTIGS = document.getElementById('user-avatarTIGS');
+            avatarTIGS.src = avatarUrl;
+        }
+        
+        // Mostrar ID en TIGS
+        document.getElementById('tigs-id-text').textContent = userData.id || '';
+        
+        // Mostrar badges de staff si es necesario
+        const staffBadgesContainer = document.getElementById('staff-badges-container');
+        if (isCurrentUserStaff()) {
+            staffBadgesContainer.innerHTML = `
+                <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/verified-team.png" alt="Verificado" style="width: 16px; height: 16px; vertical-align: middle;">
+                <span class="staff-badge" style="font-size: 12px; font-weight: bold; color: #007bff;">STAFF</span>
+                <span class="verified-team-badge" style="font-size: 12px; font-weight: bold; color: #28a745;">VERIFIED TEAM</span>
+            `;
+        }
+        
+        // Cargar insignias normales
+        const insigniasContainer = document.getElementById('insignias');
+        const insignias = getCurrentUserInsignias();
+        
+        if (insignias && insignias.length > 0) {
+            insignias.forEach(insignia => {
+                // Solo mostrar insignias que no son de staff (o mostrarlas todas)
+                if (!insignia.isStaff) {
+                    const img = document.createElement('img');
+                    img.src = insignia.url;
+                    img.alt = insignia.name;
+                    img.title = insignia.name;
+                    img.style.width = '24px';
+                    img.style.height = '24px';
+                    img.style.borderRadius = '50%';
+                    img.style.objectFit = 'cover';
+                    insigniasContainer.appendChild(img);
+                }
+            });
+        }
+        
+        // Cargar insignias pequeñas para TIGS
+        const tigsContainer = document.getElementById('tigs-insignias-container');
+        if (insignias && insignias.length > 0) {
+            insignias.forEach(insignia => {
+                const smallImg = document.createElement('img');
+                smallImg.src = insignia.url;
+                smallImg.alt = insignia.name;
+                smallImg.title = insignia.name;
+                smallImg.style.width = '16px';
+                smallImg.style.height = '16px';
+                smallImg.style.borderRadius = '50%';
+                smallImg.style.objectFit = 'cover';
+                smallImg.style.border = '1px solid gold';
+                tigsContainer.appendChild(smallImg);
+            });
+        }
+        
+        // Cargar overlay de avatar si existe (ejemplo: marco especial para staff)
+        const avatarOverlay = document.getElementById('user-avatar-overlay');
+        if (isCurrentUserStaff()) {
+            // Marco dorado para staff
+            avatarOverlay.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/staff-frame.png';
+            avatarOverlay.style.display = 'block';
+        } else if (insignias && insignias.some(i => i.name === 'premium')) {
+            // Marco premium
+            avatarOverlay.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/premium-frame.png';
+            avatarOverlay.style.display = 'block';
+        }
+        
+        // Configurar botón de logout
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.classList.remove('hidden');
+            logoutBtn.addEventListener('click', function() {
+                // Limpiar datos y redirigir
+                if (typeof logout === 'function') {
+                    logout();
+                } else {
+                    window.location.href = '/logout';
+                }
+            });
+        }
+        
+        console.log('Datos del usuario cargados exitosamente');
+    } else {
+        console.error('No se pudieron cargar los datos del usuario');
+        // Mostrar mensaje de error o redirigir al login
+        document.getElementById('user-name').textContent = 'Error al cargar datos';
+    }
+});  
     // Cargar datos del usuario desde la sesión
-    function loadUserDataFromSession() {
+    function loadReleaseDataFromSession() {
       let userID = getCurrentUserId();
       
       if (!userID) {
@@ -13426,225 +13683,6 @@ if (window.history && window.history.pushState) {
       </script>
       <!-- Cierre Contador -->
     </div>
-
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>        
-        let currentMethod = 'get';
-        // ============================================
-        // FUNCIONES DE UI
-        // ============================================
-        
-        function showLoading() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('profileCard').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'none';
-        }
-        
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
-        
-        function showError(message) {
-            const errorEl = document.getElementById('errorMessage');
-            document.getElementById('errorText').textContent = message;
-            errorEl.style.display = 'block';
-            hideLoading();
-        }
-        
-        function displayArtistData(apiResponse) {
-            console.log("🎨 Datos recibidos:", apiResponse);
-            
-            if (!apiResponse || !apiResponse.found) {
-                showError("No se encontró el artista. Verifica el GS-ID.");
-                return;
-            }
-            
-            const artist = apiResponse.artistData || {};
-            const insigniaUrls = apiResponse.insigniaUrls || [];
-            const isStaff = apiResponse.isStaff === true;
-            const hasVerifiedBadge = apiResponse.insignias?.some(i => i.name === 'verified') || false;
-            auth.onAuthStateChanged(async (user) => {
-             if (user) {
-              const userId = user.id;
-             } else {
-              const userId = apiResponse.id || artist["Grouvex Studios UserID"] || "";
-             }
-            }
-            // Mostrar perfil
-            document.getElementById('userDashboard').style.display = 'block';
-            hideLoading();
-            
-            // Nombre y email
-            const username = artist["Nombre de Usuario"] || artist["Nombre del Artista/Banda"] || 'Sin nombre';
-            const email = artist["Email"] || 'Sin email';
-            
-            document.getElementById('user-name').textContent = username;
-            document.getElementById('userEmail').textContent = email;
-            
-            // Avatar (imagen desde la API si existe)
-            const avatarImg = document.getElementById('user-avatar');
-            const tigsAvatar = document.getElementById('tigs-avatar');
-            const userAvatarUrl = artist["Imagen 1"] || '';
-            
-            if (userAvatarUrl) {
-                avatarImg.src = userAvatarUrl;
-                tigsAvatar.src = userAvatarUrl;
-            } else {
-                // Avatar por defecto con inicial
-                avatarImg.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=ff6b6b&color=fff&size=90`;
-                tigsAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=ff6b6b&color=fff&size=63`;
-            }
-            
-            // TIGS ID
-            document.getElementById('tigs-id').textContent = userId;
-            
-            // Badges
-            document.getElementById('staffBadge').style.display = isStaff ? 'inline-flex' : 'none';
-            document.getElementById('verifiedTeamBadge').style.display = hasVerifiedBadge ? 'inline-flex' : 'none';
-            document.getElementById('email-verified').style.display = hasVerifiedBadge ? 'inline-flex' : 'none';
-            
-            // Descripción
-            const description = artist["Descripción del Perfil"] || artist["profileDescription"] || 'Sin descripción';
-            document.getElementById('description').textContent = description;
-            
-            // Tipo de perfil
-            const profileType = artist["Tipo de Perfil"] || 'Público';
-            document.getElementById('profileType').textContent = profileType;
-            
-            // Fecha de registro
-            const createdAt = artist["Marca temporal"];
-            if (createdAt) {
-                const date = new Date(createdAt);
-                document.getElementById('createdAt').textContent = date.toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-            } else {
-                document.getElementById('createdAt').textContent = 'No disponible';
-            }
-            
-            // INSIGNIAS (principal)
-            const insigniasContainer = document.getElementById('insigniasContainer');
-            if (insigniaUrls.length > 0) {
-                insigniasContainer.innerHTML = insigniaUrls.map(url => `
-                    <img src="${url}" alt="Insignia" class="insignia-image" onerror="this.style.display='none'">
-                `).join('');
-            } else {
-                insigniasContainer.innerHTML = '<span style="color: rgba(255,255,255,0.5); font-size: 12px;">Sin insignias</span>';
-            }
-            
-            // INSIGNIAS TIGS (pequeñas)
-            const tigsInsignias = document.getElementById('tigs-insignias');
-            if (insigniaUrls.length > 0) {
-                tigsInsignias.innerHTML = insigniaUrls.map(url => `
-                    <img src="${url}" alt="Insignia" onerror="this.style.display='none'">
-                `).join('');
-            } else {
-                tigsInsignias.innerHTML = '';
-            }
-            
-            // REDES SOCIALES
-            const socialLinksContainer = document.getElementById('socialLinks');
-            const socialNetworks = [
-                { name: 'Instagram', value: artist["Tu usuario de Instagram"], url: (v) => `https://instagram.com/${v.replace('@', '')}`, icon: 'fab fa-instagram' },
-                { name: 'TikTok', value: artist["Tu usuario de TikTok"], url: (v) => `https://tiktok.com/@${v.replace('@', '')}`, icon: 'fab fa-tiktok' },
-                { name: 'YouTube', value: artist["Tu usuario de YouTube"], url: (v) => `https://youtube.com/@${v.replace('@', '')}`, icon: 'fab fa-youtube' },
-                { name: 'Discord', value: artist["Tu usuario de Discord"], url: () => '#', icon: 'fab fa-discord' },
-                { name: 'X', value: artist["Tu usuario de X"], url: (v) => `https://twitter.com/${v.replace('@', '')}`, icon: 'fab fa-x-twitter' },
-                { name: 'Facebook', value: artist["Tu usuario de Facebook"], url: (v) => `https://facebook.com/${v}`, icon: 'fab fa-facebook' }
-            ];
-            
-            const activeSocials = socialNetworks.filter(social => social.value && social.value.trim() !== '');
-            
-            if (activeSocials.length > 0) {
-                socialLinksContainer.innerHTML = activeSocials.map(social => `
-                    <a href="${social.url(social.value)}" target="_blank" rel="noopener noreferrer" style="padding: 8px 16px; background: rgba(255,255,255,0.1); border-radius: 20px; text-decoration: none; color: white; display: inline-flex; align-items: center; gap: 8px; font-size: 13px;">
-                        <i class="${social.icon}"></i> ${social.name}
-                    </a>
-                `).join('');
-            } else {
-                socialLinksContainer.innerHTML = '<span style="color: rgba(255,255,255,0.5);"><i class="fas fa-link"></i> No hay redes sociales vinculadas</span>';
-            }
-            
-            console.log("✅ Perfil cargado correctamente");
-        }
-        
-        // ============================================
-        // CARGA CON GET (URL directa)
-        // ============================================
-        function loadWithGet(userId) {
-            console.log("📡 GET - Cargando:", userId);
-            
-            const url = `${GAS_API_URL}?api=true&endpoint=getArtistData&id=${encodeURIComponent(userId)}`;
-            
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    console.log("✅ GET Response:", data);
-                    displayArtistData(data);
-                })
-                .catch(error => {
-                    console.error("❌ GET Error:", error);
-                    showError("Error GET: " + error.message);
-                });
-        }
-        
-        // ============================================
-        // CARGA PRINCIPAL
-        // ============================================
-        function loadArtistData(userId) {
-            if (!userId || userId.trim() === '') {
-                showError("Por favor ingresa un GS-ID válido");
-                return;
-            }
-            
-            showLoading();
-            loadWithGet(userId);
-        }
-        
-        // ============================================
-        // INICIALIZACIÓN
-        // ============================================
-        document.addEventListener('DOMContentLoaded', function() {
-            // Pestañas
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    currentMethod = this.dataset.method;
-                    
-                    const userId = document.getElementById('userIdInput').value.trim();
-                    if (userId) {
-                        loadArtistData(userId);
-                    }
-                });
-            });
-            
-            // Botones
-            document.getElementById('searchBtn').addEventListener('click', () => {
-                const userId = document.getElementById('userIdInput').value.trim();
-                loadArtistData(userId);
-            });
-            
-            document.getElementById('testApiBtn').addEventListener('click', testApiHealth);
-            
-            // Enter key
-            document.getElementById('userIdInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    loadArtistData(e.target.value.trim());
-                }
-            });
-            
-            // Carga inicial
-            const initialId = document.getElementById('userIdInput').value.trim();
-            if (initialId) {
-                loadArtistData(initialId);
-            }
-        });
-    </script>
       
     <script>
         // ===== VERSIÓN PERSONALIZADA PARA GROUVEX =====
