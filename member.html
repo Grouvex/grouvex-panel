@@ -9696,7 +9696,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Cargar insignias normales
             const insigniasContainer = document.getElementById('insignias');
             const insignias = getCurrentUserInsignias();
-            if (insigniasContainer && && insignias && insignias.length > 0) {
+            if (insigniasContainer && insignias && insignias.length > 0) {
                 insigniasContainer.innerHTML = ''; // Limpiar antes de agregar
                 insignias.forEach(insignia => {
                     if (!insignia.isStaff) {
