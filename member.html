@@ -9520,35 +9520,47 @@ function loadUserDataFromSession() {
             // Llamar a getArtistData desde Google Apps Script
             google.script.run
                 .withSuccessHandler(function(result) {
-                    if (!result.found) {
+                    console.log("📥 Respuesta recibida en loadUserDataFromSession:", result);
+                    
+                    // Verificar si la respuesta tiene la estructura esperada
+                    if (!result) {
+                        console.error("Respuesta vacía");
+                        reject("Respuesta vacía del servidor");
+                        return;
+                    }
+                    
+                    // Para el simulador, los datos pueden venir en result.data
+                    const artistData = result.data || result;
+                    
+                    if (!artistData.found) {
                         console.warn(`No se encontró artista con ID: ${userID}`);
                         reject("Artista no encontrado");
                         return;
                     }
                     
-                    // Almacenar todos los datos en variables
-                    currentArtistData = result;
-                    currentArtistRow = result.row;
-                    currentArtistHeaders = result.headers;
-                    currentArtistInsignias = result.insignias || [];
-                    currentArtistInsigniaUrls = result.insigniaUrls || [];
-                    currentArtistIsStaff = result.isStaff || false;
-                    currentArtistRawData = result.artistData || {};
+                    // Almacenar todos los datos en variables globales
+                    currentArtistData = artistData;
+                    currentArtistRow = artistData.row || [];
+                    currentArtistHeaders = artistData.headers || [];
+                    currentArtistInsignias = artistData.insignias || [];
+                    currentArtistInsigniaUrls = artistData.insigniaUrls || [];
+                    currentArtistIsStaff = artistData.isStaff || false;
+                    currentArtistRawData = artistData.artistData || {};
                     
-                    console.log(`Datos del artista ${userID} cargados correctamente`);
-                    console.log("Insignias:", currentArtistInsignias);
-                    console.log("Es Staff:", currentArtistIsStaff);
+                    console.log(`✅ Datos del artista ${userID} cargados correctamente`);
+                    console.log("📋 Insignias:", currentArtistInsignias);
+                    console.log("👑 Es Staff:", currentArtistIsStaff);
                     
-                    resolve(result);
+                    resolve(artistData);
                 })
                 .withFailureHandler(function(error) {
-                    console.error("Error al llamar a getArtistData:", error);
+                    console.error("❌ Error al llamar a getArtistData:", error);
                     reject(error);
                 })
                 .getArtistData(userID);
                 
         } catch (error) {
-            console.error("Error al cargar datos del artista:", error);
+            console.error("❌ Error en try-catch de loadUserDataFromSession:", error);
             reject(error);
         }
     });
