@@ -9641,125 +9641,150 @@ console.log('Datos completos:', currentArtistRawData);
 console.log('URLs de insignias:', currentArtistInsigniaUrls);
 */
 // Cargar los datos del artista al iniciar
-document.addEventListener('DOMContentLoaded', function() {
-    // Cargar datos del usuario
-    const userData = loadUserDataFromSession();
-    console.log('📊 Datos del usuario:', userData);
-    if (userData && userData.found) {
-        // Obtener campos específicos del artista
-        const nombreCompleto = getArtistField('Nombre completo') || getArtistField('Nombre') || 'Usuario';
-        const email = getArtistField('Correo electrónico') || getArtistField('Email') || '';
-        const avatarUrl = getArtistField('Avatar URL') || getArtistField('Avatar') || '';
-        const ultimoAcceso = getArtistField('Último acceso') || getArtistField('Ultimo acceso') || 'No registrado';
-        const emailVerificado = getArtistField('Email verificado') === 'Sí' || getArtistField('Email verificado') === true;
+// Cargar los datos del artista al iniciar
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Iniciando carga de datos...');
+    
+    try {
+        // Esperar a que se carguen los datos del usuario
+        const userData = await loadUserDataFromSession();
+        console.log('📊 Datos del usuario recibidos:', userData);
         
-        // Llenar datos básicos
-        document.getElementById('user-name').textContent = nombreCompleto;
-        document.getElementById('userEmail').textContent = email;
-        document.getElementById('userlastsing').textContent = ultimoAcceso;
-        
-        // Mostrar verificación de email
-        if (emailVerificado) {
-            document.getElementById('email-verified').style.display = 'inline-flex';
-        } else {
-            document.getElementById('email-verified-x').style.display = 'inline-flex';
-        }
-        
-        // Cargar avatar
-        if (avatarUrl) {
-            const avatarImg = document.getElementById('user-avatar');
-            avatarImg.src = avatarUrl;
-            avatarImg.style.display = 'block';
+        if (userData && userData.found) {
+            // Obtener campos específicos del artista
+            const nombreCompleto = getArtistField('Nombre completo') || getArtistField('Nombre') || 'Usuario';
+            const email = getArtistField('Correo electrónico') || getArtistField('Email') || '';
+            const avatarUrl = getArtistField('Avatar URL') || getArtistField('Avatar') || '';
+            const ultimoAcceso = getArtistField('Último acceso') || getArtistField('Ultimo acceso') || 'No registrado';
+            const emailVerificado = getArtistField('Email verificado') === 'Sí' || getArtistField('Email verificado') === true;
             
-            // También cargar avatar en TIGS
-            const avatarTIGS = document.getElementById('user-avatarTIGS');
-            avatarTIGS.src = avatarUrl;
-        }
-        
-        // Mostrar ID en TIGS
-        document.getElementById('tigs-id-text').textContent = userData.id || '';
-        
-        // Mostrar badges de staff si es necesario
-        const staffBadgesContainer = document.getElementById('staff-badges-container');
-        if (isCurrentUserStaff()) {
-            staffBadgesContainer.innerHTML = `
-                <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/verified-team.png" alt="Verificado" style="width: 16px; height: 16px; vertical-align: middle;">
-                <span class="staff-badge" style="font-size: 12px; font-weight: bold; color: #007bff;">STAFF</span>
-                <span class="verified-team-badge" style="font-size: 12px; font-weight: bold; color: #28a745;">VERIFIED TEAM</span>
-            `;
-        }
-        
-        // Cargar insignias normales
-        const insigniasContainer = document.getElementById('insignias');
-        const insignias = getCurrentUserInsignias();
-        
-        if (insignias && insignias.length > 0) {
-            insignias.forEach(insignia => {
-                // Solo mostrar insignias que no son de staff (o mostrarlas todas)
-                if (!insignia.isStaff) {
-                    const img = document.createElement('img');
-                    img.src = insignia.url;
-                    img.alt = insignia.name;
-                    img.title = insignia.name;
-                    img.style.width = '24px';
-                    img.style.height = '24px';
-                    img.style.borderRadius = '50%';
-                    img.style.objectFit = 'cover';
-                    insigniasContainer.appendChild(img);
+            // Llenar datos básicos
+            const userNameElement = document.getElementById('user-name');
+            const userEmailElement = document.getElementById('userEmail');
+            const userLastSingElement = document.getElementById('userlastsing');
+            
+            if (userNameElement) userNameElement.textContent = nombreCompleto;
+            if (userEmailElement) userEmailElement.textContent = email;
+            if (userLastSingElement) userLastSingElement.textContent = ultimoAcceso;
+            
+            // Mostrar verificación de email
+            const emailVerifiedElement = document.getElementById('email-verified');
+            const emailVerifiedXElement = document.getElementById('email-verified-x');
+            
+            if (emailVerificado) {
+                if (emailVerifiedElement) emailVerifiedElement.style.display = 'inline-flex';
+                if (emailVerifiedXElement) emailVerifiedXElement.style.display = 'none';
+            } else {
+                if (emailVerifiedElement) emailVerifiedElement.style.display = 'none';
+                if (emailVerifiedXElement) emailVerifiedXElement.style.display = 'inline-flex';
+            }
+            
+            // Cargar avatar
+            if (avatarUrl) {
+                const avatarImg = document.getElementById('user-avatar');
+                const avatarTIGS = document.getElementById('user-avatarTIGS');
+                if (avatarImg) {
+                    avatarImg.src = avatarUrl;
+                    avatarImg.style.display = 'block';
                 }
-            });
-        }
-        
-        // Cargar insignias pequeñas para TIGS
-        const tigsContainer = document.getElementById('tigs-insignias-container');
-        if (insignias && insignias.length > 0) {
-            insignias.forEach(insignia => {
-                const smallImg = document.createElement('img');
-                smallImg.src = insignia.url;
-                smallImg.alt = insignia.name;
-                smallImg.title = insignia.name;
-                smallImg.style.width = '16px';
-                smallImg.style.height = '16px';
-                smallImg.style.borderRadius = '50%';
-                smallImg.style.objectFit = 'cover';
-                smallImg.style.border = '1px solid gold';
-                tigsContainer.appendChild(smallImg);
-            });
-        }
-        
-        // Cargar overlay de avatar si existe (ejemplo: marco especial para staff)
-        const avatarOverlay = document.getElementById('user-avatar-overlay');
-        if (isCurrentUserStaff()) {
-            // Marco dorado para staff
-            avatarOverlay.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/staff-frame.png';
-            avatarOverlay.style.display = 'block';
-        } else if (insignias && insignias.some(i => i.name === 'premium')) {
-            // Marco premium
-            avatarOverlay.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/premium-frame.png';
-            avatarOverlay.style.display = 'block';
-        }
-        
-        // Configurar botón de logout
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.classList.remove('hidden');
-            logoutBtn.addEventListener('click', function() {
-                // Limpiar datos y redirigir
-                if (typeof logout === 'function') {
-                    logout();
-                } else {
-                    window.location.href = '/logout';
+                if (avatarTIGS) {
+                    avatarTIGS.src = avatarUrl;
+                    avatarTIGS.style.display = 'block';
                 }
-            });
+            }
+            
+            // Mostrar ID en TIGS
+            const tigsIdText = document.getElementById('tigs-id-text');
+            if (tigsIdText) tigsIdText.textContent = userData.id || '';
+            
+            // Mostrar badges de staff si es necesario
+            const staffBadgesContainer = document.getElementById('staff-badges-container');
+            if (staffBadgesContainer && isCurrentUserStaff()) {
+                staffBadgesContainer.innerHTML = `
+                    <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/verified-team.png" alt="Verificado" style="width: 16px; height: 16px; vertical-align: middle;">
+                    <span class="staff-badge" style="font-size: 12px; font-weight: bold; color: #007bff;">STAFF</span>
+                    <span class="verified-team-badge" style="font-size: 12px; font-weight: bold; color: #28a745;">VERIFIED TEAM</span>
+                `;
+            }
+            
+            // Cargar insignias normales
+            const insigniasContainer = document.getElementById('insignias');
+            const insignias = getCurrentUserInsignias();
+            
+            if (insigniasContainer && insignias && insignias.length > 0) {
+                insigniasContainer.innerHTML = ''; // Limpiar antes de agregar
+                insignias.forEach(insignia => {
+                    if (!insignia.isStaff) {
+                        const img = document.createElement('img');
+                        img.src = insignia.url;
+                        img.alt = insignia.name;
+                        img.title = insignia.name;
+                        img.style.width = '24px';
+                        img.style.height = '24px';
+                        img.style.borderRadius = '50%';
+                        img.style.objectFit = 'cover';
+                        insigniasContainer.appendChild(img);
+                    }
+                });
+            }
+            
+            // Cargar insignias pequeñas para TIGS
+            const tigsContainer = document.getElementById('tigs-insignias-container');
+            if (tigsContainer && insignias && insignias.length > 0) {
+                tigsContainer.innerHTML = ''; // Limpiar antes de agregar
+                insignias.forEach(insignia => {
+                    const smallImg = document.createElement('img');
+                    smallImg.src = insignia.url;
+                    smallImg.alt = insignia.name;
+                    smallImg.title = insignia.name;
+                    smallImg.style.width = '16px';
+                    smallImg.style.height = '16px';
+                    smallImg.style.borderRadius = '50%';
+                    smallImg.style.objectFit = 'cover';
+                    smallImg.style.border = '1px solid gold';
+                    tigsContainer.appendChild(smallImg);
+                });
+            }
+            
+            // Cargar overlay de avatar
+            const avatarOverlay = document.getElementById('user-avatar-overlay');
+            if (avatarOverlay) {
+                if (isCurrentUserStaff()) {
+                    avatarOverlay.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/staff-frame.png';
+                    avatarOverlay.style.display = 'block';
+                } else if (insignias && insignias.some(i => i.name === 'premium')) {
+                    avatarOverlay.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/premium-frame.png';
+                    avatarOverlay.style.display = 'block';
+                }
+            }
+            
+            // Configurar botón de logout
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.classList.remove('hidden');
+                logoutBtn.addEventListener('click', function() {
+                    if (typeof logout === 'function') {
+                        logout();
+                    } else if (typeof auth !== 'undefined' && auth.signOut) {
+                        auth.signOut();
+                    } else {
+                        window.location.href = '/logout';
+                    }
+                });
+            }
+            
+            console.log('✅ Datos del usuario cargados exitosamente');
+        } else {
+            console.error('❌ No se pudieron cargar los datos del usuario');
+            const userNameElement = document.getElementById('user-name');
+            if (userNameElement) userNameElement.textContent = 'Error al cargar datos';
         }
-        
-        console.log('Datos del usuario cargados exitosamente');
-    } else {
-        console.error('No se pudieron cargar los datos del usuario');
-        // Mostrar mensaje de error o redirigir al login
-        document.getElementById('user-name').textContent = 'Error al cargar datos';
+    } catch (error) {
+        console.error('❌ Error en la carga inicial:', error);
+        const userNameElement = document.getElementById('user-name');
+        if (userNameElement) userNameElement.textContent = 'Error al cargar datos';
     }
-});  
+});
     // Cargar datos del usuario desde la sesión
     function loadReleaseDataFromSession() {
       let userID = getCurrentUserId();
