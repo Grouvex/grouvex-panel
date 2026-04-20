@@ -6211,19 +6211,9 @@ if (typeof auth !== 'undefined') {
               <div class="artist-details">
           <h4>Insignias</h4>
           <div class="insignia-container">
-            <? if (targetInsigniaUrls && targetInsigniaUrls.length > 0) { ?>
-                <!-- Mostrar insignias del target -->
-                <? for (const url of targetInsigniaUrls) { ?>
-                    <img src="<?= url ?>" alt="Insignias del target" class="insignia-image">
-                <? } ?>
-            <? } else if (insigniaUrls && insigniaUrls.length > 0) { ?>
-                <!-- Mostrar insignias del ID (cuando no hay target) -->
-                <? for (const url of insigniaUrls) { ?>
-                    <img src="<?= url ?>" alt="Insignias del usuario" class="insignia-image">
-                <? } ?>
-            <? } else { ?>
-                <p>No hay insignias asignadas.</p>
-            <? } ?>
+            <div style="display: flex; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; max-width: 60%;">
+              <div id="insigniasP"></div>
+            </div>
           </div>
       </div>
               <div class="artist-info">
@@ -7745,13 +7735,9 @@ if (window.history && window.history.pushState) {
               <div class="artist-details">
               <h4>Insignias</h4>
                 <div class="insignia-container">
-                    <? if (insigniaUrls && insigniaUrls.length > 0) { ?>
-                        <? for (const url of insigniaUrls) { ?>
-                            <img src="<?= url ?>" alt="Insignias del usuario" class="insignia-image">
-                        <? } ?>
-                    <? } else { ?>
-                        <p>No hay insignias asignadas.</p>
-                    <? } ?>
+                  <div style="display: flex; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; max-width: 60%;">
+                    <div id="insigniasP1"></div>
+                  </div>
                 </div>
               </div>
               <div class="artist-info">
@@ -9652,11 +9638,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         if (userData && userData.found) {
             // Obtener campos específicos del artista
-            const nombreCompleto = getArtistField('Nombre completo') || getArtistField('Nombre') || 'Usuario';
-            const email = getArtistField('Correo electrónico') || getArtistField('Email') || '';
-            const avatarUrl = getArtistField('Avatar URL') || getArtistField('Avatar') || '';
-            const ultimoAcceso = getArtistField('Último acceso') || getArtistField('Ultimo acceso') || 'No registrado';
-            const emailVerificado = getArtistField('Email verificado') === 'Sí' || getArtistField('Email verificado') === true;
+            const nombreCompleto = getArtistField('Nombre de Usuario') || getArtistField('Nombre del Cliente') || 'Nombre de Usuario No Definido';
+            const email = getArtistField('Correo electrónico') || getArtistField('Email') || 'correo no definido';
+            const avatarUrl = getArtistField('Imagen 1') || '';
+            const ultimoAcceso = getArtistField('LastUpdate') || 'No registrado';
+            const emailVerificado = currentArtistInsignias.some(insignia => insignia.isStaff === true);
             
             // Llenar datos básicos
             const userNameElement = document.getElementById('user-name');
@@ -9710,8 +9696,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Cargar insignias normales
             const insigniasContainer = document.getElementById('insignias');
             const insignias = getCurrentUserInsignias();
-            
-            if (insigniasContainer && insignias && insignias.length > 0) {
+            if (insigniasContainer && && insignias && insignias.length > 0) {
                 insigniasContainer.innerHTML = ''; // Limpiar antes de agregar
                 insignias.forEach(insignia => {
                     if (!insignia.isStaff) {
@@ -9745,7 +9730,37 @@ document.addEventListener('DOMContentLoaded', async function() {
                     tigsContainer.appendChild(smallImg);
                 });
             }
-            
+            const insigniasContainer1 = document.getElementById('insigniasP');
+            if (insigniasContainer1 && insignias && insignias.length > 0) {
+                insigniasContainer1.innerHTML = ''; // Limpiar antes de agregar
+                insignias.forEach(insignia => {
+                    const img1 = document.createElement('img');
+                    img1.src = insignia.url;
+                    img1.alt = insignia.name;
+                    img1.title = insignia.name;
+                    img1.style.width = '24px';
+                    img1.style.height = '24px';
+                    img1.style.borderRadius = '50%';
+                    img1.style.objectFit = 'cover';
+                    insigniasContainer1.appendChild(img1);
+                });
+            }
+            const insigniasContainer2 = document.getElementById('insigniasP1');
+            if (insigniasContainer2 && insignias && insignias.length > 0) {
+                insigniasContainer2.innerHTML = ''; // Limpiar antes de agregar
+                insignias.forEach(insignia => {
+                    const img1 = document.createElement('img');
+                    img1.src = insignia.url;
+                    img1.alt = insignia.name;
+                    img1.title = insignia.name;
+                    img1.style.width = '24px';
+                    img1.style.height = '24px';
+                    img1.style.borderRadius = '50%';
+                    img1.style.objectFit = 'cover';
+                    insigniasContainer2.appendChild(img1);
+                });
+            }
+          
             // Cargar overlay de avatar
             const avatarOverlay = document.getElementById('user-avatar-overlay');
             if (avatarOverlay) {
