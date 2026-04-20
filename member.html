@@ -9694,10 +9694,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Cargar insignias normales
             const insignias = getCurrentUserInsignias();
               // Renderiza en todos los elementos que tengan la clase .insignias-container
-              renderInsignias('.insignias-container', insignias, true);
+              renderInsignias('.insignias-container', insignias);
               
               // Renderiza en los de estilo TIGS (más pequeños)
-              renderInsignias('.tigs-container', insignias, false);
+              renderInsignias('.tigs-container', insignias);
           
             // Cargar overlay de avatar
             const avatarOverlay = document.getElementById('user-avatar-overlay');
@@ -9740,7 +9740,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
       // Función para renderizar insignias en cualquier contenedor
-      function renderInsignias(selector, insignias, filterStaff = false) {
+      function renderInsignias(selector, insignias) {
           const containers = document.querySelectorAll(selector);
           
           containers.forEach(container => {
@@ -9748,23 +9748,19 @@ document.addEventListener('DOMContentLoaded', async function() {
               
               container.innerHTML = ''; // Limpiar contenedor
               
-              insignias.forEach(insignia => {
-                  // Si filterStaff es true, omitimos las insignias que son de staff
-                  if (filterStaff && insignia.isStaff) return;
-      
+              insignias.forEach(insignia => {     
                   const img = document.createElement('img');
                   img.src = insignia.url;
                   img.alt = insignia.name;
                   img.title = insignia.name;
                   
                   // Aplicamos los estilos base
-                  img.style.cssText = 'width: 24px; height: 24px; border-radius: 50%; object-fit: cover;';
+                  img.style.cssText = 'width: 14px; height: 14px; object-fit: cover;';
                   
                   // Si el contenedor es el de TIGS (puedes detectarlo por clase), ponerlas más pequeñas
                   if (container.classList.contains('tigs-style')) {
-                      img.style.width = '16px';
-                      img.style.height = '16px';
-                      img.style.border = '1px solid gold';
+                      img.style.width = '10px';
+                      img.style.height = '10px';
                   }
       
                   container.appendChild(img);
