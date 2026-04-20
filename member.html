@@ -3808,49 +3808,6 @@ let mostrarId = null;
       </div>
     </div>
     <!-- Pagina Web -->
-    <script>
-      // Procesar insignias al inicio
-      let insigniasEspeciales = {
-        verified: false, gsmember: false, partner: false, verifiedPartner: false,
-        artista: false, palette: false, videoCreator: false, vip: false,
-        superBughunter: false, verifiedBughunter: false, developer: false,
-        staff: false, verifiedDeveloper: false, trialModerator: false,
-        moderator: false, vmoderator: false, employee: false, vemployee: false,
-        sistema: false, ownerRecording: false, ownerDesigns: false, ownerAnimations: false,
-        owner: false
-      };
-
-      if (insigniaUrls && insigniaUrls.length > 0) {
-        insigniaUrls.forEach(url => {
-          const badgeName = url.match(/([^\/]+)\.(png|jpg|jpeg|gif)$/i)?.[1]?.toLowerCase();
-          
-          // Asignar cada insignia según el nombre del archivo en el orden de las URLs
-          if (badgeName === 'verified') insigniasEspeciales.verified = true;
-          if (badgeName === 'grouvex') insigniasEspeciales.gsmember = true;
-          if (badgeName === 'partner') insigniasEspeciales.partner = true;
-          if (badgeName === 'verified-partner') insigniasEspeciales.verifiedPartner = true;
-          if (badgeName === 'artista') insigniasEspeciales.artista = true;
-          if (badgeName === 'palette') insigniasEspeciales.palette = true;
-          if (badgeName === 'video_creator') insigniasEspeciales.videoCreator = true;
-          if (badgeName === 'vip') insigniasEspeciales.vip = true;
-          if (badgeName === 'super-bughunter') insigniasEspeciales.superBughunter = true;
-          if (badgeName === 'verified-bughunter') insigniasEspeciales.verifiedBughunter = true;
-          if (badgeName === 'developer') insigniasEspeciales.developer = true;
-          if (badgeName === 'verified-team') insigniasEspeciales.staff = true;
-          if (badgeName === 'verified-developer-a') insigniasEspeciales.verifiedDeveloper = true;
-          if (badgeName === 'trial-moderator') insigniasEspeciales.trialModerator = true;
-          if (badgeName === 'moderator') insigniasEspeciales.moderator = true;
-          if (badgeName === 'verified-moderator') insigniasEspeciales.vmoderator = true;
-          if (badgeName === 'employee') insigniasEspeciales.employee = true;
-          if (badgeName === 'verified-employee') insigniasEspeciales.vemployee = true;
-          if (badgeName === 'sistema') insigniasEspeciales.sistema = true;
-          if (badgeName === 'ownerrecording') insigniasEspeciales.ownerRecording = true;
-          if (badgeName === 'ownerdesigns') insigniasEspeciales.ownerDesigns = true;
-          if (badgeName === 'owneranimations') insigniasEspeciales.ownerAnimations = true;
-          if (badgeName === 'owner') insigniasEspeciales.owner = true;
-        });
-      }
-    </script>
     <!-- Verificación de Usuario -->
       <!-- Inicio de Sesión -->
       <div id="loginForm" class="loginForm">
@@ -3933,7 +3890,7 @@ let mostrarId = null;
         
         <!-- Insignias en línea horizontal -->
         <div style="display: flex; gap: 5px; margin-bottom: 4px; flex-wrap: wrap; max-width: 100%;">
-          <div id="insignias" style="display: flex; gap: 5px;">></div>
+          <div class="insignias-container" style="display: flex; gap: 5px; flex-wrap: wrap;"></div>
         </div>
         
         <!-- Último acceso -->
@@ -3957,9 +3914,7 @@ let mostrarId = null;
           style="position: absolute; top: 46px; left: 4px; width: 63px; height: auto; border-radius: 5.2%; display: block; object-fit: cover; margin-right: 1px; opacity: 90%;">
 
       <!-- Insignias TIGS - posicionadas dentro del contenedor TIGS -->
-      <div class="tigs-insignias-container tigs-style" style="position: absolute; bottom: 8px; left: 2px; width: 70px; height: 30px; display: flex; flex-wrap: wrap; gap: 1px; align-content: flex-start; overflow: visible;">
-        <!-- Las insignias se cargarán dinámicamente con JavaScript -->
-      </div>
+      <div class="tigs-container tigs-style" style="display: flex; gap: 3px;"></div>
     </div>
   </div>
 </summary>
@@ -5421,6 +5376,49 @@ if (typeof auth !== 'undefined') {
           });
         }
       </script>
+    <script>
+      // Procesar insignias al inicio
+      let insigniasEspeciales = {
+        verified: false, gsmember: false, partner: false, verifiedPartner: false,
+        artista: false, palette: false, videoCreator: false, vip: false,
+        superBughunter: false, verifiedBughunter: false, developer: false,
+        staff: false, verifiedDeveloper: false, trialModerator: false,
+        moderator: false, vmoderator: false, employee: false, vemployee: false,
+        sistema: false, ownerRecording: false, ownerDesigns: false, ownerAnimations: false,
+        owner: false
+      };
+      const insigniaUrls = getCurrentUserInsignias().map(insignia => insignia.url);
+      if (insigniaUrls && insigniaUrls.length > 0) {
+        insigniaUrls.forEach(url => {
+          const badgeName = url.match(/([^\/]+)\.(png|jpg|jpeg|gif)$/i)?.[1]?.toLowerCase();
+          
+          // Asignar cada insignia según el nombre del archivo en el orden de las URLs
+          if (badgeName === 'verified') insigniasEspeciales.verified = true;
+          if (badgeName === 'grouvex') insigniasEspeciales.gsmember = true;
+          if (badgeName === 'partner') insigniasEspeciales.partner = true;
+          if (badgeName === 'verified-partner') insigniasEspeciales.verifiedPartner = true;
+          if (badgeName === 'artista') insigniasEspeciales.artista = true;
+          if (badgeName === 'palette') insigniasEspeciales.palette = true;
+          if (badgeName === 'video_creator') insigniasEspeciales.videoCreator = true;
+          if (badgeName === 'vip') insigniasEspeciales.vip = true;
+          if (badgeName === 'super-bughunter') insigniasEspeciales.superBughunter = true;
+          if (badgeName === 'verified-bughunter') insigniasEspeciales.verifiedBughunter = true;
+          if (badgeName === 'developer') insigniasEspeciales.developer = true;
+          if (badgeName === 'verified-team') insigniasEspeciales.staff = true;
+          if (badgeName === 'verified-developer-a') insigniasEspeciales.verifiedDeveloper = true;
+          if (badgeName === 'trial-moderator') insigniasEspeciales.trialModerator = true;
+          if (badgeName === 'moderator') insigniasEspeciales.moderator = true;
+          if (badgeName === 'verified-moderator') insigniasEspeciales.vmoderator = true;
+          if (badgeName === 'employee') insigniasEspeciales.employee = true;
+          if (badgeName === 'verified-employee') insigniasEspeciales.vemployee = true;
+          if (badgeName === 'sistema') insigniasEspeciales.sistema = true;
+          if (badgeName === 'ownerrecording') insigniasEspeciales.ownerRecording = true;
+          if (badgeName === 'ownerdesigns') insigniasEspeciales.ownerDesigns = true;
+          if (badgeName === 'owneranimations') insigniasEspeciales.ownerAnimations = true;
+          if (badgeName === 'owner') insigniasEspeciales.owner = true;
+        });
+      }
+    </script>
     <script>
       const webstate = "open";
     </script>
