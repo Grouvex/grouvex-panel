@@ -5682,7 +5682,7 @@ if (typeof auth !== 'undefined') {
             window.open(`https://panel.grouvex.com/member?id=GS-${firebase.auth().currentUser.uid}`);
           });
         }
-
+        const LOGIN_URL = "https://panel.grouvex.com/";
         function showLoginRequiredOverlay() {
           const overlay = document.createElement('div');
           overlay.style.position = 'fixed';
