@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https: data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: https: https://raw.githubusercontent.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    
     <!-- OPEN GRAPH (Facebook, LinkedIn, etc.) -->
     <meta property="og:title" content="Panel de Grouvex Studios - Sistema Integral">
     <meta property="og:description" content="Plataforma de gestión musical para artistas y equipo de Grouvex Studios">
@@ -41,7 +42,9 @@
     <!-- PREFETCH/PRELOAD -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com">
     <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
+    <link rel="dns-prefetch" href="https://www.gstatic.com">
     <link rel="preload" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/GROUVEX.png" as="image">
     
     <!-- ICONS MULTIPLES PLATAFORMAS -->
@@ -55,14 +58,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- SCRIPTS EXTERNOS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
-    <script src="google-script-simulator.js"></script><script src="script.js"></script>
+    <script src="google-script-simulator.js"></script>
+    <script src="script.js"></script>
     
     <!-- ESTILOS PROPIOS -->
     <link rel="stylesheet" href="style.css">
