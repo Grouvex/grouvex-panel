@@ -5,7 +5,32 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: https: https://raw.githubusercontent.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    
+    <!-- CSP CORREGIDO - Ahora permite conexiones a Firebase y Google -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com;
+        style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com;
+        img-src 'self' data: https: http: https://raw.githubusercontent.com https://*.googleapis.com https://*.gstatic.com;
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:;
+        connect-src 'self' 
+            https://*.googleapis.com 
+            https://*.firebaseio.com 
+            https://*.google.com 
+            https://*.gstatic.com 
+            https://*.firebaseapp.com
+            https://identitytoolkit.googleapis.com
+            https://securetoken.googleapis.com
+            https://firebase.googleapis.com
+            https://script.google.com
+            https://panel.grouvex.com;
+        frame-src 'self' https://*.google.com https://*.firebaseapp.com;
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+        upgrade-insecure-requests;
+        block-all-mixed-content;
+    ">
     
     <!-- OPEN GRAPH (Facebook, LinkedIn, etc.) -->
     <meta property="og:title" content="Panel de Grouvex Studios - Sistema Integral">
@@ -39,12 +64,24 @@
     <!-- THEME COLOR -->
     <meta name="theme-color" content="#2c3e50">
     
-    <!-- PREFETCH/PRELOAD -->
+    <!-- PRECONNECT Y PREFETCH - CORREGIDOS Y AMPLIADOS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firebase.googleapis.com">
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com">
+    <link rel="preconnect" href="https://securetoken.googleapis.com">
+    <link rel="preconnect" href="https://grouvex-studios.firebaseapp.com">
+    
     <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
     <link rel="dns-prefetch" href="https://www.gstatic.com">
+    <link rel="dns-prefetch" href="https://firebase.googleapis.com">
+    <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
+    <link rel="dns-prefetch" href="https://*.firebaseio.com">
+    
+    <!-- PRELOAD DE RECURSOS CRÍTICOS -->
+    <link rel="preload" href="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js" as="script">
+    <link rel="preload" href="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js" as="script">
     <link rel="preload" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/GROUVEX.png" as="image">
     
     <!-- ICONS MULTIPLES PLATAFORMAS -->
@@ -60,12 +97,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- SCRIPTS EXTERNOS -->
+    <!-- SCRIPTS EXTERNOS (orden correcto) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
-    <script src="google-script-simulator.js"></script>
-    <script src="script.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
     
     <!-- ESTILOS PROPIOS -->
     <link rel="stylesheet" href="style.css">
@@ -73,6 +108,10 @@
     <title>Grouvex Studios - Portal de Miembros</title>
     
     <script>
+        // Verificar CSP antes de cargar Firebase
+        console.log("🔐 Verificando configuración de seguridad...");
+        
+        // Configuración de Tailwind
         tailwind.config = {
             theme: {
                 extend: {
@@ -90,6 +129,46 @@
                     }
                 }
             }
+        }
+        
+        // Diagnóstico rápido de conectividad
+        window.addEventListener('load', function() {
+            console.log("🌐 Verificando conexión a Firebase...");
+            
+            // Verificar si los scripts de Firebase cargaron
+            if (typeof firebase === 'undefined') {
+                console.error("❌ Firebase no cargó correctamente");
+                mostrarAlertaFirebase();
+            } else {
+                console.log("✅ Firebase SDK cargado correctamente");
+            }
+        });
+        
+        function mostrarAlertaFirebase() {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #ff4444;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                text-align: center;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                max-width: 90%;
+            `;
+            alertDiv.innerHTML = `
+                <strong>⚠️ Error de carga</strong><br>
+                No se pudieron cargar los recursos de Firebase.<br>
+                <small>Recarga la página o contacta a soporte.</small>
+                <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 15px; background: white; color: #ff4444; border: none; border-radius: 5px; cursor: pointer;">
+                    Recargar
+                </button>
+            `;
+            document.body.appendChild(alertDiv);
         }
     </script>
 </head>
