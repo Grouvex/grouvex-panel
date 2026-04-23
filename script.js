@@ -1,44 +1,4 @@
 //!function(){'use strict';const n=(m,t="🚫 ACCIÓN BLOQUEADA")=>{const e=document.createElement("div");e.style.cssText="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:2147483647;display:flex;align-items:center;justify-content:center;color:#ff4444;font-family:Arial,sans-serif;text-align:center;flex-direction:column;backdrop-filter:blur(5px)",e.innerHTML=`<div style="font-size:28px;font-weight:bold;margin-bottom:15px">${t}</div><div style="font-size:16px;color:#ff9999;max-width:80%;margin:0 auto">${m}</div><div style="font-size:12px;color:#ccc;margin-top:25px">Desaparece en <span id="cnt">10</span>s</div>`,document.body.appendChild(e);let s=10;const i=setInterval(()=>{s--,document.getElementById("cnt")&&(document.getElementById("cnt").textContent=s),s<=0&&(clearInterval(i),e.remove())},1e3)};document.addEventListener("keydown",e=>{if(e.key==="p"&&(e.ctrlKey||e.metaKey))return e.preventDefault(),e.stopImmediatePropagation(),n("No se permite imprimir esta página","🚫 IMPRESIÓN BLOQUEADA"),!1;if((e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="J"||e.key==="C"||e.key==="U"))||e.key==="F12"||e.keyCode===123)return e.preventDefault(),e.stopImmediatePropagation(),n("Acceso restringido","🔧 ACCIÓN BLOQUEADA"),!1},!0);["copy","cut","paste","contextmenu","selectstart","dragstart"].forEach(e=>{document.addEventListener(e,t=>{t.preventDefault(),t.stopImmediatePropagation()},!0)});const e=document.createElement("style");e.textContent="*{user-select:none!important;-webkit-user-select:none!important;-moz-user-select:none!important;-ms-user-select:none!important}input,textarea,[contenteditable]{user-select:text!important}@media print{*{display:none!important}body::before{content:'IMPRESIÓN BLOQUEADA';display:block!important;font-size:24px;color:red;text-align:center;margin-top:100px;font-weight:bold}}",document.head.appendChild(e);window.matchMedia("print").addListener(t=>{t.matches&&n("No se permite imprimir esta página","🚫 IMPRESIÓN BLOQUEADA")});setInterval(()=>{try{const e=performance.now();let t=0;for(let n=0;n<5e5;n++)t+=Math.random();performance.now()-e>500&&n("Comportamiento inusual detectado","⚠️ ADVERTENCIA")}catch{}},5e3);document.addEventListener("visibilitychange",()=>{document.hidden&&setTimeout(()=>{n("La página fue minimizada","📋 ATENCIÓN")},500)})}();
-
-// ============================================
-// FUNCIÓN PARA EXTRAER TEXTO DE CUALQUIER TIPO DE DATO
-// ============================================
-function extractTextContent(data) {
-    if (!data) return '';
-    
-    // Si es un string, devolverlo directamente
-    if (typeof data === 'string') return data;
-    
-    // Si es un número, convertirlo a string
-    if (typeof data === 'number') return String(data);
-    
-    // Si es un objeto HTML (como HTMLDivElement)
-    if (data && typeof data === 'object') {
-        // Si tiene textContent, usarlo
-        if (data.textContent !== undefined) {
-            return data.textContent;
-        }
-        // Si tiene innerText, usarlo
-        if (data.innerText !== undefined) {
-            return data.innerText;
-        }
-        // Si es un objeto normal, intentar convertirlo a JSON
-        try {
-            return JSON.stringify(data);
-        } catch(e) {
-            return String(data);
-        }
-    }
-    
-    // Si es un array, unirlo con comas
-    if (Array.isArray(data)) {
-        return data.map(item => extractTextContent(item)).filter(item => item).join(', ');
-    }
-    
-    // Fallback: convertir a string
-    return String(data);
-}
-
 // ============================================
 // FIREBASE CONFIGURATION
 // ============================================
@@ -132,9 +92,8 @@ const staffPortalBtn = document.getElementById('staffPortalBtn');
 const searchOtherBtn = document.getElementById('searchOtherBtn');
 
 // App constants
-const BASE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec";
+const BASE_APPS_SCRIPT_URL = GAS_API_URL;
 const WEB_LINK = "https://panel.grouvex.com/";
-
 // State variables
 let currentUser = null;
 let isStaff = false;
@@ -145,25 +104,17 @@ let isVerifiedTeam = false;
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
     // Set current year in footer
-    const yearElement = document.getElementById('currentYear');
-    if (yearElement) yearElement.textContent = new Date().getFullYear();
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
     
     // Initialize UI elements
     initializeUI();
     
     // Start time counters
     startTimeCounters();
-    
-    // Load artist data if on member page
-    const urlParams = new URLSearchParams(window.location.search);
-    const mostrarID = urlParams.get('targetid') || urlParams.get('targetId') || urlParams.get('id') || urlParams.get('userId') || (currentUser?.uid);
-    if (mostrarID) {
-        loadArtistData(mostrarID);
-    }
 });
 
 function initializeUI() {
-    // Tab switching
+    // Verificar que los elementos existen antes de añadir event listeners
     if (loginTab && registerTab) {
         loginTab.addEventListener('click', () => {
             loginTab.classList.add('active');
@@ -205,7 +156,7 @@ function initializeUI() {
         toggleStripeSection();
     }
     
-    // Event listeners for buttons
+    // Event listeners for buttons - verificar que existan
     if (loginBtn) loginBtn.addEventListener('click', handleLogin);
     if (registerBtn) registerBtn.addEventListener('click', handleRegister);
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
@@ -214,12 +165,12 @@ function initializeUI() {
     if (searchOtherBtn) searchOtherBtn.addEventListener('click', searchOtherMember);
     
     // Enter key press
-    if (passwordInput) {
+    if (passwordInput && !loginBtn?.disabled) {
         passwordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleLogin();
         });
     }
-    if (registerConfirmPasswordInput) {
+    if (registerConfirmPasswordInput && !registerBtn?.disabled) {
         registerConfirmPasswordInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleRegister();
         });
@@ -242,36 +193,36 @@ auth.onAuthStateChanged(async (user) => {
         }
         
         // Update UI
-        if (userEmail) userEmail.textContent = user.email;
+        userEmail.textContent = user.email;
         
         // Show dashboard
-        if (loginForm) loginForm.classList.remove('active');
-        if (registerForm) registerForm.classList.remove('active');
-        if (userDashboard) userDashboard.classList.remove('hidden');
-        if (loginForm) loginForm.classList.add('hidden');
-        if (authtabs) authtabs.classList.add('hidden');
-        if (registerForm) registerForm.classList.add('hidden');
-        if (logoutBtn) logoutBtn.classList.remove('hidden');
+        loginForm.classList.remove('active');
+        registerForm.classList.remove('active');
+        userDashboard.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+        authtabs.classList.add('hidden');
+        registerForm.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
         
-        // Hide staff features by default
-        if (staffPortalBtn) staffPortalBtn.classList.add('hidden');
-        if (searchOtherBtn) searchOtherBtn.classList.add('hidden');
-        if (staffBadge) staffBadge.classList.add('hidden');
-        if (verifiedTeamBadge) verifiedTeamBadge.classList.add('hidden');
+        // Hide staff features by default (they will be enabled if user is staff)
+        staffPortalBtn.classList.add('hidden');
+        searchOtherBtn.classList.add('hidden');
+        staffBadge.classList.add('hidden');
+        verifiedTeamBadge.classList.add('hidden');
         
     } else {
         // No user signed in
         currentUser = null;
         isStaff = false;
         isVerifiedTeam = false;
-        if (loginForm) loginForm.classList.add('active');
-        if (registerForm) registerForm.classList.remove('active');
-        if (userDashboard) userDashboard.classList.add('hidden');
-        if (loginForm) loginForm.classList.remove('hidden');
-        if (authtabs) authtabs.classList.remove('hidden');
-        if (registerForm) registerForm.classList.remove('hidden');
-        if (logoutBtn) logoutBtn.classList.add('hidden');
-        if (unverifiedWarning) unverifiedWarning.classList.add('hidden');
+        loginForm.classList.add('active');
+        registerForm.classList.remove('active');
+        userDashboard.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        authtabs.classList.remove('hidden');
+        registerForm.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        unverifiedWarning.classList.add('hidden');
         
         // Clear inputs
         clearInputs();
@@ -282,8 +233,8 @@ auth.onAuthStateChanged(async (user) => {
 // LOGIN HANDLER
 // ============================================
 function handleLogin() {
-    const email = emailInput ? emailInput.value.trim() : '';
-    const password = passwordInput ? passwordInput.value.trim() : '';
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
     
     if (!email) {
         showError(emailError, "Por favor ingresa tu correo electrónico");
@@ -297,11 +248,11 @@ function handleLogin() {
     
     hideError(emailError);
     hideError(passwordError);
-    if (unverifiedWarning) unverifiedWarning.classList.add('hidden');
+    unverifiedWarning.classList.add('hidden');
     
-    if (loginText) loginText.classList.add('hidden');
-    if (loginSpinner) loginSpinner.classList.remove('hidden');
-    if (loginBtn) loginBtn.disabled = true;
+    loginText.classList.add('hidden');
+    loginSpinner.classList.remove('hidden');
+    loginBtn.disabled = true;
     
     auth.signInWithEmailAndPassword(email, password)
         .then(async (userCredential) => {
@@ -309,7 +260,7 @@ function handleLogin() {
             await user.reload();
             
             if (!user.emailVerified) {
-                if (unverifiedWarning) unverifiedWarning.classList.remove('hidden');
+                unverifiedWarning.classList.remove('hidden');
                 auth.signOut();
                 showError(emailError, "Tu cuenta no ha sido verificada. Por favor, revisa tu correo electrónico.");
                 
@@ -324,35 +275,33 @@ function handleLogin() {
                     });
                 };
                 
-                if (emailError && emailError.parentNode) {
-                    const existingBtn = emailError.parentNode.querySelector('.resend-verification-btn');
-                    if (existingBtn) existingBtn.remove();
-                    emailError.parentNode.appendChild(resendBtn);
-                }
+                const existingBtn = emailError.parentNode.querySelector('.resend-verification-btn');
+                if (existingBtn) existingBtn.remove();
+                emailError.parentNode.appendChild(resendBtn);
                 
-                if (loginText) loginText.classList.remove('hidden');
-                if (loginSpinner) loginSpinner.classList.add('hidden');
-                if (loginBtn) loginBtn.disabled = false;
-                if (registerBtn) registerBtn.disabled = true;
+                loginText.classList.remove('hidden');
+                loginSpinner.classList.add('hidden');
+                loginBtn.disabled = false;
+                registerBtn.disabled = true;
                 return;
             }
             
             // Login successful
-            if (userEmail) userEmail.textContent = user.email;
+            userEmail.textContent = user.email;
             
-            if (loginForm) loginForm.classList.remove('active');
-            if (registerForm) registerForm.classList.remove('active');
-            if (userDashboard) userDashboard.classList.remove('hidden');
-            if (loginForm) loginForm.classList.add('hidden');
-            if (authtabs) authtabs.classList.add('hidden');
-            if (registerForm) registerForm.classList.add('hidden');
-            if (logoutBtn) logoutBtn.classList.remove('hidden');
+            loginForm.classList.remove('active');
+            registerForm.classList.remove('active');
+            userDashboard.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            authtabs.classList.add('hidden');
+            registerForm.classList.add('hidden');
+            logoutBtn.classList.remove('hidden');
             
         })
         .catch((error) => {
-            if (loginText) loginText.classList.remove('hidden');
-            if (loginSpinner) loginSpinner.classList.add('hidden');
-            if (loginBtn) loginBtn.disabled = false;
+            loginText.classList.remove('hidden');
+            loginSpinner.classList.add('hidden');
+            loginBtn.disabled = false;
             
             switch (error.code) {
                 case 'auth/user-not-found':
@@ -396,9 +345,22 @@ function handleRegister() {
         return;
     }
     
-    if (registerText) registerText.classList.add('hidden');
-    if (registerSpinner) registerSpinner.classList.remove('hidden');
-    if (registerBtn) registerBtn.disabled = true;
+    // LOG: Verificar que formData tiene email
+    console.log("=== CLIENTE: Verificando formData ===");
+    console.log("formData completo:", formData);
+    console.log("formData.email:", formData.email);
+    console.log("formData.email tipo:", typeof formData.email);
+    console.log("formData.email length:", formData.email ? formData.email.length : 0);
+    
+    if (!formData.email) {
+        console.error("ERROR: formData.email está vacío en el cliente");
+        alert("Error: El correo electrónico no se ha capturado correctamente");
+        return;
+    }
+    
+    registerText.classList.add('hidden');
+    registerSpinner.classList.remove('hidden');
+    registerBtn.disabled = true;
     
     console.log("Enviando datos de registro al servidor...");
     
@@ -511,6 +473,7 @@ function validateFormData(formData) {
         isValid = false;
     }
     
+    // 🔧 CORRECCIÓN: Manejar el error de teléfono correctamente
     let phoneError = "";
     
     if (!formData.phonePrefix) {
@@ -586,7 +549,18 @@ function validateFormData(formData) {
 }
 
 function showValidationErrors(errors) {
-    // Clear all errors first
+    console.log("=== DEPURACIÓN DE ERRORES ===");
+    console.log("errors recibido:", errors);
+    
+    // Verificar cada error individualmente
+    for (const [key, value] of Object.entries(errors)) {
+        console.log(`errors.${key}:`, value);
+        console.log(`tipo de errors.${key}:`, typeof value);
+        console.log(`es objeto?`, value instanceof HTMLElement);
+        console.log(`es string?`, typeof value === 'string');
+    }
+    
+    // Limpiar todos los errores primero
     const allErrorElements = [
         registerEmailError, registerPasswordError, registerConfirmPasswordError,
         registerUsernameError, registerPhoneError, registerAddressError,
@@ -603,7 +577,7 @@ function showValidationErrors(errors) {
         }
     });
     
-    // Display errors
+    // Mostrar errores con conversión forzada a string
     if (errors.email && registerEmailError) {
         registerEmailError.textContent = String(errors.email);
         registerEmailError.style.display = 'block';
@@ -660,16 +634,18 @@ function showValidationErrors(errors) {
 }
 
 function handleRegistrationSuccess(result) {
-    if (registerText) registerText.classList.remove('hidden');
-    if (registerSpinner) registerSpinner.classList.add('hidden');
-    if (registerBtn) registerBtn.disabled = false;
+    console.log("Respuesta del servidor:", result);
+    
+    registerText.classList.remove('hidden');
+    registerSpinner.classList.add('hidden');
+    registerBtn.disabled = false;
     
     if (result.success) {
         if (result.requiresVerification) {
             showVerificationPendingScreen(result);
         } else {
             alert("🎉 " + result.message);
-            if (loginTab) loginTab.click();
+            loginTab.click();
             clearRegisterForm();
         }
     } else {
@@ -680,9 +656,9 @@ function handleRegistrationSuccess(result) {
 function handleRegistrationError(error) {
     console.error("Error en registro:", error);
     
-    if (registerText) registerText.classList.remove('hidden');
-    if (registerSpinner) registerSpinner.classList.add('hidden');
-    if (registerBtn) registerBtn.disabled = false;
+    registerText.classList.remove('hidden');
+    registerSpinner.classList.add('hidden');
+    registerBtn.disabled = false;
     
     alert('❌ Error de conexión: ' + error);
 }
@@ -709,7 +685,7 @@ function searchOtherMember() {
     
     const targetId = prompt("Ingresa el GS-ID del miembro que deseas buscar:");
     if (targetId) {
-        const url = `${WEB_LINK}member?id=${targetId}`;
+        const url = `${WEB_LINK}member`;
         window.open(url);
     }
 }
@@ -718,10 +694,18 @@ function searchOtherMember() {
 // HELPER FUNCTIONS
 // ============================================
 function showError(element, message) {
+    console.log("showError llamado con:", {
+        elementId: element?.id,
+        messageType: typeof message,
+        messageValue: message
+    });
+    
     if (element) {
+        // Asegurar que message es string
         let finalMessage = message;
         if (typeof message !== 'string') {
             finalMessage = String(message);
+            console.warn("Mensaje no era string, convertido a:", finalMessage);
         }
         element.textContent = finalMessage;
         element.style.display = 'block';
@@ -829,23 +813,25 @@ function toggleStripeSection() {
 // VERIFICATION SCREEN
 // ============================================
 function showVerificationPendingScreen(result) {
+    // En lugar de modificar registerForm directamente, crea un contenedor nuevo
+    const authContent = document.querySelector('.auth-content');
     const originalRegisterForm = document.getElementById('registerForm');
     
     if (!originalRegisterForm) return;
     
-    // Save original content
+    // Guarda el contenido original para poder volver
     if (!window.originalRegisterContent) {
         window.originalRegisterContent = originalRegisterForm.innerHTML;
     }
     
-    // Replace content
+    // Reemplaza el contenido
     originalRegisterForm.innerHTML = `
         <div class="text-center py-8">
             <div class="mb-6">
                 <i class="fas fa-envelope text-5xl text-secondary mb-4"></i>
                 <h2 class="text-2xl font-bold text-secondary mb-2">Verificación Requerida</h2>
                 <p class="text-light">Hemos enviado un correo de verificación a:</p>
-                <p class="text-xl font-bold text-secondary mt-2">${extractTextContent(result.userEmail) || ''}</p>
+                <p class="text-xl font-bold text-secondary mt-2">${result.userEmail || ''}</p>
             </div>
             
             <div class="info-text mb-6">
@@ -880,6 +866,7 @@ function showVerificationPendingScreen(result) {
     
     startCountdown(30, result.userEmail, result.userId);
     
+    // Usar event listeners con verificación de existencia
     setTimeout(() => {
         const checkBtn = document.getElementById('checkVerificationBtn');
         const resendBtn = document.getElementById('resendEmailBtn');
@@ -942,7 +929,7 @@ function checkEmailVerification(userId, userEmail) {
         .withSuccessHandler((result) => {
             if (result.verified) {
                 alert("🎉 ¡Email verificado exitosamente! Ahora puedes iniciar sesión.");
-                if (loginTab) loginTab.click();
+                loginTab.click();
             } else {
                 alert("❌ El email aún no ha sido verificado. Por favor, revisa tu bandeja de entrada.");
                 checkBtn.innerHTML = originalText;
@@ -967,7 +954,7 @@ function resendVerificationEmail(userId, userEmail) {
     
     google.script.run
         .withSuccessHandler((result) => {
-            alert("✅ Email de verificación reenviado a " + extractTextContent(userEmail));
+            alert("✅ Email de verificación reenviado a " + userEmail);
             resendBtn.innerHTML = originalText;
             resendBtn.disabled = false;
         })
@@ -1009,6 +996,8 @@ function startTimeCounters() {
     const webStatusMessages = document.getElementById('webStatusMessages');
     if (!webStatusMessages) return;
     
+    // These timestamps would come from your backend normally
+    // For now, we'll use placeholder logic
     const webCloseTimestamp = 1776268800;
     const webOpenTimestamp = 1780460000;
     
@@ -1016,9 +1005,9 @@ function startTimeCounters() {
         const now = Math.floor(Date.now() / 1000);
         let messages = '';
         
+        // Counter
         const closeDiff = webCloseTimestamp - now;
         const openDiff = webOpenTimestamp - now;
-        
         if (closeDiff > 0) {
             const days = Math.floor(closeDiff / (60 * 60 * 24));
             const hours = Math.floor((closeDiff % (60 * 60 * 24)) / (60 * 60));
@@ -1034,9 +1023,9 @@ function startTimeCounters() {
             const eventDate = new Date(webOpenTimestamp * 1000).toUTCString();
             messages += `<div style="color: red"><strong>Portal de Miembros Cerrado</strong></div>`;
             messages += `<div style="color: white">El Portal de Miembros, cerrado por Mantenimientos, <strong style="color:green">se abrirá en: ${padZero(days)}d:${padZero(hours)}h:${padZero(minutes)}min:${padZero(seconds)}s<br><small>(Fecha: ${eventDate})</small></strong></div>`;
-            if (loginBtn) loginBtn.disabled = true;
-            if (registerBtn) registerBtn.disabled = true;
-            if (memberPortalBtn) memberPortalBtn.disabled = true;
+            loginBtn.disabled = true;
+            registerBtn.disabled = true;
+            memberPortalBtn.disabled = true;
         }
         
         webStatusMessages.innerHTML = messages;
@@ -1052,178 +1041,7 @@ function padZero(num) {
 }
 
 // ============================================
-// FUNCIÓN PARA MOSTRAR LOS DATOS DEL ARTISTA (CORREGIDA)
-// ============================================
-function displayArtistData(artistData) {
-    console.log("🎨 Mostrando datos del artista:", artistData);
-    
-    // Verificar si hay datos válidos
-    if (!artistData) {
-        console.error("❌ No se encontraron datos del artista");
-        showErrorInContainer("No se encontraron datos del artista");
-        return;
-    }
-    
-    // Mostrar información básica del artista
-    const usernameElement = document.getElementById('artist-username');
-    if (usernameElement) {
-        usernameElement.textContent = extractTextContent(artistData.username) || 'Sin nombre';
-    }
-    
-    const emailElement = document.getElementById('artist-email');
-    if (emailElement) {
-        emailElement.textContent = extractTextContent(artistData.email) || 'Sin email';
-    }
-    
-    // Descripción del perfil - CORREGIDO
-    const descriptionElement = document.getElementById('artist-description');
-    if (descriptionElement) {
-        let descriptionText = extractTextContent(artistData.profileDescription);
-        descriptionElement.textContent = descriptionText || 'Sin descripción';
-    }
-    
-    const profileTypeElement = document.getElementById('profile-type');
-    if (profileTypeElement) {
-        profileTypeElement.textContent = extractTextContent(artistData.profileType) || 'Público';
-    }
-    
-    // Mostrar redes sociales
-    const socialFields = [
-        { id: 'artist-instagram', key: 'instagram', type: 'social', prefix: 'https://instagram.com/' },
-        { id: 'artist-tiktok', key: 'tiktok', type: 'social', prefix: 'https://tiktok.com/@' },
-        { id: 'artist-youtube', key: 'youtube', type: 'social', prefix: 'https://youtube.com/@' },
-        { id: 'artist-discord', key: 'discord', type: 'text' },
-        { id: 'artist-x', key: 'x', type: 'social', prefix: 'https://twitter.com/' },
-        { id: 'artist-facebook', key: 'facebook', type: 'social', prefix: 'https://facebook.com/' }
-    ];
-    
-    socialFields.forEach(field => {
-        const element = document.getElementById(field.id);
-        if (element) {
-            const value = extractTextContent(artistData[field.key]);
-            if (value) {
-                if (field.type === 'social') {
-                    let cleanValue = value.replace('@', '');
-                    element.href = field.prefix + cleanValue;
-                    element.textContent = value;
-                } else {
-                    element.textContent = value;
-                }
-                element.style.display = 'inline-flex';
-            } else {
-                element.style.display = 'none';
-            }
-        }
-    });
-    
-    // Mostrar insignias
-    const insigniasContainer = document.getElementById('insignias-container');
-    if (insigniasContainer) {
-        let insigniaUrls = artistData.insignias || [];
-        
-        if (typeof insigniaUrls === 'string') {
-            try {
-                insigniaUrls = JSON.parse(insigniaUrls);
-            } catch(e) {
-                insigniaUrls = [];
-            }
-        }
-        
-        if (Array.isArray(insigniaUrls) && insigniaUrls.length > 0) {
-            insigniasContainer.innerHTML = insigniaUrls.map(url => 
-                `<img src="${extractTextContent(url)}" alt="Insignia" class="insignia-image" style="width: 20px; height: 20px; flex-shrink: 0; margin-right: 4px;" onerror="this.style.display='none'">`
-            ).join('');
-            insigniasContainer.style.display = 'flex';
-        } else {
-            insigniasContainer.style.display = 'none';
-            insigniasContainer.innerHTML = '';
-        }
-    }
-    
-    // Fecha de registro
-    const createdAtElement = document.getElementById('artist-created-at');
-    if (createdAtElement && artistData.timestamp) {
-        const date = new Date(extractTextContent(artistData.timestamp));
-        if (!isNaN(date.getTime())) {
-            createdAtElement.textContent = date.toLocaleDateString('es-ES');
-        }
-    }
-    
-    // Info que muestra
-    const infoToShowElement = document.getElementById('artist-info-to-show');
-    if (infoToShowElement && artistData.infoToShow) {
-        infoToShowElement.textContent = extractTextContent(artistData.infoToShow);
-    }
-    
-    // Ocultar loading
-    const loadingElement = document.getElementById('loading-spinner');
-    if (loadingElement) {
-        loadingElement.style.display = 'none';
-    }
-    
-    console.log("✅ Datos del artista mostrados correctamente");
-}
-
-function showErrorInContainer(message) {
-    const loadingElement = document.getElementById('loading-spinner');
-    if (loadingElement) {
-        loadingElement.style.display = 'none';
-    }
-    
-    const errorElement = document.getElementById('error-message');
-    if (errorElement) {
-        errorElement.textContent = extractTextContent(message);
-        errorElement.style.display = 'block';
-    }
-}
-
-function loadArtistData(userId) {
-    console.log("📡 Cargando datos del artista:", userId);
-    
-    if (!userId) {
-        console.error("❌ No se proporcionó userId");
-        showErrorInContainer("No se especificó un usuario");
-        return;
-    }
-    
-    const loadingElement = document.getElementById('loading-spinner');
-    if (loadingElement) {
-        loadingElement.style.display = 'block';
-    }
-    
-    google.script.run
-        .withSuccessHandler(function(response) {
-            console.log("✅ Respuesta recibida:", response);
-            
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-            
-            if (response && response.status === 'success') {
-                displayArtistData(response.data || response.result);
-            } else if (response && response.found !== undefined) {
-                displayArtistData(response);
-            } else if (response && response.data) {
-                displayArtistData(response.data);
-            } else {
-                console.error("❌ Error en la respuesta:", response);
-                showErrorInContainer(response?.message || "No se pudieron cargar los datos del artista");
-            }
-        })
-        .withFailureHandler(function(error) {
-            console.error("❌ Error en la llamada API:", error);
-            
-            if (loadingElement) {
-                loadingElement.style.display = 'none';
-            }
-            
-            showErrorInContainer("Error de conexión con el servidor: " + extractTextContent(error));
-        })
-        .getArtistData(extractTextContent(userId));
-}
-
-// ============================================
-// EXTERNAL LINK MODAL
+// EXTERNAL LINK MODAL (original code preserved)
 // ============================================
 (function() {
     const allowedUrls = [
@@ -1232,8 +1050,8 @@ function loadArtistData(userId) {
         'panel.grouvex.com',
         'ddoo.grouvex.com', 
         'grouvex.github.io',
-        'script.google.com',
-        'drive.google.com'
+        GAS_API_URL,
+        'https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link'
     ];
 
     function isExternalLink(href) {
@@ -1242,7 +1060,11 @@ function loadArtistData(userId) {
             const url = new URL(href, window.location.origin);
             
             const isAllowed = allowedUrls.some(allowedUrl => {
-                return url.hostname === allowedUrl || url.hostname.endsWith('.' + allowedUrl);
+                if (!allowedUrl.includes('://')) {
+                    return url.hostname === allowedUrl;
+                } else {
+                    return url.href === allowedUrl || url.href.startsWith(allowedUrl);
+                }
             });
             
             return !isAllowed;
@@ -1251,6 +1073,7 @@ function loadArtistData(userId) {
         }
     }
 
+    // Create modal if it doesn't exist
     let modal = document.getElementById('customModal');
     
     if (!modal) {
@@ -1259,7 +1082,7 @@ function loadArtistData(userId) {
             <div class="modal-content">
                 <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/Grouvex1.png" alt="Logo" class="modal-logo">
                 <div class="modal-text">
-                    <p>Estás a punto de salir de <strong>Grouvex Studios</strong>. Grouvex Studios no se responsabiliza por el contenido, la seguridad, las políticas de privacidad o las prácticas de los sitios de terceros, fuera del dominio.</p>
+                    <p>Estás a punto de salir de <n>Grouvex Studios</n>. Grouvex Studios no se responsabiliza por el contenido, la seguridad, las políticas de privacidad o las prácticas de los sitios de terceros, fuera del dominio, puesto que los Términos de Servicio y Políticas de Privacidad, de Grouvex Studios, solo tienen validez dentro del dominio o donde el equipo tenga permiso para actuar.</p>
                     <p>Si le da a Cancelar, permanecerá dentro de Grouvex Studios.</p>
                     <p>Si le da a Continuar, se le redirigirá a la página seleccionada.</p>
                 </div>
@@ -1277,12 +1100,13 @@ function loadArtistData(userId) {
     let targetLink = null;
     let targetAttribute = null;
 
+    // Modal buttons
     const cancelButton = modal?.querySelector('.cancel');
     const continueButton = modal?.querySelector('.continue');
 
     if (cancelButton) {
         cancelButton.addEventListener('click', function() {
-            if (modal) modal.style.display = 'none';
+            modal.style.display = 'none';
             targetLink = null;
             targetAttribute = null;
         });
@@ -1290,13 +1114,15 @@ function loadArtistData(userId) {
 
     if (continueButton) {
         continueButton.addEventListener('click', function() {
-            if (modal) modal.style.display = 'none';
             if (targetLink) {
+                modal.style.display = 'none';
+                
                 if (targetAttribute === '_blank') {
                     window.open(targetLink, '_blank');
                 } else {
                     window.location.href = targetLink;
                 }
+                
                 targetLink = null;
                 targetAttribute = null;
             }
@@ -1313,12 +1139,13 @@ function loadArtistData(userId) {
         });
     }
 
+    // Intercept clicks on links
     document.addEventListener('click', function(event) {
         const element = event.target.closest('[href]');
         if (element) {
             const href = element.getAttribute('href');
             
-            if (href && isExternalLink(href)) {
+            if (isExternalLink(href)) {
                 event.preventDefault();
                 targetLink = href;
                 targetAttribute = element.getAttribute('target');
@@ -1330,9 +1157,10 @@ function loadArtistData(userId) {
         }
     });
 
+    // Intercept window.open
     const originalWindowOpen = window.open;
     window.open = function(url, target, features) {
-        if (url && isExternalLink(url)) {
+        if (isExternalLink(url)) {
             targetLink = url;
             targetAttribute = target || '_self';
             
@@ -1392,6 +1220,7 @@ function loadArtistData(userId) {
         });
     }
     
+    // Setup help navigation
     window.showHelpContent = function() {
         hideAllContent();
         if (helpContent) helpContent.classList.add('active');
@@ -1409,6 +1238,7 @@ function loadArtistData(userId) {
         });
     };
     
+    // Close when clicking outside
     document.addEventListener('click', function(e) {
         const contentContainers = document.querySelectorAll('.content-container');
         let isClickInsideContent = false;
@@ -1440,9 +1270,247 @@ function loadArtistData(userId) {
         }
     });
     
+    // Prevent propagation
     document.querySelectorAll('.content-container').forEach(container => {
         container.addEventListener('click', function(e) {
             e.stopPropagation();
         });
     });
 })();
+
+
+
+
+      // ============================================
+// FUNCIÓN PARA MOSTRAR LOS DATOS DEL ARTISTA
+// ============================================
+function displayArtistData(artistData) {
+  console.log("🎨 Mostrando datos del artista:", artistData);
+  
+  // Verificar si hay datos válidos
+  if (!artistData || !artistData.found) {
+    console.error("❌ No se encontraron datos del artista");
+    return;
+  }
+  
+  // ============================================
+  // MOSTRAR INFORMACIÓN BÁSICA DEL ARTISTA
+  // ============================================
+  
+  // Nombre de usuario
+  const usernameElement = document.getElementById('artist-username');
+  if (usernameElement) {
+    usernameElement.textContent = artistData.username || 'Sin nombre';
+  }
+  
+  // Email
+  const emailElement = document.getElementById('artist-email');
+  if (emailElement) {
+    emailElement.textContent = artistData.email || 'Sin email';
+  }
+  
+  // Descripción del perfil
+  const descriptionElement = document.getElementById('artist-description');
+  if (descriptionElement) {
+    descriptionElement.textContent = artistData.profileDescription || 'Sin descripción';
+  }
+  
+  // Tipo de perfil (Público/Privado)
+  const profileTypeElement = document.getElementById('profile-type');
+  if (profileTypeElement) {
+    profileTypeElement.textContent = artistData.profileType || 'Público';
+  }
+  
+  // ============================================
+  // MOSTRAR REDES SOCIALES
+  // ============================================
+  
+  // Instagram
+  const instagramElement = document.getElementById('artist-instagram');
+  if (instagramElement && artistData.instagram) {
+    instagramElement.href = `https://instagram.com/${artistData.instagram.replace('@', '')}`;
+    instagramElement.textContent = artistData.instagram;
+    instagramElement.style.display = 'inline-flex';
+  } else if (instagramElement) {
+    instagramElement.style.display = 'none';
+  }
+  
+  // TikTok
+  const tiktokElement = document.getElementById('artist-tiktok');
+  if (tiktokElement && artistData.tiktok) {
+    tiktokElement.href = `https://tiktok.com/@${artistData.tiktok.replace('@', '')}`;
+    tiktokElement.textContent = artistData.tiktok;
+    tiktokElement.style.display = 'inline-flex';
+  } else if (tiktokElement) {
+    tiktokElement.style.display = 'none';
+  }
+  
+  // YouTube
+  const youtubeElement = document.getElementById('artist-youtube');
+  if (youtubeElement && artistData.youtube) {
+    youtubeElement.href = `https://youtube.com/@${artistData.youtube.replace('@', '')}`;
+    youtubeElement.textContent = artistData.youtube;
+    youtubeElement.style.display = 'inline-flex';
+  } else if (youtubeElement) {
+    youtubeElement.style.display = 'none';
+  }
+  
+  // Discord
+  const discordElement = document.getElementById('artist-discord');
+  if (discordElement && artistData.discord) {
+    discordElement.textContent = artistData.discord;
+    discordElement.style.display = 'inline-flex';
+  } else if (discordElement) {
+    discordElement.style.display = 'none';
+  }
+  
+  // X (Twitter)
+  const xElement = document.getElementById('artist-x');
+  if (xElement && artistData.x) {
+    xElement.href = `https://twitter.com/${artistData.x.replace('@', '')}`;
+    xElement.textContent = artistData.x;
+    xElement.style.display = 'inline-flex';
+  } else if (xElement) {
+    xElement.style.display = 'none';
+  }
+  
+  // Facebook
+  const facebookElement = document.getElementById('artist-facebook');
+  if (facebookElement && artistData.facebook) {
+    facebookElement.href = `https://facebook.com/${artistData.facebook}`;
+    facebookElement.textContent = artistData.facebook;
+    facebookElement.style.display = 'inline-flex';
+  } else if (facebookElement) {
+    facebookElement.style.display = 'none';
+  }
+  
+  // ============================================
+  // MOSTRAR INSIGNIAS (LO NUEVO)
+  // ============================================
+  const insigniasContainer = document.getElementById('insignias-container');
+  if (insigniasContainer) {
+    const insigniaUrls = artistData.insignias || [];
+    
+    if (insigniaUrls.length > 0) {
+      insigniasContainer.innerHTML = insigniaUrls.map(url => 
+        `<img src="${url}" alt="Insignia del usuario" class="insignia-image" style="width: 20px; height: 20px; flex-shrink: 0; margin-right: 4px;">`
+      ).join('');
+      insigniasContainer.style.display = 'flex';
+    } else {
+      insigniasContainer.style.display = 'none';
+      insigniasContainer.innerHTML = '';
+    }
+  }
+  
+  // ============================================
+  // MOSTRAR INFORMACIÓN ADICIONAL
+  // ============================================
+  
+  // Fecha de registro
+  const createdAtElement = document.getElementById('artist-created-at');
+  if (createdAtElement && artistData.timestamp) {
+    const date = new Date(artistData.timestamp);
+    createdAtElement.textContent = date.toLocaleDateString('es-ES');
+  }
+  
+  // Info que muestra (si es relevante)
+  const infoToShowElement = document.getElementById('artist-info-to-show');
+  if (infoToShowElement && artistData.infoToShow) {
+    infoToShowElement.textContent = artistData.infoToShow;
+  }
+  
+  console.log("✅ Datos del artista mostrados correctamente");
+}
+
+// ============================================
+// FUNCIÓN PARA CARGAR LOS DATOS DESDE LA API
+// ============================================
+function loadArtistData(userId) {
+  console.log("📡 Cargando datos del artista:", userId);
+  
+  if (!userId) {
+    console.error("❌ No se proporcionó userId");
+    return;
+  }
+  
+  // Mostrar loading
+  const loadingElement = document.getElementById('loading-spinner');
+  if (loadingElement) {
+    loadingElement.style.display = 'block';
+  }
+  
+  // Usando el simulador de google.script.run que ya tienes
+  google.script.run
+    .withSuccessHandler(function(response) {
+      console.log("✅ Respuesta recibida:", response);
+      
+      // Ocultar loading
+      if (loadingElement) {
+        loadingElement.style.display = 'none';
+      }
+      
+      // Procesar la respuesta
+      if (response.status === 'success') {
+        displayArtistData(response.result);
+      } else if (response.found !== undefined) {
+        // Si la respuesta es directamente el objeto del artista
+        displayArtistData(response);
+      } else {
+        console.error("❌ Error en la respuesta:", response);
+        showError("No se pudieron cargar los datos del artista");
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error("❌ Error en la llamada API:", error);
+      
+      // Ocultar loading
+      if (loadingElement) {
+        loadingElement.style.display = 'none';
+      }
+      
+      showError("Error de conexión con el servidor");
+    })
+    .getArtistData(userId);
+}
+
+// ============================================
+// FUNCIÓN PARA MOSTRAR ERRORES
+// ============================================
+function showError(message) {
+  const errorElement = document.getElementById('error-message');
+  if (errorElement) {
+    errorElement.textContent = message;
+    errorElement.style.display = 'block';
+    
+    // Ocultar después de 5 segundos
+    setTimeout(() => {
+      errorElement.style.display = 'none';
+    }, 5000);
+  } else {
+    alert(message);
+  }
+}
+
+// ============================================
+// INICIALIZAR CUANDO CARGA LA PÁGINA
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("🚀 Página cargada, inicializando...");
+  
+  // Obtener el ID del usuario desde la URL (ej: ?id=GS-123)
+  const urlParams = new URLSearchParams(window.location.search);
+  const userId = urlParams.get('id') || urlParams.get('userId') || (currentUser?.uid);
+  const staffId = urlParams.get('staffid') || urlParams.get('staffId') || (currentUser?.uid);
+  const targetId = urlParams.get('targetid') || urlParams.get('targetId') || (currentUser?.uid);
+  const mostrarID = urlParams.get('targetid') || urlParams.get('targetId') || urlParams.get('id') || urlParams.get('userId') || (currentUser?.uid);
+  if (mostrarID) {
+    loadArtistData(mostrarID);
+  } else {
+    console.warn("⚠️ No se encontró userId en la URL");
+    const errorElement = document.getElementById('error-message');
+    if (errorElement) {
+      errorElement.textContent = "No se especificó un usuario";
+      errorElement.style.display = 'block';
+    }
+  }
+});
