@@ -2087,11 +2087,209 @@ let mostrarId = null;
                 
                 .grvx-btn-confirm:hover { background-color: #45a049; }
                 
-                @media (min-width: 768px) {
-                    .grvx-modal-wrapper { max-width: 600px; padding: 30px; }
-                    .grvx-modal-body { font-size: 16px; }
-                    .grvx-modal-actions { flex-direction: row; justify-content: center; gap: 15px; }
-                    .grvx-btn { width: auto; min-width: 140px; }
+                /* ============================================ */
+                /* RESPONSIVE STYLES */
+                /* ============================================ */
+                
+                /* Tablets y pantallas medianas (768px - 1024px) */
+                @media (min-width: 768px) and (max-width: 1024px) {
+                    .grvx-modal-wrapper {
+                        max-width: 550px;
+                        padding: 28px;
+                    }
+                    
+                    .grvx-modal-logo {
+                        width: 100px;
+                    }
+                    
+                    .grvx-modal-body {
+                        font-size: 15px;
+                        margin: 18px 0;
+                    }
+                    
+                    .grvx-modal-actions {
+                        flex-direction: row;
+                        justify-content: center;
+                        gap: 12px;
+                    }
+                    
+                    .grvx-btn {
+                        width: auto;
+                        min-width: 130px;
+                        padding: 10px 18px;
+                        font-size: 15px;
+                    }
+                }
+                
+                /* Desktop (1024px+) */
+                @media (min-width: 1024px) {
+                    .grvx-modal-wrapper {
+                        max-width: 600px;
+                        padding: 35px;
+                    }
+                    
+                    .grvx-modal-logo {
+                        width: 130px;
+                        margin-bottom: 25px;
+                    }
+                    
+                    .grvx-modal-body {
+                        font-size: 16px;
+                        line-height: 1.7;
+                        margin: 25px 0;
+                    }
+                    
+                    .grvx-modal-actions {
+                        flex-direction: row;
+                        justify-content: center;
+                        gap: 15px;
+                    }
+                    
+                    .grvx-btn {
+                        width: auto;
+                        min-width: 150px;
+                        padding: 12px 24px;
+                        font-size: 16px;
+                    }
+                    
+                    .grvx-btn:hover {
+                        transform: translateY(-2px);
+                    }
+                }
+                
+                /* Móviles grandes (480px - 768px) */
+                @media (min-width: 480px) and (max-width: 768px) {
+                    .grvx-modal-wrapper {
+                        width: 85%;
+                        max-width: 450px;
+                        padding: 22px;
+                    }
+                    
+                    .grvx-modal-logo {
+                        width: 90px;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .grvx-modal-body {
+                        font-size: 14px;
+                        margin: 15px 0;
+                    }
+                    
+                    .grvx-btn {
+                        padding: 10px 16px;
+                        font-size: 14px;
+                    }
+                }
+                
+                /* Móviles pequeños (menos de 480px) */
+                @media (max-width: 480px) {
+                    .grvx-modal-wrapper {
+                        width: 92%;
+                        max-width: none;
+                        padding: 18px;
+                        top: 45%;
+                    }
+                    
+                    .grvx-modal-logo {
+                        width: 80px;
+                        margin-bottom: 12px;
+                    }
+                    
+                    .grvx-modal-body {
+                        font-size: 13px;
+                        margin: 12px 0;
+                        line-height: 1.5;
+                    }
+                    
+                    .grvx-modal-actions {
+                        gap: 8px;
+                        margin-top: 18px;
+                    }
+                    
+                    .grvx-btn {
+                        padding: 10px 14px;
+                        font-size: 14px;
+                    }
+                }
+                
+                /* Móviles muy pequeños (menos de 360px) */
+                @media (max-width: 360px) {
+                    .grvx-modal-wrapper {
+                        width: 95%;
+                        padding: 15px;
+                        top: 40%;
+                    }
+                    
+                    .grvx-modal-logo {
+                        width: 70px;
+                        margin-bottom: 10px;
+                    }
+                    
+                    .grvx-modal-body {
+                        font-size: 12px;
+                        margin: 10px 0;
+                    }
+                    
+                    .grvx-btn {
+                        padding: 8px 12px;
+                        font-size: 13px;
+                    }
+                }
+                
+                /* Orientación landscape en móviles */
+                @media (max-width: 768px) and (orientation: landscape) {
+                    .grvx-modal-wrapper {
+                        top: 50%;
+                        padding: 15px;
+                        max-height: 90vh;
+                        overflow-y: auto;
+                    }
+                    
+                    .grvx-modal-logo {
+                        width: 60px;
+                        margin-bottom: 10px;
+                    }
+                    
+                    .grvx-modal-body {
+                        margin: 10px 0;
+                        font-size: 13px;
+                    }
+                    
+                    .grvx-modal-actions {
+                        flex-direction: row;
+                        gap: 10px;
+                        margin-top: 15px;
+                    }
+                    
+                    .grvx-btn {
+                        width: auto;
+                        min-width: 120px;
+                        padding: 8px 16px;
+                    }
+                }
+                
+                /* Soporte para pantallas muy grandes (4K) */
+                @media (min-width: 1920px) {
+                    .grvx-modal-wrapper {
+                        max-width: 700px;
+                        padding: 45px;
+                    }
+                    
+                    .grvx-modal-logo {
+                        width: 150px;
+                        margin-bottom: 30px;
+                    }
+                    
+                    .grvx-modal-body {
+                        font-size: 18px;
+                        line-height: 1.8;
+                    }
+                    
+                    .grvx-btn {
+                        min-width: 180px;
+                        padding: 14px 28px;
+                        font-size: 18px;
+                    }
                 }
             `;
             document.head.appendChild(style);
@@ -4426,6 +4624,7 @@ let mostrarId = null;
                 border-top: 1px solid #dee2e6;
                 padding-top: 15px;
               }
+              
               .user-info {
                 background-size: cover;
                 background-position: center;
@@ -4435,6 +4634,157 @@ let mostrarId = null;
                 border-radius: 0.5rem;
                 margin-bottom: 1.5rem;
                 border-left: 4px solid var(--primary);
+              }
+            
+              /* ============================================ */
+              /* RESPONSIVE STYLES */
+              /* ============================================ */
+            
+              @media (max-width: 768px) {
+                .profile-customization-section {
+                  margin-top: 20px;
+                  margin-bottom: 10px;
+                  padding: 12px;
+                }
+                
+                .customization-section {
+                  padding: 12px;
+                  margin-bottom: 15px;
+                }
+                
+                .customization-section h4 {
+                  font-size: 1.1rem;
+                  margin-bottom: 12px;
+                  gap: 8px;
+                }
+                
+                .customization-section h4 i {
+                  font-size: 1.2rem;
+                }
+                
+                .selection-options label,
+                .avatar-option label {
+                  font-size: 13px;
+                  margin-bottom: 6px;
+                }
+                
+                .form-control {
+                  padding: 6px 10px;
+                  font-size: 13px;
+                }
+                
+                .btn {
+                  padding: 6px 14px;
+                  font-size: 13px;
+                }
+                
+                .btn-sm {
+                  padding: 5px 10px;
+                  font-size: 12px;
+                }
+                
+                .preview-section h5 {
+                  font-size: 13px;
+                }
+                
+                .control-buttons {
+                  padding-top: 12px;
+                }
+                
+                .user-info {
+                  padding: 0.75rem;
+                  margin-bottom: 1rem;
+                }
+              }
+            
+              @media (max-width: 480px) {
+                .profile-customization-section {
+                  margin-top: 15px;
+                  padding: 10px;
+                }
+                
+                .customization-options {
+                  margin-top: 10px;
+                }
+                
+                .customization-section {
+                  padding: 10px;
+                  margin-bottom: 12px;
+                }
+                
+                .customization-section h4 {
+                  font-size: 1rem;
+                  margin-bottom: 10px;
+                  flex-wrap: wrap;
+                }
+                
+                .customization-section h4 i {
+                  font-size: 1rem;
+                }
+                
+                .selection-options label,
+                .avatar-option label {
+                  font-size: 12px;
+                }
+                
+                .form-control {
+                  padding: 5px 8px;
+                  font-size: 12px;
+                }
+                
+                .btn {
+                  padding: 5px 12px;
+                  font-size: 12px;
+                  width: 100%;
+                  justify-content: center;
+                }
+                
+                .btn-sm {
+                  padding: 4px 8px;
+                  font-size: 11px;
+                  width: auto;
+                }
+                
+                .preview-section h5 {
+                  font-size: 12px;
+                }
+                
+                .control-buttons {
+                  display: flex;
+                  flex-direction: column;
+                  gap: 10px;
+                  padding-top: 10px;
+                }
+                
+                .control-buttons .btn {
+                  width: 100%;
+                }
+                
+                .user-info {
+                  padding: 0.5rem;
+                  margin-bottom: 0.75rem;
+                }
+              }
+            
+              /* Responsive para landscape en móviles */
+              @media (max-width: 768px) and (orientation: landscape) {
+                .profile-customization-section {
+                  margin-top: 15px;
+                }
+                
+                .customization-section {
+                  padding: 10px;
+                }
+                
+                .control-buttons {
+                  display: flex;
+                  flex-direction: row;
+                  gap: 10px;
+                }
+                
+                .control-buttons .btn {
+                  width: auto;
+                }
               }
             `;
             document.head.appendChild(style);
