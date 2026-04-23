@@ -1479,15 +1479,16 @@ function loadArtistData(userId) {
 function showError(message) {
   const errorElement = document.getElementById('error-message');
   if (errorElement) {
-    errorElement.textContent = message;
+    // Convertir a string si es un objeto
+    const textMessage = typeof message === 'string' ? message : String(message);
+    errorElement.textContent = textMessage;
     errorElement.style.display = 'block';
     
-    // Ocultar después de 5 segundos
     setTimeout(() => {
       errorElement.style.display = 'none';
     }, 5000);
   } else {
-    alert(message);
+    alert(typeof message === 'string' ? message : String(message));
   }
 }
 
