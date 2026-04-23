@@ -9637,12 +9637,12 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (userData && userData.found) {
             // Obtener campos específicos del artista
             const nombreCompleto = getArtistField('Nombre de Usuario') || getArtistField('Nombre del Cliente') || currentUser.displayName || 'Nombre de Usuario No Definido';
-            document.querySelectorAll('.nombreCompleto').forEach(nombreCompleto => {
-                nombreCompleto.textContent = nombreCompleto;
+            document.querySelectorAll('.nombreCompleto').forEach(el => {
+                el.textContent = nombreCompleto;
             });
             const nombreArtista = getArtistField('Nombre del Artista/Banda') || getArtistField('Nombre del Artista/Banda Legal') || getArtistField('Nombre de Usuario la cuenta artística de Routenote') || getArtistField('Nombre de Usuario') || getArtistField('Nombre del Cliente') || currentUser.displayName || 'Nombre de Usuario No Definido';
-            document.querySelectorAll('.nombreArtista').forEach(nombreArtista => {
-                nombreArtista.textContent = nombreArtista;
+            document.querySelectorAll('.nombreArtista').forEach(el => {
+                el.textContent = nombreArtista;
             });
             const email = getArtistField('Correo electrónico') || getArtistField('Email') || 'correo no definido';
             const avatarUrl = getArtistField('Imagen 1') || '';
