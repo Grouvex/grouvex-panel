@@ -6204,7 +6204,7 @@ if (typeof auth !== 'undefined') {
             <p><?= razon ?></p>
             </div>
             <? } ?>
-              <h2 class="artist-title"><i class="fa-solid fa-user"></i> <?= filaArtista[headersArtistas.indexOf("Nombre de Usuario")] || 'Nombre no disponible' ?></h2>
+              <h2 class="artist-title"><i class="fa-solid fa-user"></i> <span class="nombreCompleto"></span></h2>
               <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
           <h4>Insignias</h4>
@@ -7728,7 +7728,7 @@ if (window.history && window.history.pushState) {
                       <p><?= razonMostrar ?></p>
                   </div>
                 <? } ?>
-              <h2 class="artist-title"><i class="fa-solid fa-user"></i> <?= filaArtista[headersArtistas.indexOf("Nombre del Artista/Banda")] || 'Nombre no disponible' ?></h2>
+              <h2 class="artist-title"><i class="fa-solid fa-user"></i> <span class="nombreArtista"></span></h2>
               <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
               <h4>Insignias</h4>
@@ -9636,7 +9636,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         if (userData && userData.found) {
             // Obtener campos específicos del artista
-            const nombreCompleto = getArtistField('Nombre de Usuario') || getArtistField('Nombre del Cliente') || 'Nombre de Usuario No Definido';
+            const nombreCompleto = getArtistField('Nombre de Usuario') || getArtistField('Nombre del Cliente') || currentUser.displayName || 'Nombre de Usuario No Definido';
+            document.querySelectorAll('.nombreCompleto').forEach(nombreCompleto => {
+                nombreCompleto.textContent = nombreCompleto;
+            });
+            const nombreArtista = getArtistField('Nombre del Artista/Banda') || getArtistField('Nombre del Artista/Banda Legal') || getArtistField('Nombre de Usuario la cuenta artística de Routenote') || getArtistField('Nombre de Usuario') || getArtistField('Nombre del Cliente') || currentUser.displayName || 'Nombre de Usuario No Definido';
+            document.querySelectorAll('.nombreArtista').forEach(nombreArtista => {
+                nombreArtista.textContent = nombreArtista;
+            });
             const email = getArtistField('Correo electrónico') || getArtistField('Email') || 'correo no definido';
             const avatarUrl = getArtistField('Imagen 1') || '';
             const ultimoAcceso = getArtistField('LastUpdate') || 'No registrado';
