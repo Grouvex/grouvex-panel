@@ -11,8 +11,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "github-pages-deployments"
-  cancel-in-progress: false
+  group: "github-pages-${{ github.repository }}"  # ← CLAVE: único por repo
+  cancel-in-progress: true  # Dentro del MISMO repo, solo el último push cuenta
 
 jobs:
   deploy:
