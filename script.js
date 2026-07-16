@@ -669,14 +669,14 @@ function handleRegistrationError(error) {
 function openMemberPortal() {
     if (!currentUser) return;
     
-    const url = `${WEB_LINK}member?id=${currentUser?.uid}`;
+    const url = `${WEB_LINK}member?id=GS-${currentUser?.uid}`;
     window.open(url);
 }
 
 function openStaffPortal() {
     if (!currentUser || !(isStaff || isVerifiedTeam)) return;
     
-    const url = `${WEB_LINK}staff`;
+    const url = `${WEB_LINK}staff?id=GS-${currentUser?.uid}&isStaff=true`;
     window.open(url);
 }
 
