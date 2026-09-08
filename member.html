@@ -16884,7 +16884,7 @@ if (window.history && window.history.pushState) {
     const userIdInputEl = document.getElementById('userIdInput');
     
     if (userIdInputEl) {
-      const rawId = user?.uid ? gs_fireID : '';
+      const rawId = gs_fireID || gs_id || '';
       userIdInputEl.value = rawId;
       if (rawId && typeof loadSystemStats === 'function') loadSystemStats(rawId);
     }
