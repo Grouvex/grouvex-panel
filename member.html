@@ -3596,7 +3596,22 @@
             "Número de Años - 1", "Número de Años - 2", "Número de Años - 3", 
             "Número de Años - 4", "FirebaseToken", "Perfiles Bloqueados", "Perfil Seguido"
           ]);
-        
+
+          const gstudiosrecordsIgnoredFields = new Set([
+            "Marca temporal", "Insignias", "Estado del Contrato", "Razón", 
+            "Estado del Contrato GSRecords", "Razón GSRecords", "Estado del Contrato GSDesigns", 
+            "Razón GSDesigns", "Dirección", "Ciudad, Código Postal", "Teléfono", 
+            "Prefijo del Teléfono", "Nombre y Apellidos Reales", "Dinero Total GSRecords", 
+            "Porcentaje de Ingresos", "Porcentaje de Regalías", "Mediación, arbitraje, etc", 
+            "DNI, NIE o Pasaporte (Documento Nacional de Identidad)", 
+            "NIF/CIF (Número de Identificación Fiscal)", "ID de la cuenta artística de Routenote", 
+            "Firma", "Nombre del Artista/Banda Legal", "Título/Posición del Artista/Banda", 
+            "Aceptación de Solicitud de Terminación de Contrato Inmediato", "Selector", 
+            "Selecciona la Sección", "Ir a la Selección de Secciones", "Selecciona", 
+            "Número de Días - 1", "Número de Días - 2", "Número de Días - 3", 
+            "Número de Años - 1", "Número de Años - 2", "Número de Años - 3", 
+            "Número de Años - 4", "FirebaseToken", "Perfiles Bloqueados", "Perfil Seguido"
+          ]);
           google.script.run
             .withSuccessHandler(function(data) {
               console.log('Datos recibidos de getArtistData:', data);
@@ -3649,7 +3664,7 @@
         
                     // Filtro específico si el contenedor es tabla-data-gstudios
                     if (tableType === 'gstudios') {
-                      if (index === 0 || gstudiosIgnoredFields.has(header)) {
+                      if (index === 0 || gstudiosIgnoredFields.has(header) || gstudiosrecordsIgnoredFields.has(header)) {
                         return; // Omitir esta columna
                       }
                     }
@@ -5883,24 +5898,15 @@
             <p>Su perfil a sido marcado como <strong><?= estadoContrato ?></strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
             <p><?= razon ?></p>
             </div>
-              <h2 class="artist-title"><i class="fa-solid fa-user"></i> <span class="mostrarUserNameTarget"></span></h2>
-              <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
-              <div class="artist-details">
-          <h4>Insignias</h4>
-          <div class="insignias-container-target" style="display: none; text-align: center; padding: 5px 0;"></div>
-      </div>
-              <div class="artist-info">
-          <? 
-          // Mostrar TODOS los campos con datos
-          headersArtistas.forEach((campo, index) => {
-            // Saltar la columna del ID (asumiendo que es la primera columna)
-            if (index > 0 && campo !== "Marca temporal" && campo !== "Insignias" && campo !== "Estado del Contrato" && campo !== "Razón" && campo !== "Estado del Contrato GSRecords" && campo !== "Razón GSRecords" && campo !== "Estado del Contrato GSDesigns" && campo !== "Razón GSDesigns" && campo !== "Dirección" && campo !== "Ciudad, Código Postal" && campo !== "Teléfono" && campo !== "Prefijo del Teléfono" && campo !== "Nombre y Apellidos Reales" && campo !== "Dinero Total GSRecords" && campo !== "Porcentaje de Ingresos" && campo !== "Porcentaje de Regalías" && campo !== "Mediación, arbitraje, etc" && campo !== "DNI, NIE o Pasaporte (Documento Nacional de Identidad)" && campo !== "NIF/CIF (Número de Identificación Fiscal)" && campo !== "ID de la cuenta artística de Routenote" && campo !== "Firma" && campo !== "Nombre del Artista/Banda Legal" && campo !== "Título/Posición del Artista/Banda" && campo !== "Aceptación de Solicitud de Terminación de Contrato Inmediato" && campo !== "Selector" && campo !== "Selecciona la Sección" && campo !== "Ir a la Selección de Secciones" && campo !== "Selecciona" && campo !== "Número de Días - 1" && campo !== "Número de Días - 2" && campo !== "Número de Días - 3" && campo !== "Número de Años - 1" && campo !== "Número de Años - 2" && campo !== "Número de Años - 3" && campo !== "Número de Años - 4" && campo !== "FirebaseToken" && campo !== "Perfiles Bloqueados" && campo !== "Perfil Seguido") {
-              const valor = filaArtista[index] || 'No especificado'; ?>
-                <div class="info-item">
-                  <span class="info-label"><?= campo ?></span>
-                  <span class="info-value"><?= valor ?></span>
-                </div>
-              </div>
+            <h2 class="artist-title"><i class="fa-solid fa-user"></i> <span class="mostrarUserNameTarget"></span></h2>
+            <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
+            <div class="artist-details">
+                <h4>Insignias</h4>
+                <div class="insignias-container-target" style="display: none; text-align: center; padding: 5px 0;"></div>
+            </div>
+            <div class="artist-info" id="tabla-data-gstudios">
+              <p class="loading-text">Cargando información...</p>
+            </div>
                 <p>Los datos que no salgan solicitalos en el <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>Centro de Ayuda. Grouvex Studios > Gestión de la Cuenta > Ejercicio de derechos ARCO.</p> 
                 <details>
                   <p>Datos Ocultos por seguridad</p>
@@ -6432,23 +6438,12 @@ if (window.history && window.history.pushState) {
               <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
               <h4>Insignias</h4>
-                <div class="insignia-container">
+              <div class="insignia-container">
                 </div>
               </div>
-              <div class="artist-info">
-                <? 
-                // Mostrar TODOS los campos con datos (versión mejorada)
-                headersArtistas.forEach((campo, index) => {
-                  // Saltar la columna del ID (asumiendo que es la primera columna)
-                  if (index > 0 && campo !== "Marca temporal" && campo !== "Insignias" && campo !== "Estado del Contrato" && campo !== "Razón" && campo !== "Estado del Contrato GSRecords" && campo !== "Razón GSRecords" && campo !== "Estado del Contrato GSDesigns" && campo !== "Razón GSDesigns" && campo !== "Dirección" && campo !== "Ciudad, Código Postal" && campo !== "Teléfono" && campo !== "Prefijo del Teléfono" && campo !== "Nombre y Apellidos Reales" && campo !== "Dinero Total GSRecords" && campo !== "Porcentaje de Ingresos" && campo !== "Porcentaje de Regalías" && campo !== "Mediación, arbitraje, etc" && campo !== "DNI, NIE o Pasaporte (Documento Nacional de Identidad)" && campo !== "NIF/CIF (Número de Identificación Fiscal)" && campo !== "ID de la cuenta artística de Routenote" && campo !== "Firma" && campo !== "Nombre del Artista/Banda Legal" && campo !== "Título/Posición del Artista/Banda" && campo !== "Aceptación de Solicitud de Terminación de Contrato Inmediato" && campo !== "Selector" && campo !== "Selecciona la Sección" && campo !== "Ir a la Selección de Secciones" && campo !== "Selecciona" && campo !== "Dinero Total" && campo !== "Número de Días - 1" && campo !== "Número de Días - 2" && campo !== "Número de Días - 3" && campo !== "Número de Años - 1" && campo !== "Número de Años - 2" && campo !== "Número de Años - 3" && campo !== "Número de Años - 4"  && campo !== "FirebaseToken" && campo !== "Perfiles Bloqueados" && campo !== "Perfil Seguido") {
-                    const valor = filaArtista[index] || 'No especificado'; ?>
-                      <div class="info-item">
-                        <span class="info-label"><?= campo ?></span>
-                        <span class="info-value"><?= valor ?></span>
-                      </div>
-                    <? }
-                }); ?>
-              </div>
+            <div class="artist-info" id="tabla-data-gstudiosrecords">
+              <p class="loading-text">Cargando información...</p>
+            </div>
             <p>Los datos que no salgan solicitalos en el <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>Centro de Ayuda. Grouvex Studios > Gestión de la Cuenta > Ejercicio de derechos ARCO.</p> 
               <details>
                 <p>Datos Ocultos por seguridad</p>
