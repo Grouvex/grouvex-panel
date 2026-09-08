@@ -5217,7 +5217,7 @@
           // Auth state observer
           auth.onAuthStateChanged(async (user) => {
             if (user) {
-            //showNotification("Inicio de sesión correcto", 'success');
+            showNotification("Inicio de sesión correcto", 'success');
             currentUser = user;
             resetSessionTimer();
             setupActivityListeners();
@@ -5332,7 +5332,7 @@
                 showError(emailError, "Error al verificar tu cuenta. Intenta nuevamente.");
               }
             } else {
-              //showNotification("Inicio de sesión incorrecto", 'error');
+              showNotification("Inicio de sesión incorrecto", 'error');
               // No user signed in
               currentUser = null;
               isStaff = false;
@@ -6010,7 +6010,6 @@
 
           // Función para buscar canción por UPC
           function searchSongByUPC() {
-            const currentUserId = '<?= mostrarId ?>';
             const upc = document.getElementById('relatedId').value.trim();
             if (!upc) return;
             
@@ -6032,7 +6031,7 @@
                 document.getElementById('songInfo').innerHTML = 'Error al verificar UPC';
                 document.getElementById('songInfo').style.color = '#ef4444';
               })
-              .getUserSongsByUpc(currentUserId,upc);
+              .getUserSongsByUpc(gs_id,upc);
           }
 
           // Actualizar valor actual cuando se selecciona un campo
@@ -6646,10 +6645,6 @@
 // ============================================
 // VARIABLES GLOBALES Y CONFIGURACIÓN
 // ============================================
-
-// ID del usuario actual (debes reemplazar esto con tu variable real)
-let currentUserId = '<?= mostrarId ?>'; // O la variable que contenga el ID del usuario
-
 // Estado de privacidad actual
 let currentPrivacy = '';
 
@@ -6673,9 +6668,9 @@ function loadMemberProfilesSection() {
     })
     .withFailureHandler(function(error) {
       console.error('Error al cargar perfiles:', error);
-      //showNotification('No se pudieron cargar los perfiles de miembros', 'error');
+      showNotification('No se pudieron cargar los perfiles de miembros', 'error');
     })
-    .getMemberProfilesIndependent(currentUserId);
+    .getMemberProfilesIndependent(gs_id);
 }
 
 /**
@@ -6808,20 +6803,20 @@ function followMember(memberId, button) {
   google.script.run
     .withSuccessHandler(function(response) {
       if (response.success) {
-        //showNotification('Ahora sigues a este miembro', 'success');
+        showNotification('Ahora sigues a este miembro', 'success');
         setTimeout(refreshMemberProfiles, 1000);
       } else {
         button.innerHTML = originalHTML;
         button.disabled = false;
-        //showNotification('Error: ' + response.message, 'error');
+        showNotification('Error: ' + response.message, 'error');
       }
     })
     .withFailureHandler(function(error) {
       button.innerHTML = originalHTML;
       button.disabled = false;
-      //showNotification('Error: ' + error.message, 'error');
+      showNotification('Error: ' + error.message, 'error');
     })
-    .updateFollowStatus(currentUserId, memberId, true);
+    .updateFollowStatus(gs_id, memberId, true);
 }
 
 /**
@@ -6835,20 +6830,20 @@ function unfollowMember(memberId, button) {
   google.script.run
     .withSuccessHandler(function(response) {
       if (response.success) {
-        //showNotification('Has dejado de seguir a este miembro', 'success');
+        showNotification('Has dejado de seguir a este miembro', 'success');
         setTimeout(refreshMemberProfiles, 1000);
       } else {
         button.innerHTML = originalHTML;
         button.disabled = false;
-        //showNotification('Error: ' + response.message, 'error');
+        showNotification('Error: ' + response.message, 'error');
       }
     })
     .withFailureHandler(function(error) {
       button.innerHTML = originalHTML;
       button.disabled = false;
-      //showNotification('Error: ' + error.message, 'error');
+      showNotification('Error: ' + error.message, 'error');
     })
-    .updateFollowStatus(currentUserId, memberId, false);
+    .updateFollowStatus(gs_id, memberId, false);
 }
 
 /**
@@ -6866,20 +6861,20 @@ function blockMember(memberId, button) {
   google.script.run
     .withSuccessHandler(function(response) {
       if (response.success) {
-        //showNotification('Miembro bloqueado correctamente', 'success');
+        showNotification('Miembro bloqueado correctamente', 'success');
         setTimeout(refreshMemberProfiles, 1000);
       } else {
         button.innerHTML = originalHTML;
         button.disabled = false;
-        //showNotification('Error: ' + response.message, 'error');
+        showNotification('Error: ' + response.message, 'error');
       }
     })
     .withFailureHandler(function(error) {
       button.innerHTML = originalHTML;
       button.disabled = false;
-      //showNotification('Error: ' + error.message, 'error');
+      showNotification('Error: ' + error.message, 'error');
     })
-    .updateBlockStatus(currentUserId, memberId, true);
+    .updateBlockStatus(gs_id, memberId, true);
 }
 
 /**
@@ -6893,20 +6888,20 @@ function unblockMember(memberId, button) {
   google.script.run
     .withSuccessHandler(function(response) {
       if (response.success) {
-        //showNotification('Miembro desbloqueado correctamente', 'success');
+        showNotification('Miembro desbloqueado correctamente', 'success');
         setTimeout(refreshMemberProfiles, 1000);
       } else {
         button.innerHTML = originalHTML;
         button.disabled = false;
-        //showNotification('Error: ' + response.message, 'error');
+        showNotification('Error: ' + response.message, 'error');
       }
     })
     .withFailureHandler(function(error) {
       button.innerHTML = originalHTML;
       button.disabled = false;
-      //showNotification('Error: ' + error.message, 'error');
+      showNotification('Error: ' + error.message, 'error');
     })
-    .updateBlockStatus(currentUserId, memberId, false);
+    .updateBlockStatus(gs_id, memberId, false);
 }
 
 /**
@@ -6926,7 +6921,7 @@ function copyMemberIdToClipboard(text, button) {
     }, 2000);
   }).catch(err => {
     console.error('Error al copiar:', err);
-    //showNotification('Error al copiar al portapapeles', 'error');
+    showNotification('Error al copiar al portapapeles', 'error');
   });
 }
 
@@ -6953,7 +6948,7 @@ function showConfigModal() {
         console.error('Error al obtener información:', error);
         modal.style.display = 'flex';
       })
-      .getCurrentInfoToShow(currentUserId);
+      .getCurrentInfoToShow(gs_id);
   }
 }
 
@@ -6988,7 +6983,7 @@ function selectPrivacy(privacy) {
  */
 function saveProfileConfig() {
   if (!currentPrivacy) {
-    //showNotification('Por favor, selecciona una opción de privacidad', 'error');
+    showNotification('Por favor, selecciona una opción de privacidad', 'error');
     return;
   }
   
@@ -6997,7 +6992,7 @@ function saveProfileConfig() {
   
   // Validar campos
   if (!infoToShow.trim()) {
-    //showNotification('Por favor, especifica la información a mostrar', 'error');
+    showNotification('Por favor, especifica la información a mostrar', 'error');
     return;
   }
   
@@ -7013,7 +7008,7 @@ function saveProfileConfig() {
     .withSuccessHandler(function(response) {
       if (response.success) {
         hideConfigModal();
-        //showNotification('Configuración guardada correctamente', 'success');
+        showNotification('Configuración guardada correctamente', 'success');
         
         setTimeout(() => {
           refreshMemberProfiles();
@@ -7021,15 +7016,15 @@ function saveProfileConfig() {
       } else {
         saveBtn.innerHTML = originalText;
         saveBtn.disabled = false;
-        //showNotification('Error: ' + response.message, 'error');
+        showNotification('Error: ' + response.message, 'error');
       }
     })
     .withFailureHandler(function(error) {
       saveBtn.innerHTML = originalText;
       saveBtn.disabled = false;
-      //showNotification('Error: ' + error.message, 'error');
+      showNotification('Error: ' + error.message, 'error');
     })
-    .updateProfileConfig(currentUserId, privacyValue, infoToShow);
+    .updateProfileConfig(gs_id, privacyValue, infoToShow);
 }
 
 // ============================================
@@ -7058,14 +7053,14 @@ function refreshMemberProfiles() {
         initMemberModalFunctions();
       } else {
         contentPanel.innerHTML = originalContent;
-        //showNotification('Error al actualizar: ' + result.message, 'error');
+        showNotification('Error al actualizar: ' + result.message, 'error');
       }
     })
     .withFailureHandler(function(error) {
       contentPanel.innerHTML = originalContent;
-      //showNotification('Error al actualizar: ' + error.message, 'error');
+      showNotification('Error al actualizar: ' + error.message, 'error');
     })
-    .getMemberProfilesIndependent(currentUserId);
+    .getMemberProfilesIndependent(gs_id);
 }
 
 // ============================================
@@ -12125,7 +12120,7 @@ if (window.history && window.history.pushState) {
 
       // Verificar estado GSRecords directamente desde Sheets
       function checkGSRecordsStatus() {
-        const userId = "<?= mostrarId ?>"; // ID obtenido de PHP
+        const userId = gs_id; // ID obtenido de PHP
         
         if (!userId) {
           showGSRecordsStatus("No se pudo obtener tu ID de usuario", "error");
