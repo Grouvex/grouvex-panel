@@ -5226,8 +5226,8 @@
             const params = new URLSearchParams(window.location.search);
             gs_id = params.get('id');
             urlTargetId = params.get('targetId');
-            isViewingOtherProfile = id !== null && id !== fireID;
-            mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : id;
+            isViewingOtherProfile = gs_id !== null && gs_id !== fireID;
+            mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
             document.querySelectorAll('.mostrarId').forEach(el => {
                 el.textContent = mostrarId;
             });
