@@ -5211,6 +5211,9 @@
           const urlParams = new URLSearchParams(window.location.search);
           return urlParams.has('targetId') && urlParams.get('isStaff') === 'true';
         }
+          const gs_id = null;
+          const urlTargetId = null;
+          const isViewingOtherProfile = null;
           // Auth state observer
           auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -5221,9 +5224,9 @@
             const currentUrl = window.location.href;
             const fireID = `GS-${user.uid}`;
             const params = new URLSearchParams(window.location.search);
-            const id = params.get('id');
-            const urlTargetId = params.get('targetId');
-            const isViewingOtherProfile = id !== null && id !== fireID;
+            gs_id = params.get('id');
+            urlTargetId = params.get('targetId');
+            isViewingOtherProfile = id !== null && id !== fireID;
             mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : id;
             document.querySelectorAll('.mostrarId').forEach(el => {
                 el.textContent = mostrarId;
@@ -8821,7 +8824,7 @@ if (window.history && window.history.pushState) {
 
                     // Cargar datos del usuario desde la sesión
                     function loadUserDataFromSession() {
-                      let userID = '<?= mostrarId ?>';
+                      let userID = gs_id || `GS-iEsSoCVYs7T9MAmHjYP6066ZPwC2`;
                       try {
                         google.script.run
                           .withSuccessHandler(function(response) {
@@ -10546,7 +10549,7 @@ if (window.history && window.history.pushState) {
                         
                         <!-- Encabezado con imagen -->
                         <div style="position: relative; height: 220px; overflow: hidden; cursor: pointer;" 
-                            onclick="toggleDetailsLanzamiento('details-<?= index ?>')">
+                            onclick="toggleDetailsLanzamiento('details')">
                             <img src="<?= lanzamientoData.imagenUrl ?>" 
                                 alt="<?= lanzamientoData.tituloAlbum ?>"
                                 style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease-in-out;"
@@ -10750,7 +10753,7 @@ if (window.history && window.history.pushState) {
                             border-top: 1px solid #e5e7eb;
                             padding-top: 16px;
                           ">
-                            <button onclick="toggleDetailsLanzamiento('details-<?= index ?>')" style="
+                            <button onclick="toggleDetailsLanzamiento('details-')" style="
                               background: transparent;
                               color: #3b82f6;
                               border: 2px solid #3b82f6;
@@ -10767,7 +10770,7 @@ if (window.history && window.history.pushState) {
                               <svg style="width: 18px; height: 18px; fill: #3b82f6;" viewBox="0 0 24 24">
                                 <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
                               </svg>
-                              <span id="toggle-text-<?= index ?>">Ver detalles</span>
+                              <span id="toggle-text-">Ver detalles</span>
                             </button>
                               <span style="
                                 background: #10b981;
@@ -10789,7 +10792,7 @@ if (window.history && window.history.pushState) {
                         </div>
                         
                         <!-- Panel de detalles expandible -->
-                        <div id="details-<?= index ?>" style="
+                        <div id="details-" style="
                           max-height: 0;
                           overflow: auto;
                           transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -11022,10 +11025,10 @@ if (window.history && window.history.pushState) {
                                 </p>
                                 
                                 <form class="change-request-form" data-lanzamiento="<?= lanzamientoData.upcEan ?>" 
-                                      onsubmit="event.preventDefault(); submitChangeRequestLanzamiento(<?= index ?>)">
-                                  <input type="hidden" id="crUserId-<?= index ?>" value="<?= mostrarId ?>">
-                                  <input type="hidden" id="relatedId-<?= index ?>" value="<?= lanzamientoData.upcEan ?>">
-                                  <input type="hidden" id="requestType-<?= index ?>" value="music">
+                                      onsubmit="event.preventDefault(); submitChangeRequestLanzamiento()">
+                                  <input type="hidden" id="crUserId-" value="<?= mostrarId ?>">
+                                  <input type="hidden" id="relatedId-" value="<?= lanzamientoData.upcEan ?>">
+                                  <input type="hidden" id="requestType-" value="music">
                                   
                                   <div style="margin-bottom: 20px;">
                                     <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 6px; font-weight: 600;">
@@ -11046,12 +11049,12 @@ if (window.history && window.history.pushState) {
                                     </div>
                                   </div>
                                   
-                                  <div id="changesContainer-<?= index ?>" style="margin-bottom: 20px;">
+                                  <div id="changesContainer-" style="margin-bottom: 20px;">
                                     <!-- Los cambios se añadirán aquí dinámicamente -->
                                     <div class="change-item-form" data-change-id="1">
                                       <div class="change-header">
                                         <h4 style="margin: 0; color: #2d3748; font-size: 1rem;">Cambio 1</h4>
-                                        <button type="button" class="btn-remove-change" onclick="removeChangeLanzamiento(1, <?= index ?>)" 
+                                        <button type="button" class="btn-remove-change" onclick="removeChangeLanzamiento(1, )" 
                                                 style="display: none; background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
                                           <svg style="width: 12px; height: 12px; fill: white; vertical-align: middle;" viewBox="0 0 24 24">
                                             <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -11068,8 +11071,8 @@ if (window.history && window.history.pushState) {
                                           Si no aparece el campo que desea modificar es porque es un dato privado. 
                                           Póngase en contacto con legal@grouvex.com, indicando que desea modificar un campo privado.
                                         </p>
-                                        <select id="fieldToModify1-<?= index ?>" required 
-                                                onchange="updateCurrentValueLanzamiento(1, <?= index ?>)" 
+                                        <select id="fieldToModify1-" required 
+                                                onchange="updateCurrentValueLanzamiento(1, )" 
                                                 style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
                                           <option value="">Seleccionar campo...</option>
                                           <option value="Título del álbum/sencillo/EP">Título del álbum/sencillo/EP</option>
@@ -11092,7 +11095,7 @@ if (window.history && window.history.pushState) {
                                         <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
                                           Valor Actual*:
                                         </label>
-                                        <input type="text" id="currentValue1-<?= index ?>" readonly 
+                                        <input type="text" id="currentValue1-" readonly 
                                               style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; background: #f7fafc; color: #718096;">
                                       </div>
                                       
@@ -11100,7 +11103,7 @@ if (window.history && window.history.pushState) {
                                         <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
                                           Nuevo Valor Solicitado*:
                                         </label>
-                                        <input type="text" id="requestedValue1-<?= index ?>" required 
+                                        <input type="text" id="requestedValue1-" required 
                                               style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
                                       </div>
                                       
@@ -11108,14 +11111,14 @@ if (window.history && window.history.pushState) {
                                         <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
                                           Justificación del Cambio:
                                         </label>
-                                        <textarea id="justification1-<?= index ?>" rows="3" 
+                                        <textarea id="justification1-" rows="3" 
                                                   style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; resize: vertical;"
                                                   placeholder="Explica por qué necesitas realizar este cambio..."></textarea>
                                       </div>
                                     </div>
                                   </div>
                                   
-                                  <button type="button" id="addChangeBtn-<?= index ?>" onclick="addChangeLanzamiento(<?= index ?>)" 
+                                  <button type="button" id="addChangeBtn-" onclick="addChangeLanzamiento()" 
                                           style="background: #38a169; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;">
                                     <svg style="width: 16px; height: 16px; fill: white;" viewBox="0 0 24 24">
                                       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
@@ -11159,13 +11162,13 @@ if (window.history && window.history.pushState) {
                                   </div>
                                 </form>
                                 
-                                <div id="requestResult-<?= index ?>" style="display: none; margin-top: 20px; padding: 15px; border-radius: 8px;"></div>
+                                <div id="requestResult-" style="display: none; margin-top: 20px; padding: 15px; border-radius: 8px;"></div>
                               </div>
                             </details>
                             
                             <!-- Botón para compactar -->
                             <div style="text-align: center; margin-top: 20px;">
-                              <button onclick="toggleDetailsLanzamiento('details-<?= index ?>')" style="
+                              <button onclick="toggleDetailsLanzamiento('details-')" style="
                                 background: #6b7280;
                                 color: white;
                                 border: none;
