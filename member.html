@@ -3526,18 +3526,18 @@
               console.log('Datos recibidos de getArtistData:', data);
               
               // 1. PROCESAR NOMBRE DE USUARIO
-              let mostrarId = 'Usuario Grouvex';
+              let mostrarUserName = 'Usuario Grouvex';
               if (data && data.found && data.artistData && data.artistData['Nombre de Usuario']) {
-                mostrarId = data.artistData['Nombre de Usuario'];
+                mostrarUserName = data.artistData['Nombre de Usuario'];
               }
         
-              document.querySelectorAll('.mostrarId').forEach(el => {
-                el.textContent = mostrarId;
+              document.querySelectorAll('.mostrarUserName').forEach(el => {
+                el.textContent = mostrarUserName;
               });
         
               // 2. PROCESAR INSIGNIAS
               const containers = document.querySelectorAll('.insignias-container');
-              
+  
               // Extraer URLs directamente del objeto de insignias que devuelve getArtistData
               let urls = [];
               if (data && data.found && Array.isArray(data.insignias)) {
@@ -3574,7 +3574,67 @@
             })
             .getArtistData(targetId);
         }
-
+        
+        function loadUserDataTarget(user) {
+          console.log('Cargando datos e insignias para usuario:', user?.uid);
+          
+          // Prioriza gs_id global si existe, o construye el ID con user.uid
+          const targetId = (typeof mostrarId !== 'undefined' && mostrarId) ? mostrarId : `GS-${user?.uid}`;
+        
+          google.script.run
+            .withSuccessHandler(function(data) {
+              console.log('Datos recibidos de getArtistData:', data);
+              
+              // 1. PROCESAR NOMBRE DE USUARIO
+              let mostrarUserNameTarget = 'Usuario Grouvex';
+              if (data && data.found && data.artistData && data.artistData['Nombre de Usuario']) {
+                mostrarUserNameTarget = data.artistData['Nombre de Usuario'];
+              }
+        
+              document.querySelectorAll('.mostrarUserNameTarget').forEach(el => {
+                el.textContent = mostrarUserNameTarget;
+              });
+        
+              // 2. PROCESAR INSIGNIAS
+              const containers = document.querySelectorAll('.insignias-container-target');
+  
+              // Extraer URLs directamente del objeto de insignias que devuelve getArtistData
+              let urls = [];
+              if (data && data.found && Array.isArray(data.insignias)) {
+                urls = data.insignias.map(ins => ins.url).filter(Boolean);
+              }
+        
+              if (containers.length > 0) {
+                if (urls.length > 0) {
+                  const html = '<div style="display: flex; gap: 5px; flex-wrap: wrap;">' +
+                    urls.map(url => `<img src="${url}" alt="Insignia" style="width: 20px; height: 20px; border-radius: 50%;">`).join('') +
+                    '</div>';
+        
+                  containers.forEach(container => {
+                    container.innerHTML = html;
+                    container.style.display = 'block';
+                  });
+                  console.log('✅ Insignias mostradas en', containers.length, 'contenedores');
+                } else {
+                  containers.forEach(container => {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                  });
+                  console.log('🔒 Contenedores ocultados (sin insignias)');
+                }
+              }
+            })
+            .withFailureHandler(function(error) {
+              console.error('Error al cargar datos e insignias:', error);
+              
+              // Ocultar contenedores de insignias en caso de falla
+              document.querySelectorAll('.insignias-container-target').forEach(container => {
+                container.style.display = 'none';
+              });
+            })
+            .getArtistData(targetId);
+        }
+        
       // ============================================================
       // 3. FUNCIONES PARA PERFILES RELACIONADOS
       // ============================================================
@@ -3775,6 +3835,7 @@
           
           // Cargar insignias
           loadUserData(user);
+          loadUserDataTarget(user);
           // Cargar perfiles relacionados
           setTimeout(loadRelatedProfiles, 500);
           
@@ -5775,7 +5836,7 @@
             <p>Su perfil a sido marcado como <strong><?= estadoContrato ?></strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
             <p><?= razon ?></p>
             </div>
-              <h2 class="artist-title"><i class="fa-solid fa-user"></i> <span class="mostrarUserName"></span></h2>
+              <h2 class="artist-title"><i class="fa-solid fa-user"></i> <span class="mostrarUserNameTarget"></span></h2>
               <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
           <h4>Insignias</h4>
@@ -6510,7 +6571,7 @@ if (window.history && window.history.pushState) {
                 <div class="contract-content">
                   <h3><i class="fa-solid fa-file-certificate"></i> Grouvex Studios Records - Aceptación de Contrato</h3>
                   <p><strong>Nombre del Artista:</strong> <?= filaArtista ? filaArtista[headersArtistas.indexOf("Nombre del Artista/Banda")] : 'N/A' ?></p>
-                  <p><strong>Grouvex Studios UserID:</strong> <?= mostrarId || 'N/A' ?></p>
+                  <p><strong>Grouvex Studios UserID:</strong> <span class="mostrarId"></span></p>
                   <p>El Grouvex Studios UserID, en adelante GSUserID, es único y por lo tanto, no debe compartirlo con nadie. El GSUserID le servirá para acceder al formulario de contrato de proyecto, y también para en caso de olvidar alguna información sobre un proyecto o tu contrato o algo que tenga que ver con Grouvex Studios, proporcionando el GSUserID nosotros podremos saber su información.</p>
                   <p><strong>Dirección:</strong> <em><?= filaArtista ? filaArtista[headersArtistas.indexOf("Dirección")] : 'N/A' ?></em></p>
                   <p><strong>Ciudad, Código Postal:</strong> <em><?= filaArtista ? filaArtista[headersArtistas.indexOf("Ciudad, Código Postal")] : 'N/A' ?></em></p>
