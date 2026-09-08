@@ -4339,7 +4339,7 @@
       function loadRelatedProfiles() {
         if (!currentUser) return;
         
-        const fireID = `GS-${currentUser.uid}`;
+        const gs_fireID = `GS-${currentUser.uid}`;
         const profilesList = document.getElementById('relatedProfilesList');
         if (!profilesList) return;
         
@@ -4348,7 +4348,7 @@
             console.log('Perfiles relacionados:', profiles);
             if (profiles && profiles.length > 0) {
               const userProfiles = profiles.filter(profile => 
-                profile.id === fireID || profile.id.startsWith(fireID + "-")
+                profile.id === gs_fireID || profile.id.startsWith(gs_fireID + "-")
               );
               
               if (userProfiles.length > 0) {
@@ -4381,14 +4381,14 @@
               profilesList.innerHTML = '<p>Error al cargar perfiles.</p>';
             }
           })
-          .getRelatedArtistIds(fireID);
+          .getRelatedArtistIds(gs_fireID);
       }
 
       function searchProfiles() {
         const searchTerm = document.getElementById('searchProfileInput').value.trim().toLowerCase();
         if (!searchTerm || !currentUser) return;
         
-        const fireID = `GS-${currentUser.uid}`;
+        const gs_fireID = `GS-${currentUser.uid}`;
         const resultsContainer = document.getElementById('relatedProfilesResults');
         const currentProfiles = document.getElementById('currentRelatedProfiles');
         
@@ -4396,7 +4396,7 @@
           .withSuccessHandler(function(profiles) {
             if (profiles && profiles.length > 0) {
               const userProfiles = profiles.filter(profile => 
-                profile.id === fireID || profile.id.startsWith(fireID + "-")
+                profile.id === gs_fireID || profile.id.startsWith(gs_fireID + "-")
               );
               
               const filteredProfiles = userProfiles.filter(profile => 
@@ -4434,23 +4434,23 @@
               resultsContainer.innerHTML = '<p>Error al buscar perfiles.</p>';
             }
           })
-          .getRelatedArtistIds(fireID);
+          .getRelatedArtistIds(gs_fireID);
       }
 
       function viewProfile(profileId) {
         if (!currentUser) return;
         
-        const fireID = `GS-${currentUser.uid}`;
+        const gs_fireID = `GS-${currentUser.uid}`;
         const BASE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec';
         
-        const belongsToUser = profileId === fireID || profileId.startsWith(fireID + "-");
+        const belongsToUser = profileId === gs_fireID || profileId.startsWith(gs_fireID + "-");
         
         if (belongsToUser) {
-          const url = `${BASE_APPS_SCRIPT_URL}?id=${fireID}&targetId=${encodeURIComponent(profileId)}`;
+          const url = `${BASE_APPS_SCRIPT_URL}?id=${gs_fireID}&targetId=${encodeURIComponent(profileId)}`;
           window.open(url, '_blank');
         } else {
           if (isStaff) {
-            const url = `${BASE_APPS_SCRIPT_URL}?id=${fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
+            const url = `${BASE_APPS_SCRIPT_URL}?id=${gs_fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
             window.open(url, '_blank');
           } else {
             alert("Solo el staff puede ver perfiles de otros usuarios.");
@@ -5227,17 +5227,17 @@
             const params = new URLSearchParams(window.location.search);
             gs_id = params.get('id');
             urlTargetId = params.get('targetId');
-            isViewingOtherProfile = gs_id !== null && gs_id !== fireID;
+            isViewingOtherProfile = gs_id !== null && gs_id !== gs_fireID;
             mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
             document.querySelectorAll('.mostrarId').forEach(el => {
                 el.textContent = mostrarId;
             });
             document.getElementById('crUserId').value = gs_id;
-            document.getElementById('gs-user-id').value = fireID;
+            document.getElementById('gs-user-id').value = gs_fireID;
             const userIdInputEl = document.getElementById('userIdInput');
             
             if (userIdInputEl) {
-              const rawId = user?.uid ? "GS-" + user.uid : '';
+              const rawId = user?.uid ? gs_fireID : '';
               userIdInputEl.value = rawId;
               if (rawId) loadSystemStats(rawId);
             }
@@ -5287,28 +5287,28 @@
               }
               
           console.log('🔍 URL completa:', currentUrl);
-            console.log('Firebase UID:', fireID);
-            console.log('URL ID:', id);
+            console.log('Firebase UID:', gs_fireID);
+            console.log('URL ID:', gs_id);
             console.log('Target ID:', urlTargetId);
             console.log(isStaff);
-            if (id && id !== fireID) {
+            if (gs_id && gs_id !== gs_fireID) {
               console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
               // Puedes agregar aquí lógica adicional si lo necesitas
-            } else if (!id || !fireID) {
-              console.log('No hay ID en la URL o no hay fireID');
+            } else if (!gs_id || !gs_fireID) {
+              console.log('No hay ID en la URL o no hay gs_fireID');
             } else {
               console.log('El ID en la URL coincide con el usuario autenticado');
             }
             // Usuario normal intentando ver perfil ajeno
-            if (!isStaff && id && id !== fireID) {
+            if (!isStaff && gs_id && gs_id !== gs_fireID) {
                 showIdMismatchOverlay();
             }
 
             // Staff intentando ver perfil ajeno sin parámetros correctos
-            if (isStaff && id && id !== fireID && !isStaffAccessUrl()) {
+            if (isStaff && gs_id && gs_id !== gs_fireID && !isStaffAccessUrl()) {
                 showIdMismatchOverlayStaff();
             }
-              if (!fireID || !id) {
+              if (!gs_fireID || !gs_id) {
                 showLoginRequiredOverlay();
               }
               // Check if user is staff or verified team
@@ -5336,6 +5336,10 @@
             } else {
               showNotification("Inicio de sesión incorrecto", 'error');
               // No user signed in
+              gs_id = null;
+              urlTargetId = null;
+              isViewingOtherProfile = null;
+              gs_fireID = null;
               currentUser = null;
               isStaff = false;
               isVerifiedTeam = false;
@@ -5523,7 +5527,7 @@
           // Logout handler
           logoutBtn.addEventListener('click', () => {
             auth.signOut().then(() => {
-            const fireID = null;
+            const gs_fireID = null;
             document.getElementById('gs-user-id').value = null;
               initSessionTimeout();
               removeActivityListeners();
