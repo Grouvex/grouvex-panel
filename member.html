@@ -5840,21 +5840,7 @@
               <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
           <h4>Insignias</h4>
-          <div class="insignia-container">
-            <? if (targetInsigniaUrls && targetInsigniaUrls.length > 0) { ?>
-                <!-- Mostrar insignias del target -->
-                <? for (const url of targetInsigniaUrls) { ?>
-                    <img src="<?= url ?>" alt="Insignias del target" class="insignia-image">
-                <? } ?>
-            <? } else if (insigniaUrls && insigniaUrls.length > 0) { ?>
-                <!-- Mostrar insignias del ID (cuando no hay target) -->
-                <? for (const url of insigniaUrls) { ?>
-                    <img src="<?= url ?>" alt="Insignias del usuario" class="insignia-image">
-                <? } ?>
-            <? } else { ?>
-                <p>No hay insignias asignadas.</p>
-            <? } ?>
-          </div>
+          <div class="insignias-container" style="display: none; text-align: center; padding: 5px 0;"></div>
       </div>
               <div class="artist-info">
           <? 
