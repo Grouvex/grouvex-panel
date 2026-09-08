@@ -4516,13 +4516,6 @@
             });
             document.getElementById('crUserId').value = gs_id;
             document.getElementById('gs-user-id').value = gs_fireID;
-            const userIdInputEl = document.getElementById('userIdInput');
-            
-            if (userIdInputEl) {
-              const rawId = user?.uid ? gs_fireID : '';
-              userIdInputEl.value = rawId;
-              if (rawId && typeof loadSystemStats === 'function') loadSystemStats(rawId);
-            }
               const userAvatar = document.getElementById('user-avatar');
               const userAvatarTIGS = document.getElementById('user-avatarTIGS');
               if (user.photoURL) {
@@ -16887,7 +16880,14 @@ if (window.history && window.history.pushState) {
         })
         .getSystemStats(userId);
     }
-
+      
+    const userIdInputEl = document.getElementById('userIdInput');
+    
+    if (userIdInputEl) {
+      const rawId = user?.uid ? gs_fireID : '';
+      userIdInputEl.value = rawId;
+      if (rawId && typeof loadSystemStats === 'function') loadSystemStats(rawId);
+    }
 
     if (userIdInputBtn) {
       userIdInputBtn.addEventListener('click', () => {
