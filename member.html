@@ -52,7 +52,6 @@
       <meta name="msapplication-tap-highlight" content="no">
       
       <!-- PWA / WEB APP MANIFEST -->
-      <link rel="manifest" href="/manifest.json">
       <meta name="mobile-web-app-capable" content="yes">
       <meta name="application-name" content="Grouvex Studios">
       
@@ -4522,7 +4521,7 @@
             if (userIdInputEl) {
               const rawId = user?.uid ? gs_fireID : '';
               userIdInputEl.value = rawId;
-              if (rawId) loadSystemStats(rawId);
+              if (rawId && typeof loadSystemStats === 'function') loadSystemStats(rawId);
             }
               const userAvatar = document.getElementById('user-avatar');
               const userAvatarTIGS = document.getElementById('user-avatarTIGS');
@@ -16903,7 +16902,7 @@ if (window.history && window.history.pushState) {
     function searchUserStats() {
       const userIdInput = document.getElementById('userIdInput');
       const userId = userIdInput ? userIdInput.value.trim() : '';
-      loadSystemStats(userId);
+      if (typeof loadSystemStats === 'function') loadSystemStats(userId);
     }
 
     function displaySystemStats(response) {
