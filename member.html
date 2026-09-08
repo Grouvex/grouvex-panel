@@ -3187,53 +3187,6 @@
       </div>
     </div>
     <!-- Pagina Web -->
-    <? 
-      // Determinar qué datos mostrar
-      const mostrarDatos = targetFilaArtista && isViewingOtherProfile ? targetFilaArtista : filaArtista;
-      const mostrarId = isViewingOtherProfile && targetId ? targetId : id;
-      const mostrarInsignias = isViewingOtherProfile && targetInsigniaUrls ? targetInsigniaUrls : insigniaUrls;
-      // Procesar insignias al inicio
-      let insigniasEspeciales = {
-        verified: false, gsmember: false, partner: false, verifiedPartner: false,
-        artista: false, palette: false, videoCreator: false, vip: false,
-        superBughunter: false, verifiedBughunter: false, developer: false,
-        staff: false, verifiedDeveloper: false, trialModerator: false,
-        moderator: false, vmoderator: false, employee: false, vemployee: false,
-        sistema: false, ownerRecording: false, ownerDesigns: false, ownerAnimations: false,
-        owner: false
-      };
-
-      if (insigniaUrls && insigniaUrls.length > 0) {
-        insigniaUrls.forEach(url => {
-          const badgeName = url.match(/([^\/]+)\.(png|jpg|jpeg|gif)$/i)?.[1]?.toLowerCase();
-          
-          // Asignar cada insignia según el nombre del archivo en el orden de las URLs
-          if (badgeName === 'verified') insigniasEspeciales.verified = true;
-          if (badgeName === 'grouvex') insigniasEspeciales.gsmember = true;
-          if (badgeName === 'partner') insigniasEspeciales.partner = true;
-          if (badgeName === 'verified-partner') insigniasEspeciales.verifiedPartner = true;
-          if (badgeName === 'artista') insigniasEspeciales.artista = true;
-          if (badgeName === 'palette') insigniasEspeciales.palette = true;
-          if (badgeName === 'video_creator') insigniasEspeciales.videoCreator = true;
-          if (badgeName === 'vip') insigniasEspeciales.vip = true;
-          if (badgeName === 'super-bughunter') insigniasEspeciales.superBughunter = true;
-          if (badgeName === 'verified-bughunter') insigniasEspeciales.verifiedBughunter = true;
-          if (badgeName === 'developer') insigniasEspeciales.developer = true;
-          if (badgeName === 'verified-team') insigniasEspeciales.staff = true;
-          if (badgeName === 'verified-developer-a') insigniasEspeciales.verifiedDeveloper = true;
-          if (badgeName === 'trial-moderator') insigniasEspeciales.trialModerator = true;
-          if (badgeName === 'moderator') insigniasEspeciales.moderator = true;
-          if (badgeName === 'verified-moderator') insigniasEspeciales.vmoderator = true;
-          if (badgeName === 'employee') insigniasEspeciales.employee = true;
-          if (badgeName === 'verified-employee') insigniasEspeciales.vemployee = true;
-          if (badgeName === 'sistema') insigniasEspeciales.sistema = true;
-          if (badgeName === 'ownerrecording') insigniasEspeciales.ownerRecording = true;
-          if (badgeName === 'ownerdesigns') insigniasEspeciales.ownerDesigns = true;
-          if (badgeName === 'owneranimations') insigniasEspeciales.ownerAnimations = true;
-          if (badgeName === 'owner') insigniasEspeciales.owner = true;
-        });
-      }
-    ?>
     <!-- Verificación de Usuario -->
       <!-- Inicio de Sesión -->
       <div id="loginForm" class="loginForm">
@@ -3722,7 +3675,7 @@
       function viewProfile(profileId) {
         if (!currentUser) return;
         
-        const gs_fireID = `GS-${currentUser.uid}`;
+        const gs_fireID = gs_fireID;
         const BASE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec';
         
         const belongsToUser = profileId === gs_fireID || profileId.startsWith(gs_fireID + "-");
@@ -3815,7 +3768,7 @@
           
           // Cargar insignias
           loadUserInsignias(user);
-          
+          loadUserData(user);
           // Cargar perfiles relacionados
           setTimeout(loadRelatedProfiles, 500);
           
@@ -3853,6 +3806,30 @@
         }
       });
 
+      let mostrarUserName = null;
+      function loadUserData(user) {
+        console.log('Cargando datos para usuario:', user.uid);
+        google.script.run
+          .withSuccessHandler(function(data) {
+            console.log('Datos recibidos:', data);
+            
+            // Verificamos que existan los datos y extraemos el nombre
+            if (data && data.found && data.artistData) {
+              mostrarUserName = data.artistData['Nombre de Usuario'] || 'Usuario Grouvex';
+            } else {
+              mostrarUserName = 'Usuario Grouvex';
+            }
+      
+            document.querySelectorAll('.mostrarId').forEach(el => {
+              el.textContent = mostrarUserName;
+            });
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error al cargar insignias:', error);
+          })
+          .getArtistData(gs_id);
+      }
+        
       // ============================================================
       // 6. EVENT LISTENERS
       // ============================================================
@@ -4497,6 +4474,7 @@
           let urlTargetId = null;
           let isViewingOtherProfile = null;
           let gs_fireID = null;
+          let mostrarId = null;
           // Auth state observer
           auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -4514,6 +4492,7 @@
             document.querySelectorAll('.mostrarId').forEach(el => {
                 el.textContent = mostrarId;
             });
+              
             document.getElementById('crUserId').value = gs_id;
             document.getElementById('gs-user-id').value = gs_fireID;
               const userAvatar = document.getElementById('user-avatar');
@@ -5814,7 +5793,7 @@
             <p>Su perfil a sido marcado como <strong><?= estadoContrato ?></strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
             <p><?= razon ?></p>
             </div>
-              <h2 class="artist-title"><i class="fa-solid fa-user"></i> <?= filaArtista[headersArtistas.indexOf("Nombre de Usuario")] || 'Nombre no disponible' ?></h2>
+              <h2 class="artist-title"><i class="fa-solid fa-user"></i> <span class="mostrarUserName"></span></h2>
               <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
           <h4>Insignias</h4>
