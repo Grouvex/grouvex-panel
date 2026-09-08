@@ -5214,6 +5214,7 @@
           let gs_id = null;
           let urlTargetId = null;
           let isViewingOtherProfile = null;
+          let gs_fireID = null;
           // Auth state observer
           auth.onAuthStateChanged(async (user) => {
             if (user) {
@@ -5222,7 +5223,7 @@
             resetSessionTimer();
             setupActivityListeners();
             const currentUrl = window.location.href;
-            const fireID = `GS-${user.uid}`;
+            gs_fireID = `GS-${user.uid}`;
             const params = new URLSearchParams(window.location.search);
             gs_id = params.get('id');
             urlTargetId = params.get('targetId');
@@ -5231,6 +5232,7 @@
             document.querySelectorAll('.mostrarId').forEach(el => {
                 el.textContent = mostrarId;
             });
+            document.getElementById('crUserId').value = gs_id;
             document.getElementById('gs-user-id').value = fireID;
             const userIdInputEl = document.getElementById('userIdInput');
             
@@ -5772,7 +5774,7 @@
               <p style="color:red">Los campos con asterisco (*) son obligatorios a la hora de poder enviar el formulario.</p>
               
               <form id="changeRequestForm">
-                <input type="hidden" id="crUserId" value="<?= mostrarId ?>">
+                <input type="hidden" id="crUserId">
                 
                 <div class="form-group">
                   <label for="requestType">Tipo de Solicitud*:</label>
