@@ -3809,6 +3809,8 @@
       let mostrarUserName = null;
       function loadUserData(user) {
         console.log('Cargando datos para usuario:', user.uid);
+        const fullUserID = 'GS-' +  user.uid;
+        console.log('El fullUserID es:', fullUserID);
         google.script.run
           .withSuccessHandler(function(data) {
             console.log('Datos recibidos:', data);
@@ -3827,7 +3829,7 @@
           .withFailureHandler(function(error) {
             console.error('Error al cargar insignias:', error);
           })
-          .getArtistData(gs_id);
+          .getArtistData(fullUserID);
       }
         
       // ============================================================
