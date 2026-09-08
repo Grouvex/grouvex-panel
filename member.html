@@ -3575,11 +3575,27 @@
             .getArtistData(targetId);
         }
         
-        function loadUserDataTarget(user) {
-          console.log('Cargando datos e insignias para usuario:', user?.uid);
+        function loadUserData(user) {
+          console.log('Cargando datos e insignias para usuario:', mostrarId);
           
-          // Prioriza gs_id global si existe, o construye el ID con user.uid
           const targetId = (typeof mostrarId !== 'undefined' && mostrarId) ? mostrarId : `GS-${user?.uid}`;
+        
+          // Campos no permitidos específicamente para "gstudios"
+          const gstudiosIgnoredFields = new Set([
+            "Marca temporal", "Insignias", "Estado del Contrato", "Razón", 
+            "Estado del Contrato GSRecords", "Razón GSRecords", "Estado del Contrato GSDesigns", 
+            "Razón GSDesigns", "Dirección", "Ciudad, Código Postal", "Teléfono", 
+            "Prefijo del Teléfono", "Nombre y Apellidos Reales", "Dinero Total GSRecords", 
+            "Porcentaje de Ingresos", "Porcentaje de Regalías", "Mediación, arbitraje, etc", 
+            "DNI, NIE o Pasaporte (Documento Nacional de Identidad)", 
+            "NIF/CIF (Número de Identificación Fiscal)", "ID de la cuenta artística de Routenote", 
+            "Firma", "Nombre del Artista/Banda Legal", "Título/Posición del Artista/Banda", 
+            "Aceptación de Solicitud de Terminación de Contrato Inmediato", "Selector", 
+            "Selecciona la Sección", "Ir a la Selección de Secciones", "Selecciona", 
+            "Número de Días - 1", "Número de Días - 2", "Número de Días - 3", 
+            "Número de Años - 1", "Número de Años - 2", "Número de Años - 3", 
+            "Número de Años - 4", "FirebaseToken", "Perfiles Bloqueados", "Perfil Seguido"
+          ]);
         
           google.script.run
             .withSuccessHandler(function(data) {
@@ -3597,8 +3613,6 @@
         
               // 2. PROCESAR INSIGNIAS
               const containers = document.querySelectorAll('.insignias-container-target');
-  
-              // Extraer URLs directamente del objeto de insignias que devuelve getArtistData
               let urls = [];
               if (data && data.found && Array.isArray(data.insignias)) {
                 urls = data.insignias.map(ins => ins.url).filter(Boolean);
@@ -3614,21 +3628,54 @@
                     container.innerHTML = html;
                     container.style.display = 'block';
                   });
-                  console.log('✅ Insignias mostradas en', containers.length, 'contenedores');
                 } else {
                   containers.forEach(container => {
                     container.style.display = 'none';
                     container.innerHTML = '';
                   });
-                  console.log('🔒 Contenedores ocultados (sin insignias)');
                 }
+              }
+        
+              // 3. PROCESAR TABLAS DINÁMICAS (id="tabla-data-*")
+              if (data && data.found && data.headers && data.artistData) {
+                const dataTables = document.querySelectorAll('[id^="tabla-data-"]');
+        
+                dataTables.forEach(tableContainer => {
+                  const tableType = tableContainer.id.replace('tabla-data-', '');
+                  let itemsHtml = '';
+        
+                  data.headers.forEach((header, index) => {
+                    const valor = data.artistData[header];
+        
+                    // Filtro específico si el contenedor es tabla-data-gstudios
+                    if (tableType === 'gstudios') {
+                      if (index === 0 || gstudiosIgnoredFields.has(header)) {
+                        return; // Omitir esta columna
+                      }
+                    }
+        
+                    // Solo renderiza si hay un valor presente
+                    if (valor !== undefined && valor !== null && valor !== '') {
+                      itemsHtml += `
+                        <div class="info-item">
+                          <span class="info-label">${header}</span>
+                          <span class="info-value">${valor}</span>
+                        </div>
+                      `;
+                    }
+                  });
+        
+                  tableContainer.innerHTML = itemsHtml;
+                });
               }
             })
             .withFailureHandler(function(error) {
               console.error('Error al cargar datos e insignias:', error);
-              
-              // Ocultar contenedores de insignias en caso de falla
               document.querySelectorAll('.insignias-container-target').forEach(container => {
+                container.style.display = 'none';
+              });
+              
+              document.querySelectorAll('.mostrarUserNameTarget').forEach(container => {
                 container.style.display = 'none';
               });
             })
@@ -5840,7 +5887,7 @@
               <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
           <h4>Insignias</h4>
-          <div class="insignias-container" style="display: none; text-align: center; padding: 5px 0;"></div>
+          <div class="insignias-container-target" style="display: none; text-align: center; padding: 5px 0;"></div>
       </div>
               <div class="artist-info">
           <? 
@@ -5853,8 +5900,6 @@
                   <span class="info-label"><?= campo ?></span>
                   <span class="info-value"><?= valor ?></span>
                 </div>
-              <? }
-          }); ?>
               </div>
                 <p>Los datos que no salgan solicitalos en el <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>Centro de Ayuda. Grouvex Studios > Gestión de la Cuenta > Ejercicio de derechos ARCO.</p> 
                 <details>
