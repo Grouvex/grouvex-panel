@@ -1763,6 +1763,7 @@ function initSessionTimeout() {
       const currentUrl = window.location.href;
       await inicializarSeguridadUI();
       const fireID = `GS-${user.uid}`;
+      const params = new URLSearchParams(window.location.search);
       const id = params.get('id');
       const urlTargetId = params.get('targetId');
       const isViewingOtherProfile = id !== null && id !== fireID;
