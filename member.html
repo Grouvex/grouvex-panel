@@ -5211,9 +5211,9 @@
           const urlParams = new URLSearchParams(window.location.search);
           return urlParams.has('targetId') && urlParams.get('isStaff') === 'true';
         }
-          const gs_id = null;
-          const urlTargetId = null;
-          const isViewingOtherProfile = null;
+          let gs_id = null;
+          let urlTargetId = null;
+          let isViewingOtherProfile = null;
           // Auth state observer
           auth.onAuthStateChanged(async (user) => {
             if (user) {
