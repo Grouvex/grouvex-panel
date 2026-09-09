@@ -364,9 +364,13 @@ async function miFuncion(parametros) {
 
 // 1. CONFIGURACIÓN DE REGLAS DE ACCESO
 const PERMISOS_ACCESOS = {
-  "HQ1-cR": {
+  "HQ1-cRemove": {
     insignias: ["sistema", "GROUVEX%20Studios%20GCO"],
     condicion: "TODAS"
+  },
+  "HQ2-cDisabled": {
+    insignias: ["moderation", "verified-moderation", "employee", "verified-employee", "sistema", "GROUVEX%20Studios%20GCO"],
+    condicion: "CUALQUIERA"
   },
   "inputConfiguracion": {
     insignias: ["Admin"],
@@ -467,7 +471,8 @@ function procesarBloqueosVisuales(insigniasUsuario) {
     return;
   }
   
-  verificadoInsignias(".HQ1-cR", "HQ1-cR", "remove", true, insigniasUsuario);
+  verificadoInsignias(".HQ1-cRemove", "HQ1-cRemove", "remove", true, insigniasUsuario);
+  verificadoInsignias(".HQ2-cDisabled", "HQ2-cDisabled", "disabled", true, insigniasUsuario);
   
   const estaAbierto = ultimoEstadoApertura; 
   const activarEvaluacionPorCierre = !estaAbierto;
