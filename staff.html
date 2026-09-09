@@ -566,70 +566,6 @@
     </div>
   </div>
 </div>
-
-<? 
-// Determinar qué datos mostrar
-const mostrarDatos = targetFilaArtista && isViewingOtherProfile ? targetFilaArtista : filaArtista;
-const mostrarId = isViewingOtherProfile && targetId ? targetId : staffid;
-const mostrarInsignias = isViewingOtherProfile && targetInsigniaUrls ? targetInsigniaUrls : insigniaUrls;
-// Procesar insignias al inicio
-let insigniasEspeciales = {
-  verified: false,
-  gsmember: false,
-  partner: false,
-  verifiedPartner: false,
-  artista: false,
-  palette: false,
-  videoCreator: false,
-  vip: false,
-  superBughunter: false,
-  verifiedBughunter: false,
-  developer: false,
-  staff: false,
-  verifiedDeveloper: false,
-  trialModerator: false,
-  moderator: false,
-  vmoderator: false,
-  employee: false,
-  vemployee: false,
-  sistema: false,
-  ownerRecording: false,
-  ownerDesigns: false,
-  ownerAnimations: false,
-  owner: false
-};
-
-if (insigniaUrls && insigniaUrls.length > 0) {
-  insigniaUrls.forEach(url => {
-    const badgeName = url.match(/([^\/]+)\.(png|jpg|jpeg|gif)$/i)?.[1]?.toLowerCase();
-    
-    // Asignar cada insignia según el nombre del archivo en el orden de las URLs
-    if (badgeName === 'verified') insigniasEspeciales.verified = true;
-    if (badgeName === 'grouvex') insigniasEspeciales.gsmember = true;
-    if (badgeName === 'partner') insigniasEspeciales.partner = true;
-    if (badgeName === 'verified-partner') insigniasEspeciales.verifiedPartner = true;
-    if (badgeName === 'artista') insigniasEspeciales.artista = true;
-    if (badgeName === 'palette') insigniasEspeciales.palette = true;
-    if (badgeName === 'video_creator') insigniasEspeciales.videoCreator = true;
-    if (badgeName === 'vip') insigniasEspeciales.vip = true;
-    if (badgeName === 'super-bughunter') insigniasEspeciales.superBughunter = true;
-    if (badgeName === 'verified-bughunter') insigniasEspeciales.verifiedBughunter = true;
-    if (badgeName === 'developer') insigniasEspeciales.developer = true;
-    if (badgeName === 'verified-team') insigniasEspeciales.staff = true;
-    if (badgeName === 'verified-developer-a') insigniasEspeciales.verifiedDeveloper = true;
-    if (badgeName === 'trial-moderator') insigniasEspeciales.trialModerator = true;
-    if (badgeName === 'moderator') insigniasEspeciales.moderator = true;
-    if (badgeName === 'verified-moderator') insigniasEspeciales.vmoderator = true;
-    if (badgeName === 'employee') insigniasEspeciales.employee = true;
-    if (badgeName === 'verified-employee') insigniasEspeciales.vemployee = true;
-    if (badgeName === 'sistema') insigniasEspeciales.sistema = true;
-    if (badgeName === 'ownerrecording') insigniasEspeciales.ownerRecording = true;
-    if (badgeName === 'ownerdesigns') insigniasEspeciales.ownerDesigns = true;
-    if (badgeName === 'owneranimations') insigniasEspeciales.ownerAnimations = true;
-    if (badgeName === 'owner') insigniasEspeciales.owner = true;
-  });
-}
-?>
 <!-- Verificación de Usuario -->
       <div id="loginForm" class="loginForm">
           <div id="cerrado" class="cerrado">
@@ -1700,6 +1636,7 @@ function initSessionTimeout() {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.has('targetId') && urlParams.get('isStaff') === 'true';
     }
+    
     function loadUserInsignias(user) {
       console.log('Cargando insignias para usuario:', user.uid);
       
@@ -1752,6 +1689,10 @@ function initSessionTimeout() {
         })
         .getArtistInsignias(fullUserId);
     }
+
+    let gs_id = null;
+    let urlTargetId = null;
+    let gs_fireID = null;
     // Auth state observer
     auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -1762,10 +1703,10 @@ function initSessionTimeout() {
       loadUserInsignias(user);
       const currentUrl = window.location.href;
       await inicializarSeguridadUI();
-      const fireID = `GS-${user.uid}`;
+      gs_fireID = `GS-${user.uid}`;
       const params = new URLSearchParams(window.location.search);
-      const id = params.get('id');
-      const urlTargetId = params.get('targetId');
+      gs_id = params.get('id');
+      urlTargetId = params.get('targetId');
       const isViewingOtherProfile = id !== null && id !== fireID;
       mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : id;
       document.querySelectorAll('.mostrarId').forEach(el => {
@@ -3225,7 +3166,7 @@ if (typeof id === 'undefined') {
  * MÓDULO DE PERSISTENCIA REMOTA: LLAMADA NATIVA AL SERVIDOR (.gs)
  */
 function saveToGlobalLog(funcName, args, result, triggerType) {
-  const currentStaffId = "<?= staffid ?>";
+  const currentStaffId = gs_fireID;
   const now = Date.now();
 
   const logPayload = {
@@ -4231,7 +4172,7 @@ document.addEventListener("DOMContentLoaded", () => {
           })
           .generarVistaPreviaComunicado({
             tipoPlantilla: plantillaSeleccionada.id,
-            staffId: "<?= staffid ?>"
+            staffId: gs_fireID
           });
       }
 
@@ -4529,7 +4470,7 @@ document.addEventListener("DOMContentLoaded", () => {
             replyTo: document.getElementById('configReplyToInput').value,
             category: document.getElementById('configCategory').value
           },
-          staffId: "<?= staffid ?>",
+          staffId: gs_fireID,
           camposEditados: obtenerCamposEditados(),
           adjuntos: prepararAdjuntosParaEnvio()
         };
@@ -5120,7 +5061,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // ============================================
       function cargarPlantillaRespuesta() {
         const tipoPlantilla = document.getElementById('selectPlantillaRespuesta').value;
-        const staffId = "<?= staffid ?>" || 'system_auto';
+        const staffId = gs_fireID || 'system_auto';
         cargarConfiguracionPorDefecto();
 
         document.getElementById('plantillaPreview').innerHTML = `<div style="text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin" style="color:#6c5ce7;"></i><p>Cargando plantilla...</p></div>`;
@@ -5192,7 +5133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       function actualizarVistaPreviaRespuesta() {
         const tipoPlantilla = document.getElementById('selectPlantillaRespuesta').value;
-        const staffId = "<?= staffid ?>" || 'system_auto';
+        const staffId = gs_fireID || 'system_auto';
         const camposEditados = {};
         document.querySelectorAll('#plantillaPreview .editable-field').forEach(campo => {
           const fieldName = campo.getAttribute('data-field');
@@ -5442,7 +5383,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const datosPlantilla = { fecha: new Date().toLocaleDateString('es-ES'), ciudad: 'Madrid', camposEditados, nombreDestinatario , adjuntos: adjuntos};
 
         const opciones = {
-          staffId: "<?= staffid ?>" || 'system_auto',
+          staffId: gs_fireID || 'system_auto',
           from: fromCompleto,
           replyTo: replyTo || emailFinal,
           asunto: 'Re: ' + (hiloSeleccionado ? hiloSeleccionado.asunto : '')
@@ -14021,7 +13962,7 @@ function revokeUserSessions(uid) {
   
   showAdminResult('Cerrando sesiones del usuario...', 'loading');
   
-  const staffId = "<?= staffid ?>";
+  const staffId = gs_fireID;
   
   google.script.run
     .withSuccessHandler(function(response) {
@@ -16090,7 +16031,7 @@ function formatFirebaseTimestamp(timestamp) {
 <!-- ================================================== -->
 <script>
 // Configuración global
-const currentStaffId = "<?= staffid ?>";
+const currentStaffId = gs_fireID;
 
 // ==================================================
 // VARIABLES GLOBALES DE RENDIMIENTO
@@ -16467,7 +16408,7 @@ async function applyQuickEditsArtistas() {
     return;
   }
 
-  const staffId = "<?= staffid ?>";
+  const staffId = gs_fireID;
   
   google.script.run
     .withSuccessHandler((result) => {
