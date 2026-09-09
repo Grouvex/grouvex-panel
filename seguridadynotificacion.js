@@ -195,6 +195,7 @@ function verificadoPermisos(nombreFuncion) {
     if (typeof currentUser === 'undefined' || !currentUser) {
       console.warn("Intento de verificación sin usuario activo.");
       insigniasCache = [];
+      procesarBloqueosVisuales([]);
       return resolve(false);
     }
 
