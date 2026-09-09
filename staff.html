@@ -1541,8 +1541,8 @@ function initSessionTimeout() {
       const params = new URLSearchParams(window.location.search);
       gs_id = params.get('id');
       urlTargetId = params.get('targetId');
-      const isViewingOtherProfile = id !== null && id !== fireID;
-      mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : id;
+      const isViewingOtherProfile = gs_id !== null && gs_id !== gs_fireID;
+      mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
       document.querySelectorAll('.mostrarId').forEach(el => {
         el.textContent = mostrarId;
       });
@@ -2103,18 +2103,16 @@ function viewProfile(profileId) {
 function loadRelatedProfiles() {
   if (!currentUser) return;
   
-  const fireID = `GS-${currentUser.uid}`;
-  
   google.script.run
     .withSuccessHandler(function(profiles) {
       // Filtrar solo los perfiles que pertenecen al usuario
       const userProfiles = profiles.filter(profile => 
-        profile.id === fireID || profile.id.startsWith(fireID + "-")
+        profile.id === gs_fireID || profile.id.startsWith(gs_fireID + "-")
       );
       displayRelatedProfiles(userProfiles);
     })
     .withFailureHandler(showError)
-    .getRelatedArtistIds(fireID);
+    .getRelatedArtistIds(gs_fireID);
 }
 
 // Event listeners
