@@ -194,6 +194,7 @@ function verificadoPermisos(nombreFuncion) {
     // Si no hay ningún usuario logueado en la variable global, denegamos el acceso
     if (typeof currentUser === 'undefined' || !currentUser) {
       console.warn("Intento de verificación sin usuario activo.");
+      insigniasCache = [];
       return resolve(false);
     }
 
