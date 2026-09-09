@@ -3617,9 +3617,9 @@
             
               targetContainers.forEach(container => {
                 // Extrae "gs", "gstudios", "gsrecords", etc. eliminando "estado-data-" y "-target"
-                const sectionType = container.id.replace('estado-data-', '').replace('-target', '');
-                const estadoVal = varsTarget[`${sectionType}_estadotarget`];
-                const razonVal  = varsTarget[`${sectionType}_razontarget`];
+                const sectionTypeTarget = container.id.replace('estado-data-', '').replace('-target', '');
+                const estadoVal = varsTarget[`${sectionTypeTarget}_estadotarget`];
+                const razonVal  = varsTarget[`${sectionTypeTarget}_razontarget`];
 
                 document.querySelectorAll(`.uestado-data-${sectionTypeTarget}-target`).forEach(el => {
                   if (estadoVal) el.textContent = estadoVal;
