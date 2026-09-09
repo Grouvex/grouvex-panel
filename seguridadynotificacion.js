@@ -1,3 +1,136 @@
+//!function(){'use strict';const n=(m,t="🚫 ACCIÓN BLOQUEADA")=>{const e=document.createElement("div");e.style.cssText="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:2147483647;display:flex;align-items:center;justify-content:center;color:#ff4444;font-family:Arial,sans-serif;text-align:center;flex-direction:column;backdrop-filter:blur(5px)",e.innerHTML=`<div style="font-size:28px;font-weight:bold;margin-bottom:15px">${t}</div><div style="font-size:16px;color:#ff9999;max-width:80%;margin:0 auto">${m}</div><div style="font-size:12px;color:#ccc;margin-top:25px">Desaparece en <span id="cnt">10</span>s</div>`,document.body.appendChild(e);let s=10;const i=setInterval(()=>{s--,document.getElementById("cnt")&&(document.getElementById("cnt").textContent=s),s<=0&&(clearInterval(i),e.remove())},1e3)};document.addEventListener("keydown",e=>{if(e.key==="p"&&(e.ctrlKey||e.metaKey))return e.preventDefault(),e.stopImmediatePropagation(),n("No se permite imprimir esta página","🚫 IMPRESIÓN BLOQUEADA"),!1;if((e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="J"||e.key==="C"||e.key==="U"))||e.key==="F12"||e.keyCode===123)return e.preventDefault(),e.stopImmediatePropagation(),n("Acceso restringido","🔧 ACCIÓN BLOQUEADA"),!1},!0);["copy","cut","paste","contextmenu","selectstart","dragstart"].forEach(e=>{document.addEventListener(e,t=>{t.preventDefault(),t.stopImmediatePropagation()},!0)});const e=document.createElement("style");e.textContent="*{user-select:none!important;-webkit-user-select:none!important;-moz-user-select:none!important;-ms-user-select:none!important}input,textarea,[contenteditable]{user-select:text!important}@media print{*{display:none!important}body::before{content:'IMPRESIÓN BLOQUEADA';display:block!important;font-size:24px;color:red;text-align:center;margin-top:100px;font-weight:bold}}",document.head.appendChild(e);window.matchMedia("print").addListener(t=>{t.matches&&n("No se permite imprimir esta página","🚫 IMPRESIÓN BLOQUEADA")});setInterval(()=>{try{const e=performance.now();let t=0;for(let n=0;n<5e5;n++)t+=Math.random();performance.now()-e>500&&n("Comportamiento inusual detectado","⚠️ ADVERTENCIA")}catch{}},5e3);document.addEventListener("visibilitychange",()=>{document.hidden&&setTimeout(()=>{n("La página fue minimizada","📋 ATENCIÓN")},500)})}();
+// ============================================
+// EXTERNAL LINK MODAL (original code preserved)
+// ============================================
+(function() {
+    const allowedUrls = [
+        'www.grouvex.com',
+        'grouvex.com',
+        'records.grouvex.com',
+        'panel.grouvex.com',
+        'grouvex.github.io',
+        'https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link'
+    ];
+
+    function isExternalLink(href) {
+        if (!href) return false;
+        try {
+            const url = new URL(href, window.location.origin);
+            
+            const isAllowed = allowedUrls.some(allowedUrl => {
+                if (!allowedUrl.includes('://')) {
+                    return url.hostname === allowedUrl;
+                } else {
+                    return url.href === allowedUrl || url.href.startsWith(allowedUrl);
+                }
+            });
+            
+            return !isAllowed;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('customModal');
+    
+    if (!modal) {
+        const modalHTML = `
+        <div id="customModal" class="modal">
+            <div class="modal-content">
+                <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/Grouvex1.png" alt="Logo" class="modal-logo">
+                <div class="modal-text">
+                    <p>Estás a punto de salir de <n>Grouvex Studios</n>. Grouvex Studios no se responsabiliza por el contenido, la seguridad, las políticas de privacidad o las prácticas de los sitios de terceros, fuera del dominio, puesto que los Términos de Servicio y Políticas de Privacidad, de Grouvex Studios, solo tienen validez dentro del dominio o donde el equipo tenga permiso para actuar.</p>
+                    <p>Si le da a Cancelar, permanecerá dentro de Grouvex Studios.</p>
+                    <p>Si le da a Continuar, se le redirigirá a la página seleccionada.</p>
+                </div>
+                <div class="modal-buttons">
+                    <button class="modal-button cancel">Cancelar</button>
+                    <button class="modal-button continue">Continuar</button>
+                </div>
+            </div>
+        </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        modal = document.getElementById('customModal');
+    }
+
+    let targetLink = null;
+    let targetAttribute = null;
+
+    // Modal buttons
+    const cancelButton = modal?.querySelector('.cancel');
+    const continueButton = modal?.querySelector('.continue');
+
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function() {
+            modal.style.display = 'none';
+            targetLink = null;
+            targetAttribute = null;
+        });
+    }
+
+    if (continueButton) {
+        continueButton.addEventListener('click', function() {
+            if (targetLink) {
+                modal.style.display = 'none';
+                
+                if (targetAttribute === '_blank') {
+                    window.open(targetLink, '_blank');
+                } else {
+                    window.location.href = targetLink;
+                }
+                
+                targetLink = null;
+                targetAttribute = null;
+            }
+        });
+    }
+
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+                targetLink = null;
+                targetAttribute = null;
+            }
+        });
+    }
+
+    // Intercept clicks on links
+    document.addEventListener('click', function(event) {
+        const element = event.target.closest('[href]');
+        if (element) {
+            const href = element.getAttribute('href');
+            
+            if (isExternalLink(href)) {
+                event.preventDefault();
+                targetLink = href;
+                targetAttribute = element.getAttribute('target');
+                
+                if (modal) {
+                    modal.style.display = 'block';
+                }
+            }
+        }
+    });
+
+    // Intercept window.open
+    const originalWindowOpen = window.open;
+    window.open = function(url, target, features) {
+        if (isExternalLink(url)) {
+            targetLink = url;
+            targetAttribute = target || '_self';
+            
+            if (modal) {
+                modal.style.display = 'block';
+            }
+            return null;
+        }
+        return originalWindowOpen(url, target, features);
+    };
+})();
+
 /// Manejo de Permisos y Notificaciones
 const PERMISOS_FUNCIONES = {
   // CUALQUIERA o TODAS
