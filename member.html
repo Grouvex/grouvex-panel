@@ -3074,7 +3074,7 @@
               <!-- Imagen TIGS de fondo -->
               <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/TIGS%20(GS-ID).jpg" alt="TIGS" 
                   style="width: auto; height: auto; max-width: 250px; max-height: 170px; object-fit: contain; vertical-align: middle;">
-              <p style="position: absolute; font-size: 6px; top: 36px; left: 90px; color: black;"><?= id ?></p>
+              <p style="position: absolute; font-size: 6px; top: 36px; left: 90px; color: black;"><span class="mostrarId"></span></p>
               <!-- Avatar TIGS superpuesto -->
               <img id="user-avatarTIGS" src="" alt="Avatar TIGS" 
                   style="position: absolute; top: 46px; left: 4px; width: 63px; height: auto; border-radius: 5.2%; display: block; object-fit: cover; margin-right: 1px; opacity: 90%;">
@@ -3260,9 +3260,9 @@
           <div class="staff-access">
             <details>
               <summary><h3><i class="fas fa-user-shield"></i> Acceso de Staff</h3></summary>
-              <p>Estás viendo <?= isViewingOtherProfile ? 'el perfil de otro usuario' : 'tu propio perfil' ?> como miembro del Staff</p>
-              <p>Cualquier información que no pueda ver de <strong><?= targetId ?></strong> solicitelo a legal@grouvex.com desde el centro de contactos > gestión de cuenta > ejercer derechos ARCO (Solo de Acceso) indicando el GSUserID del miembro. Envie captura de el recuadro naranja de Acceso de Staff.</p>
-                <p>Viendo perfil de: <strong><?= targetId ?></strong></p>
+              <p>Estás viendo  como miembro del Staff</p>
+              <p>Cualquier información que no pueda ver de <strong><span class="mostrarId"></span></strong> solicitelo a legal@grouvex.com desde el centro de contactos > gestión de cuenta > ejercer derechos ARCO (Solo de Acceso) indicando el GSUserID del miembro. Envie captura de el recuadro naranja de Acceso de Staff.</p>
+                <p>Viendo perfil de: <strong><span class="mostrarId"></span></strong></p>
               <div class="portal-section">
                 <div class="portal-actions">
                   <!-- For staff members -->
@@ -4558,6 +4558,7 @@
               
             document.getElementById('crUserId').value = gs_id;
             document.getElementById('gs-user-id').value = gs_fireID;
+            document.getElementById(`gsrecordsUserId`).value = mostrarId;
               const userAvatar = document.getElementById('user-avatar');
               const userAvatarTIGS = document.getElementById('user-avatarTIGS');
               if (user.photoURL) {
@@ -5915,7 +5916,7 @@
         </section>
         <section class="special-section" style="border-left-color: #ff0000; background: rgb(255 0 0 / 64%);">
           <h3><i class="fa-solid fa-ban"></i> Acceso Denegado</h3>
-          <p>Su cuenta esta en estado <?= estadoContrato ?> y no puede acceder a las secciones especiales tales como Partner, Colaborador, VIP, etc.</p>
+          <p>Su cuenta esta en estado <span class="uestado-data-gs-target"></span> y no puede acceder a las secciones especiales tales como Partner, Colaborador, VIP, etc.</p>
         </section>
 
       
@@ -9681,26 +9682,10 @@
                   <table class="songs-table">
                     <thead>
                       <tr>
-                        <? 
-                        // Encabezados (excluyendo la columna del ID)
-                        for (let j = 1; j < headersCanciones.length; j++) {
-                          if (headersCanciones[j]) { ?>
-                            <th><?= headersCanciones[j] ?></th>
-                          <? }
-                        } ?>
                       </tr>
                     </thead>
                     <tbody>
-                        <? 
-                        // Filas de canciones (excluyendo la columna del ID)
-                        cancionesMostrar.forEach(fila => { ?>
-                          <tr>
-                          <? for (let j = 1; j < fila.length; j++) { ?>
-                            <td><?= fila[j] || '-' ?></td>
-                          <? } ?>
-                          </tr>
-                        <? }); ?>
-                      </tbody>
+                    </tbody>
                   </table>
                 </div>
                 </details>
@@ -10941,7 +10926,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="form-group">
               <label class="form-label !text-gray-200">Grouvex Studios UserID *</label>
-              <input type="text" id="gsrecordsUserId" class="form-input" value="<?= mostrarId ?>" readonly>
+              <input type="text" id="gsrecordsUserId" class="form-input" readonly>
               <small class="text-xs text-white">ID obtenido de tu perfil</small>
             </div>
             
@@ -10995,7 +10980,7 @@
             
             <div class="form-group">
               <label for="gsrecordsOfferDate" class="form-label !text-gray-200">Fecha de la Oferta *</label>
-              <input type="date" id="gsrecordsOfferDate" class="form-input" min="<?= new Date() ?>" required>
+              <input type="date" id="gsrecordsOfferDate" class="form-input" required>
               <small class="text-xs text-white">Fecha actual o posterior - Fecha de entrada en vigor</small>
               <div id="gsrecordsOfferDateError" class="error-message"></div>
             </div>
@@ -17620,10 +17605,10 @@
         <div class="footer-bottom">
           <p>
             <a href="https://drive.google.com/drive/u/0/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT" target="_blank" rel="noopener noreferrer">
-              ©2021 - <?= new Date().getFullYear() ?> Grouvex Studios. Todos los derechos reservados.
+              ©2021 - 2026 Grouvex Studios. Todos los derechos reservados.
             </a>
           </p>
-          <p>©<?= new Date().getFullYear() ?>-v0.0.6</p>
+          <p>©2026-v0.0.6</p>
         </div>
       </div>
 
