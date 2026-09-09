@@ -99,7 +99,8 @@
 <!-- THEME COLOR DINÁMICO -->
 <meta name="theme-color" content="#2c3e50" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1a2530" media="(prefers-color-scheme: dark)">
-<script src="/google-script-simulator.js"></script><script src="/seguridadynotificacion.js"></script><link rel="stylesheet" href="/style.css">
+<script src="/google-script-simulator.js"></script><script src="/seguridadynotificacion.js"></script><script src="/injectUpdateSystem.js"></script>
+<link rel="stylesheet" href="/style.css">
 <title>Grouvex Studios - Datos del Miembro</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -4556,9 +4557,6 @@
                 el.textContent = mostrarId;
             });
               
-            document.getElementById('crUserId').value = gs_id;
-            document.getElementById('gs-user-id').value = gs_fireID;
-            document.getElementById(`gsrecordsUserId`).value = mostrarId;
               const userAvatar = document.getElementById('user-avatar');
               const userAvatarTIGS = document.getElementById('user-avatarTIGS');
               if (user.photoURL) {
@@ -4603,32 +4601,75 @@
                 console.log('⚠️ Time no defined');
                 userName.textContent = "Not Defined";
               }
-              
-          console.log('🔍 URL completa:', currentUrl);
-            console.log('Firebase UID:', gs_fireID);
-            console.log('URL ID:', gs_id);
-            console.log('Target ID:', urlTargetId);
-            console.log(isStaff);
+            
             if (gs_id && gs_id !== gs_fireID) {
               console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
-              // Puedes agregar aquí lógica adicional si lo necesitas
+              gs_id = null;
+              gs_fireID = null;
+              auth.signOut().then(() => {
+                  initSessionTimeout();
+                  removeActivityListeners();
+                  if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                  // Logout success - handled by auth state observer
+              });
             } else if (!gs_id || !gs_fireID) {
-              console.log('No hay ID en la URL o no hay gs_fireID');
+              console.log('No hay ID en la URL o no hay fireID');
+              gs_id = null;
+              gs_fireID = null;
+              auth.signOut().then(() => {
+                  initSessionTimeout();
+                  removeActivityListeners();
+                  if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                  // Logout success - handled by auth state observer
+              });
             } else {
               console.log('El ID en la URL coincide con el usuario autenticado');
             }
             // Usuario normal intentando ver perfil ajeno
             if (!isStaff && gs_id && gs_id !== gs_fireID) {
                 showIdMismatchOverlay();
+              gs_id = null;
+              gs_fireID = null;
+              auth.signOut().then(() => {
+                  initSessionTimeout();
+                  removeActivityListeners();
+                  if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                  // Logout success - handled by auth state observer
+              });
             }
-
             // Staff intentando ver perfil ajeno sin parámetros correctos
             if (isStaff && gs_id && gs_id !== gs_fireID && !isStaffAccessUrl()) {
                 showIdMismatchOverlayStaff();
+                  gs_id = null;
+                  gs_fireID = null;
+                  auth.signOut().then(() => {
+                      initSessionTimeout();
+                      removeActivityListeners();
+                      if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                      // Logout success - handled by auth state observer
+                  });
             }
-              if (!gs_fireID || !gs_id) {
-                showLoginRequiredOverlay();
-              }
+          if (!gs_fireID || !gs_id) {
+             showLoginRequiredOverlay();
+              gs_id = null;
+              gs_fireID = null;
+              auth.signOut().then(() => {
+                  initSessionTimeout();
+                  removeActivityListeners();
+                  if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                  // Logout success - handled by auth state observer
+              });
+           }
+          await inicializarSeguridadUI();
+            console.log('🔍 URL completa:', currentUrl);
+            console.log('Firebase UID:', gs_fireID);
+            console.log('URL ID:', gs_id);
+            console.log('Target ID:', urlTargetId);
+            console.log(isStaff);
+            document.getElementById('crUserId').value = gs_id;
+            document.getElementById('gs-user-id').value = gs_fireID;
+            document.getElementById(`gsrecordsUserId`).value = mostrarId;
+            injectUpdateSystem(gs_fireID);
               // Check if user is staff or verified team
               try {
                 
