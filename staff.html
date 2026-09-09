@@ -1161,172 +1161,6 @@
                     </div>
                   </details>
                 </div>
-                <script>
-                  // Función para cargar perfiles relacionados
-                function loadRelatedProfiles() {
-                  if (!currentUser) return;
-                  
-                  const fireID = `GS-${currentUser.uid}`;
-                  console.log('ID 1 :', fireID);
-                  google.script.run
-                    .withSuccessHandler(displayRelatedProfiles)
-                    .withFailureHandler(showError)
-                    .getRelatedArtistIds(fireID);
-                }
-
-                // Función para mostrar perfiles relacionados
-                function displayRelatedProfiles(profiles) {
-                  const profilesList = document.getElementById('relatedProfilesList');
-                  const resultsContainer = document.getElementById('relatedProfilesResults');
-                  
-                  if (!profiles || profiles.length === 0) {
-                    profilesList.innerHTML = '<p>No se encontraron perfiles relacionados.</p>';
-                    return;
-                  }
-                  
-                  let html = '';
-                  profiles.forEach(profile => {
-                    html += `
-                      <div class="profile-item ${profile.isBase ? 'main-profile' : ''}">
-                        <div class="profile-info">
-                          <h5>${profile.name || 'Sin nombre'}</h5>
-                          <p class="profile-id">ID: ${profile.id}</p>
-                        </div>
-                        <button class="btn-view-profile" onclick="viewProfile('${profile.id}')">
-                          <i class="fas fa-eye"></i> Ver Perfil
-                        </button>
-                      </div>
-                    `;
-                  });
-                  
-                  profilesList.innerHTML = html;
-                  resultsContainer.innerHTML = ''; // Limpiar resultados de búsqueda
-                }
-
-                // Función para buscar perfiles
-                function searchProfiles() {
-                  const searchTerm = document.getElementById('searchProfileInput').value.trim().toLowerCase();
-                  if (!searchTerm) return;
-                  
-                  if (!currentUser) return;
-                  
-                  const fireID = `GS-${currentUser.uid}`;
-                  console.log('ID 1 :', fireID);
-                  google.script.run
-                    .withSuccessHandler(function(profiles) {
-                      displaySearchResults(profiles, searchTerm);
-                    })
-                    .withFailureHandler(showError)
-                    .getRelatedArtistIds(fireID);
-                }
-
-                // Función para mostrar resultados de búsqueda
-                function displaySearchResults(profiles, searchTerm) {
-                  const resultsContainer = document.getElementById('relatedProfilesResults');
-                  const currentProfiles = document.getElementById('currentRelatedProfiles');
-                  
-                  if (!profiles || profiles.length === 0) {
-                    resultsContainer.innerHTML = '<p>No se encontraron perfiles.</p>';
-                    return;
-                  }
-                  
-                  // Filtrar perfiles por término de búsqueda
-                  const filteredProfiles = profiles.filter(profile => 
-                    profile.name && profile.name.toLowerCase().includes(searchTerm)
-                  );
-                  
-                  if (filteredProfiles.length === 0) {
-                    resultsContainer.innerHTML = '<p>No se encontraron perfiles que coincidan con la búsqueda.</p>';
-                    return;
-                  }
-                  
-                  let html = '<h4>Resultados de búsqueda:</h4>';
-                  filteredProfiles.forEach(profile => {
-                    html += `
-                      <div class="profile-item ${profile.isBase ? 'main-profile' : ''}">
-                        <div class="profile-info">
-                          <h5>${profile.name || 'Sin nombre'}</h5>
-                          <p class="profile-id">ID: ${profile.id}</p>
-                        </div>
-                        <button class="btn-view-profile" onclick="viewProfile('${profile.id}')">
-                          <i class="fas fa-eye"></i> Ver Perfil
-                        </button>
-                      </div>
-                    `;
-                  });
-                  
-                  resultsContainer.innerHTML = html;
-                  currentProfiles.style.display = 'none'; // Ocultar lista actual durante la búsqueda
-                }
-
-                // Función para ver un perfil
-                function viewProfile(profileId) {
-                  if (!currentUser) return;
-                  
-                  const fireID = `GS-${currentUser.uid}`;
-                  
-                  // Verificar si el perfil pertenece al usuario actual
-                  const belongsToUser = profileId === fireID || profileId.startsWith(fireID + "-");
-                  
-                  if (belongsToUser) {
-                    // Usuario viendo su propio perfil - no necesita permisos de staff
-                    const url = `${BASE_APPS_SCRIPT_URL}?id=${fireID}&targetId=${encodeURIComponent(profileId)}`;
-                    window.open(url, '_top');
-                  } else {
-                    // Usuario intentando ver perfil ajeno - requiere staff
-                    if (isStaff) {
-                      const url = `${BASE_APPS_SCRIPT_URL}?id=${fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
-                      window.open(url, '_blank');
-                    } else {
-                      alert("Solo el staff puede ver perfiles de otros usuarios.");
-                    }
-                  }
-                }
-
-                // Función para cargar perfiles relacionados (solo muestra los del usuario)
-                function loadRelatedProfiles() {
-                  if (!currentUser) return;
-                  
-                  const fireID = `GS-${currentUser.uid}`;
-                  
-                  google.script.run
-                    .withSuccessHandler(function(profiles) {
-                      // Filtrar solo los perfiles que pertenecen al usuario
-                      const userProfiles = profiles.filter(profile => 
-                        profile.id === fireID || profile.id.startsWith(fireID + "-")
-                      );
-                      displayRelatedProfiles(userProfiles);
-                    })
-                    .withFailureHandler(showError)
-                    .getRelatedArtistIds(fireID);
-                }
-
-                // Event listeners
-                document.addEventListener('DOMContentLoaded', function() {
-                  // Cargar perfiles relacionados cuando el usuario esté autenticado
-                  auth.onAuthStateChanged(async (user) => {
-                    if (user) {
-                      setTimeout(loadRelatedProfiles, 1000); // Esperar a que todo esté cargado
-                    }
-                  });
-                  
-                  // Buscar al hacer clic en el botón
-                  const searchBtn = document.getElementById('searchProfileBtn');
-                  if (searchBtn) {
-                    searchBtn.addEventListener('click', searchProfiles);
-                  }
-                  
-                  // Buscar al presionar Enter
-                  const searchInput = document.getElementById('searchProfileInput');
-                  if (searchInput) {
-                    searchInput.addEventListener('keypress', (e) => {
-                      if (e.key === 'Enter') {
-                        searchProfiles();
-                      }
-                    });
-                  }
-                });
-                </script>
                 <!-- Cierre Sección para buscar perfiles relacionados -->
 
                 <!-- Sección Staff -->
@@ -2147,10 +1981,172 @@ function toggleViewProfileButtons(disabled) {
       window.location.href = LOGIN_URL;
     });
   }
+
+// Función para cargar perfiles relacionados
+function loadRelatedProfiles() {
+  if (!currentUser) return;
+  
+  const fireID = `GS-${currentUser.uid}`;
+  console.log('ID 1 :', fireID);
+  google.script.run
+    .withSuccessHandler(displayRelatedProfiles)
+    .withFailureHandler(showError)
+    .getRelatedArtistIds(fireID);
+}
+
+// Función para mostrar perfiles relacionados
+function displayRelatedProfiles(profiles) {
+  const profilesList = document.getElementById('relatedProfilesList');
+  const resultsContainer = document.getElementById('relatedProfilesResults');
+  
+  if (!profiles || profiles.length === 0) {
+    profilesList.innerHTML = '<p>No se encontraron perfiles relacionados.</p>';
+    return;
+  }
+  
+  let html = '';
+  profiles.forEach(profile => {
+    html += `
+      <div class="profile-item ${profile.isBase ? 'main-profile' : ''}">
+        <div class="profile-info">
+          <h5>${profile.name || 'Sin nombre'}</h5>
+          <p class="profile-id">ID: ${profile.id}</p>
+        </div>
+        <button class="btn-view-profile" onclick="viewProfile('${profile.id}')">
+          <i class="fas fa-eye"></i> Ver Perfil
+        </button>
+      </div>
+    `;
+  });
+  
+  profilesList.innerHTML = html;
+  resultsContainer.innerHTML = ''; // Limpiar resultados de búsqueda
+}
+
+// Función para buscar perfiles
+function searchProfiles() {
+  const searchTerm = document.getElementById('searchProfileInput').value.trim().toLowerCase();
+  if (!searchTerm) return;
+  
+  if (!currentUser) return;
+  
+  const fireID = `GS-${currentUser.uid}`;
+  console.log('ID 1 :', fireID);
+  google.script.run
+    .withSuccessHandler(function(profiles) {
+      displaySearchResults(profiles, searchTerm);
+    })
+    .withFailureHandler(showError)
+    .getRelatedArtistIds(fireID);
+}
+
+// Función para mostrar resultados de búsqueda
+function displaySearchResults(profiles, searchTerm) {
+  const resultsContainer = document.getElementById('relatedProfilesResults');
+  const currentProfiles = document.getElementById('currentRelatedProfiles');
+  
+  if (!profiles || profiles.length === 0) {
+    resultsContainer.innerHTML = '<p>No se encontraron perfiles.</p>';
+    return;
+  }
+  
+  // Filtrar perfiles por término de búsqueda
+  const filteredProfiles = profiles.filter(profile => 
+    profile.name && profile.name.toLowerCase().includes(searchTerm)
+  );
+  
+  if (filteredProfiles.length === 0) {
+    resultsContainer.innerHTML = '<p>No se encontraron perfiles que coincidan con la búsqueda.</p>';
+    return;
+  }
+  
+  let html = '<h4>Resultados de búsqueda:</h4>';
+  filteredProfiles.forEach(profile => {
+    html += `
+      <div class="profile-item ${profile.isBase ? 'main-profile' : ''}">
+        <div class="profile-info">
+          <h5>${profile.name || 'Sin nombre'}</h5>
+          <p class="profile-id">ID: ${profile.id}</p>
+        </div>
+        <button class="btn-view-profile" onclick="viewProfile('${profile.id}')">
+          <i class="fas fa-eye"></i> Ver Perfil
+        </button>
+      </div>
+    `;
+  });
+  
+  resultsContainer.innerHTML = html;
+  currentProfiles.style.display = 'none'; // Ocultar lista actual durante la búsqueda
+}
+
+// Función para ver un perfil
+function viewProfile(profileId) {
+  if (!currentUser) return;
+  
+  const fireID = `GS-${currentUser.uid}`;
+  
+  // Verificar si el perfil pertenece al usuario actual
+  const belongsToUser = profileId === fireID || profileId.startsWith(fireID + "-");
+  
+  if (belongsToUser) {
+    // Usuario viendo su propio perfil - no necesita permisos de staff
+    const url = `${BASE_APPS_SCRIPT_URL}?id=${fireID}&targetId=${encodeURIComponent(profileId)}`;
+    window.open(url, '_top');
+  } else {
+    // Usuario intentando ver perfil ajeno - requiere staff
+    if (isStaff) {
+      const url = `${BASE_APPS_SCRIPT_URL}?id=${fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
+      window.open(url, '_blank');
+    } else {
+      alert("Solo el staff puede ver perfiles de otros usuarios.");
+    }
+  }
+}
+
+// Función para cargar perfiles relacionados (solo muestra los del usuario)
+function loadRelatedProfiles() {
+  if (!currentUser) return;
+  
+  const fireID = `GS-${currentUser.uid}`;
+  
+  google.script.run
+    .withSuccessHandler(function(profiles) {
+      // Filtrar solo los perfiles que pertenecen al usuario
+      const userProfiles = profiles.filter(profile => 
+        profile.id === fireID || profile.id.startsWith(fireID + "-")
+      );
+      displayRelatedProfiles(userProfiles);
+    })
+    .withFailureHandler(showError)
+    .getRelatedArtistIds(fireID);
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  // Cargar perfiles relacionados cuando el usuario esté autenticado
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      setTimeout(loadRelatedProfiles, 1000); // Esperar a que todo esté cargado
+    }
+  });
+  
+  // Buscar al hacer clic en el botón
+  const searchBtn = document.getElementById('searchProfileBtn');
+  if (searchBtn) {
+    searchBtn.addEventListener('click', searchProfiles);
+  }
+  
+  // Buscar al presionar Enter
+  const searchInput = document.getElementById('searchProfileInput');
+  if (searchInput) {
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        searchProfiles();
+      }
+    });
+  }
+});
 </script>
-<? const webstate = "open";?>
-<? if ((insigniasEspeciales.sistema) || webstate === "open") { ?>
-<? if ((insigniasEspeciales.staff) || (isStaff)) { ?>
 <!-- Website DataBase -->
   <div class="container">
     <p>Al usar esta app, acepta los <a href="https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-shield-halved"></i>Documentos Oficiales de Grouvex Studios<i class="fa-solid fa-shield-halved"></i></a></p>
