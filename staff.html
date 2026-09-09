@@ -1594,23 +1594,32 @@ function initSessionTimeout() {
       console.log(isStaff)
       if (gs_id && gs_id !== gs_fireID) {
         console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
-        // Puedes agregar aquí lógica adicional si lo necesitas
+        gs_id = null;
+        gs_fireID = null;
       } else if (!gs_id || !gs_fireID) {
         console.log('No hay ID en la URL o no hay fireID');
+        gs_id = null;
+        gs_fireID = null;
       } else {
         console.log('El ID en la URL coincide con el usuario autenticado');
       }
       // Usuario normal intentando ver perfil ajeno
       if (!isStaff && gs_id && gs_id !== gs_fireID) {
           showIdMismatchOverlay();
+            gs_id = null;
+            gs_fireID = null;
       }
 
       // Staff intentando ver perfil ajeno sin parámetros correctos
       if (isStaff && gs_id && gs_id !== gs_fireID && !isStaffAccessUrl()) {
           showIdMismatchOverlayStaff();
+            gs_id = null;
+            gs_fireID = null;
       }
         if (!gs_fireID || !gs_id) {
            showLoginRequiredOverlay();
+            gs_id = null;
+            gs_fireID = null;
          }
         // Check if user is staff or verified team
         try {
