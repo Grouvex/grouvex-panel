@@ -459,7 +459,7 @@
         'www.grouvex.com',
         'grouvex.com', 
         'grouvex.github.io',
-        '<?= BASE_APPS_SCRIPT_URL ?>',
+        '<?= BASE_PANEL_URL ?>',
         'https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link'
     ];
 
@@ -1202,7 +1202,7 @@
                       const targetId = document.getElementById('targetId').value.trim();
                       const staffId = document.getElementById('staffId').value.trim();
                       if (targetId) {
-                        const url = `${BASE_APPS_SCRIPT_URL}?id=${staffId}&targetId=${targetId}&isStaff=true`;
+                        const url = `${BASE_PANEL_URL}member?id=${staffId}&targetId=${targetId}&isStaff=true`;
                       window.open(url, '_blank');
 
                       }
@@ -1210,14 +1210,14 @@
                         
                     // Staff portal handler
                     staffPortalBtn.addEventListener('click', () => {      
-                      const url = `${BASE_APPS_SCRIPT_URL}?staffid=${encodeURIComponent(currentUser.uid)}&isStaff=true`;
+                      const url = `${BASE_PANEL_URL}staff?id=${encodeURIComponent(currentUser.uid)}&isStaff=true`;
                       window.open(url, '_top');
                     });
 
                   // View own profile handler
                   if (document.getElementById('viewOwnProfileBtn')) {
                     document.getElementById('viewOwnProfileBtn').addEventListener('click', () => {
-                      const url = `${BASE_APPS_SCRIPT_URL}?id=${encodeURIComponent(currentUser.uid)}`;
+                      const url = `${BASE_PANEL_URL}member?id=${encodeURIComponent(currentUser.uid)}`;
                       window.open(url, '_top');
                     });
                   }
@@ -1459,7 +1459,7 @@ function initSessionTimeout() {
     const searchOtherBtn = document.getElementById('searchOtherBtn');
     const portalMember = document.getElementById('portalMember');
     // App constants
-    const BASE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec";
+    const BASE_PANEL_URL = "https://panel.grouvex.com/";
     const LOGIN_URL = "https://grouvex.github.io/login";
     
     // State variables
@@ -1588,28 +1588,28 @@ function initSessionTimeout() {
         }
         
     console.log('🔍 URL completa:', currentUrl);
-      console.log('Firebase UID:', fireID);
-      console.log('URL ID:', id);
+      console.log('Firebase UID:', gs_fireID);
+      console.log('URL ID:', gs_id);
       console.log('Target ID:', urlTargetId);
       console.log(isStaff)
-      if (id && id !== fireID) {
+      if (gs_id && gs_id !== gs_fireID) {
         console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
         // Puedes agregar aquí lógica adicional si lo necesitas
-      } else if (!id || !fireID) {
+      } else if (!gs_id || !gs_fireID) {
         console.log('No hay ID en la URL o no hay fireID');
       } else {
         console.log('El ID en la URL coincide con el usuario autenticado');
       }
       // Usuario normal intentando ver perfil ajeno
-      if (!isStaff && id && id !== fireID) {
+      if (!isStaff && gs_id && gs_id !== gs_fireID) {
           showIdMismatchOverlay();
       }
 
       // Staff intentando ver perfil ajeno sin parámetros correctos
-      if (isStaff && id && id !== fireID && !isStaffAccessUrl()) {
+      if (isStaff && gs_id && gs_id !== gs_fireID && !isStaffAccessUrl()) {
           showIdMismatchOverlayStaff();
       }
-        if (!fireID || !id) {
+        if (!gs_fireID || !gs_id) {
            showLoginRequiredOverlay();
          }
         // Check if user is staff or verified team
@@ -1637,7 +1637,8 @@ function initSessionTimeout() {
         showNotification("Inicio de sesión incorrecto", 'error');
         // No user signed in
         currentUser = null;
-        id = null;
+        gs_id = null;
+        gs_fireID = null;
         isStaff = false;
         isVerifiedTeam = false;
         loginForm.classList.remove('hidden');
@@ -1781,7 +1782,8 @@ function toggleViewProfileButtons(disabled) {
     // Logout handler
     logoutBtn.addEventListener('click', () => {
       auth.signOut().then(() => {
-      const fireID = null;
+        gs_fireID = null;
+        gs_id = null;
         initSessionTimeout();
         removeActivityListeners();
         // Logout success - handled by auth state observer
@@ -1867,7 +1869,7 @@ function toggleViewProfileButtons(disabled) {
     document.body.appendChild(overlay);
     
     document.getElementById('goToMyProfile').addEventListener('click', function() {
-      window.open(`${BASE_APPS_SCRIPT_URL}?id=GS-${firebase.auth().currentUser.uid}`, '_top');
+      window.open(`${BASE_PANEL_URL}member?id=GS-${firebase.auth().currentUser.uid}`, '_top');
     });
   }
 
@@ -1929,11 +1931,11 @@ function toggleViewProfileButtons(disabled) {
     document.body.appendChild(overlay);
     
     document.getElementById('goToMyProfile').addEventListener('click', function() {
-      window.open(`${BASE_APPS_SCRIPT_URL}?id=GS-${firebase.auth().currentUser.uid}`, '_top');
+      window.open(`${BASE_PANEL_URL}member?id=GS-${firebase.auth().currentUser.uid}`, '_top');
     });
     
     document.getElementById('goToStaffSearch').addEventListener('click', function() {
-      window.open(`${BASE_APPS_SCRIPT_URL}?id=GS-${firebase.auth().currentUser.uid}`, '_top');
+      window.open(`${BASE_PANEL_URL}staff?id=GS-${firebase.auth().currentUser.uid}`, '_top');
     });
   }
 
@@ -1985,13 +1987,11 @@ function toggleViewProfileButtons(disabled) {
 // Función para cargar perfiles relacionados
 function loadRelatedProfiles() {
   if (!currentUser) return;
-  
-  const fireID = `GS-${currentUser.uid}`;
-  console.log('ID 1 :', fireID);
+  console.log('ID 1 :', gs_fireID);
   google.script.run
     .withSuccessHandler(displayRelatedProfiles)
     .withFailureHandler(showError)
-    .getRelatedArtistIds(fireID);
+    .getRelatedArtistIds(gs_fireID);
 }
 
 // Función para mostrar perfiles relacionados
@@ -2029,15 +2029,13 @@ function searchProfiles() {
   if (!searchTerm) return;
   
   if (!currentUser) return;
-  
-  const fireID = `GS-${currentUser.uid}`;
-  console.log('ID 1 :', fireID);
+  console.log('ID 1 :', gs_fireID);
   google.script.run
     .withSuccessHandler(function(profiles) {
       displaySearchResults(profiles, searchTerm);
     })
     .withFailureHandler(showError)
-    .getRelatedArtistIds(fireID);
+    .getRelatedArtistIds(gs_fireID);
 }
 
 // Función para mostrar resultados de búsqueda
@@ -2083,19 +2081,17 @@ function displaySearchResults(profiles, searchTerm) {
 function viewProfile(profileId) {
   if (!currentUser) return;
   
-  const fireID = `GS-${currentUser.uid}`;
-  
   // Verificar si el perfil pertenece al usuario actual
-  const belongsToUser = profileId === fireID || profileId.startsWith(fireID + "-");
+  const belongsToUser = profileId === gs_fireID || profileId.startsWith(gs_fireID + "-");
   
   if (belongsToUser) {
     // Usuario viendo su propio perfil - no necesita permisos de staff
-    const url = `${BASE_APPS_SCRIPT_URL}?id=${fireID}&targetId=${encodeURIComponent(profileId)}`;
+    const url = `${BASE_PANEL_URL}member?id=${gs_fireID}&targetId=${encodeURIComponent(profileId)}`;
     window.open(url, '_top');
   } else {
     // Usuario intentando ver perfil ajeno - requiere staff
     if (isStaff) {
-      const url = `${BASE_APPS_SCRIPT_URL}?id=${fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
+      const url = `${BASE_PANEL_URL}member?id=${gs_fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
       window.open(url, '_blank');
     } else {
       alert("Solo el staff puede ver perfiles de otros usuarios.");
@@ -16439,7 +16435,7 @@ async function viewArtistaProfile(userId) {
       return; 
     }
     // Tu lógica de negocio aquí...
-  const url = `${BASE_APPS_SCRIPT_URL}?id=${currentStaffId}&targetId=${userId}&isStaff=true`;
+  const url = `${BASE_PANEL_URL}member?id=${currentStaffId}&targetId=${userId}&isStaff=true`;
   window.open(url, '_blank');
   } catch (error) {
     console.error("Error crítico durante la ejecución de viewArtistaProfile:", error);
@@ -16696,8 +16692,7 @@ async function viewUserProfile(userId) {
       showNotification("No tienes los permisos necesarios para realizar esta acción.", "forbidden");
       return; 
     }
-    // Tu lógica de negocio aquí...
-  const url = `${BASE_APPS_SCRIPT_URL}?id=${currentStaffId}&targetId=${userId}&isStaff=true`;
+  const url = `${BASE_PANEL_URL}member?id=${currentStaffId}&targetId=${userId}&isStaff=true`;
   window.open(url, '_blank');
   } catch (error) {
     console.error("Error crítico durante la ejecución de viewUserProfile:", error);
