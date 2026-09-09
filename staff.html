@@ -1536,7 +1536,6 @@ function initSessionTimeout() {
       setupActivityListeners();
       loadUserInsignias(user);
       const currentUrl = window.location.href;
-      await inicializarSeguridadUI();
       gs_fireID = `GS-${user.uid}`;
       const params = new URLSearchParams(window.location.search);
       gs_id = params.get('id');
@@ -1605,6 +1604,7 @@ function initSessionTimeout() {
             // Logout success - handled by auth state observer
         });
      }
+    await inicializarSeguridadUI();    
         // Mostrar imagen de perfil si existe
         const userAvatar = document.getElementById('user-avatar');
         if (user.photoURL) {
