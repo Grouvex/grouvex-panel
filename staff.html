@@ -1546,7 +1546,66 @@ function initSessionTimeout() {
       document.querySelectorAll('.mostrarId').forEach(el => {
         el.textContent = mostrarId;
       });
-             // Mostrar imagen de perfil si existe
+          
+      console.log('🔍 URL completa:', currentUrl);
+      console.log('Firebase UID:', gs_fireID);
+      console.log('URL ID:', gs_id);
+      console.log('Target ID:', urlTargetId);
+      console.log(isStaff)
+      if (gs_id && gs_id !== gs_fireID) {
+        console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
+        gs_id = null;
+        gs_fireID = null;
+        auth.signOut().then(() => {
+            initSessionTimeout();
+            removeActivityListeners();
+            // Logout success - handled by auth state observer
+        });
+      } else if (!gs_id || !gs_fireID) {
+        console.log('No hay ID en la URL o no hay fireID');
+        gs_id = null;
+        gs_fireID = null;
+        auth.signOut().then(() => {
+            initSessionTimeout();
+            removeActivityListeners();
+            // Logout success - handled by auth state observer
+        });
+      } else {
+        console.log('El ID en la URL coincide con el usuario autenticado');
+      }
+      // Usuario normal intentando ver perfil ajeno
+      if (!isStaff && gs_id && gs_id !== gs_fireID) {
+          showIdMismatchOverlay();
+        gs_id = null;
+        gs_fireID = null;
+        auth.signOut().then(() => {
+            initSessionTimeout();
+            removeActivityListeners();
+            // Logout success - handled by auth state observer
+        });
+      }
+      // Staff intentando ver perfil ajeno sin parámetros correctos
+      if (isStaff && gs_id && gs_id !== gs_fireID && !isStaffAccessUrl()) {
+          showIdMismatchOverlayStaff();
+            gs_id = null;
+            gs_fireID = null;
+            auth.signOut().then(() => {
+                initSessionTimeout();
+                removeActivityListeners();
+                // Logout success - handled by auth state observer
+            });
+      }
+    if (!gs_fireID || !gs_id) {
+       showLoginRequiredOverlay();
+        gs_id = null;
+        gs_fireID = null;
+        auth.signOut().then(() => {
+            initSessionTimeout();
+            removeActivityListeners();
+            // Logout success - handled by auth state observer
+        });
+     }
+        // Mostrar imagen de perfil si existe
         const userAvatar = document.getElementById('user-avatar');
         if (user.photoURL) {
           console.log('🖼️ Imagen de perfil:', user.photoURL);
@@ -1587,40 +1646,6 @@ function initSessionTimeout() {
           userName.textContent = "Not Defined";
         }
         
-    console.log('🔍 URL completa:', currentUrl);
-      console.log('Firebase UID:', gs_fireID);
-      console.log('URL ID:', gs_id);
-      console.log('Target ID:', urlTargetId);
-      console.log(isStaff)
-      if (gs_id && gs_id !== gs_fireID) {
-        console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
-        gs_id = null;
-        gs_fireID = null;
-      } else if (!gs_id || !gs_fireID) {
-        console.log('No hay ID en la URL o no hay fireID');
-        gs_id = null;
-        gs_fireID = null;
-      } else {
-        console.log('El ID en la URL coincide con el usuario autenticado');
-      }
-      // Usuario normal intentando ver perfil ajeno
-      if (!isStaff && gs_id && gs_id !== gs_fireID) {
-          showIdMismatchOverlay();
-            gs_id = null;
-            gs_fireID = null;
-      }
-
-      // Staff intentando ver perfil ajeno sin parámetros correctos
-      if (isStaff && gs_id && gs_id !== gs_fireID && !isStaffAccessUrl()) {
-          showIdMismatchOverlayStaff();
-            gs_id = null;
-            gs_fireID = null;
-      }
-        if (!gs_fireID || !gs_id) {
-           showLoginRequiredOverlay();
-            gs_id = null;
-            gs_fireID = null;
-         }
         // Check if user is staff or verified team
         try {
           
