@@ -3506,7 +3506,21 @@
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
       let isStaff = false;
-
+      let mostrarUserName = null;
+      let mostrarUserNameTarget = null;
+      let gs_estado = null;
+      let gs_razon = null;
+      let gsrecords_estado = null;
+      let gsrecords_razon = null;
+      let gsdesigns_estado = null;
+      let gsdesigns_razon = null;
+        
+      let gs_estadotarget = null;
+      let gs_razontarget = null;
+      let gsrecords_estadotarget = null;
+      let gsrecords_razontarget = null;
+      let gsdesigns_estadotarget = null;
+      let gsdesigns_razontarget = null;
       // ============================================================
       // 2. FUNCIÓN PARA CARGAR DATOS e INSIGNIAS
       // ============================================================
@@ -3521,7 +3535,7 @@
               console.log('Datos recibidos de getArtistData:', data);
               
               // 1. PROCESAR NOMBRE DE USUARIO
-              let mostrarUserName = 'Usuario Grouvex';
+              mostrarUserName = 'Usuario Grouvex';
               if (data && data.found && data.artistData && data.artistData['Nombre de Usuario']) {
                 mostrarUserName = data.artistData['Nombre de Usuario'];
               }
@@ -3557,6 +3571,63 @@
                   });
                   console.log('🔒 Contenedores ocultados (sin insignias)');
                 }
+              };
+        
+              // 3. PROCESAR VARIABLES GENERALES
+              gs_estado = "En Espera";
+              gs_razon = "En Espera";
+              gsrecords_estado = "En Espera";
+              gsrecords_razon = "En Espera";
+              gsdesigns_estado = "En Espera";
+              gsdesigns_razon = "En Espera";
+
+              // =========================================================================
+              // BLOQUE 1: ELEMENTOS ESTÁNDAR (sin "-target")
+              // =========================================================================
+              if (data && data.found && data.artistData) {
+                const estadoConfig = {
+                  "Aprobado":    { icon: "fa-solid fa-circle-check",      color: "#0f766e" },
+                  "Denegado":    { icon: "fa-solid fa-ban",               color: "#b91c1c" },
+                  "Modificar":   { icon: "fa-solid fa-pen-to-square",     color: "#d97706" },
+                  "Comprobando": { icon: "fa-solid fa-magnifying-glass",  color: "#1d4ed8" },
+                  "Suspendido":  { icon: "fa-solid fa-triangle-exclamation", color: "#6b21a8" },
+                  "En Espera":   { icon: "fa-solid fa-clock",             color: "#4b5563" },
+                  "Pendiente":   { icon: "fa-solid fa-hourglass-start",   color: "#374151" }
+                };
+        
+                const varsEstandar = {
+                  gs_estado:              data.artistData['Estado del Contrato'],
+                  gs_razon:               data.artistData['Razón'],
+                  gstudios_estado:        data.artistData['Estado del Contrato'],
+                  gstudios_razon:         data.artistData['Razón'],
+                  gsrecords_estado:       data.artistData['Estado del Contrato GSRecords'],
+                  gsrecords_razon:        data.artistData['Razón GSRecords'],
+                  gsdesigns_estado:       data.artistData['Estado del Contrato GSDesigns'],
+                  gsdesigns_razon:        data.artistData['Razón GSDesigns']
+                };
+              
+                const standardContainers = document.querySelectorAll('[id^="estado-data-"]:not([id$="-target"])');
+              
+                standardContainers.forEach(container => {
+                  // Extrae "gs", "gstudios", "gsrecords", etc.
+                  const sectionType = container.id.replace('estado-data-', '');
+              
+                  // Construcción dinámica: sectionType + '_estado' / '_razon'
+                  const estadoVal = varsEstandar[`${sectionType}_estado`];
+                  const razonVal  = varsEstandar[`${sectionType}_razon`];
+              
+                  if (estadoVal && estadoVal !== "Aprobado") {
+                    const config = estadoConfig[estadoVal] || { icon: "fa-solid fa-circle-info", color: "#6c5ce7" };
+                    const razonTexto = (razonVal && razonVal.trim() !== '') ? razonVal : "Sin razón especificada.";
+                    container.style.display = 'block';
+                    container.style.borderLeftColor = config.color;
+                    container.innerHTML = `
+                      <h1><i class="${config.icon}" style="color: ${config.color};"></i> ${estadoVal}</h1>
+                      <p>Su perfil en este organismo ha sido marcado como <strong>${estadoVal}</strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
+                      <p>${razonTexto}</p>
+                    `;
+                  }
+                });
               }
             })
             .withFailureHandler(function(error) {
@@ -3597,8 +3668,8 @@
             "Estado del Contrato GSRecords", "Razón GSRecords", "Estado del Contrato GSDesigns", 
             "Razón GSDesigns", "Dirección", "Ciudad, Código Postal", "Teléfono", 
             "Prefijo del Teléfono", "Nombre y Apellidos Reales", "Dinero Total GSRecords", 
-            "Porcentaje de Ingresos", "Porcentaje de Regalías", "Mediación, arbitraje, etc", 
-            "DNI, NIE o Pasaporte (Documento Nacional de Identidad)", 
+            "Dinero Total", "Porcentaje de Ingresos", "Porcentaje de Regalías", 
+            "Mediación, arbitraje, etc", "DNI, NIE o Pasaporte (Documento Nacional de Identidad)", 
             "NIF/CIF (Número de Identificación Fiscal)", "ID de la cuenta artística de Routenote", 
             "Firma", "Nombre del Artista/Banda Legal", "Título/Posición del Artista/Banda", 
             "Aceptación de Solicitud de Terminación de Contrato Inmediato", "Selector", 
@@ -3607,12 +3678,13 @@
             "Número de Años - 1", "Número de Años - 2", "Número de Años - 3", 
             "Número de Años - 4", "FirebaseToken", "Perfiles Bloqueados", "Perfil Seguido"
           ]);
+        
           google.script.run
             .withSuccessHandler(function(data) {
               console.log('Datos recibidos de getArtistData:', data);
               
               // 1. PROCESAR NOMBRE DE USUARIO
-              let mostrarUserNameTarget = 'Usuario Grouvex';
+              mostrarUserNameTarget = 'Usuario Grouvex';
               if (data && data.found && data.artistData && data.artistData['Nombre de Usuario']) {
                 mostrarUserNameTarget = data.artistData['Nombre de Usuario'];
               }
@@ -3676,6 +3748,60 @@
                   });
         
                   tableContainer.innerHTML = itemsHtml;
+                });
+              }
+
+              // 4. PROCESAR VARIABLES GENERALES
+              gs_estadotarget = "En Espera";
+              gs_razon = "En Espera";
+              gsrecords_estadotarget = "En Espera";
+              gsrecords_razontarget = "En Espera";
+              gsdesigns_estadotarget = "En Espera";
+              gsdesigns_razontarget = "En Espera";
+
+              if (data && data.found && data.artistData) {
+                const estadoConfig = {
+                  "Aprobado":    { icon: "fa-solid fa-circle-check",      color: "#0f766e" },
+                  "Denegado":    { icon: "fa-solid fa-ban",               color: "#b91c1c" },
+                  "Modificar":   { icon: "fa-solid fa-pen-to-square",     color: "#d97706" },
+                  "Comprobando": { icon: "fa-solid fa-magnifying-glass",  color: "#1d4ed8" },
+                  "Suspendido":  { icon: "fa-solid fa-triangle-exclamation", color: "#6b21a8" },
+                  "En Espera":   { icon: "fa-solid fa-clock",             color: "#4b5563" },
+                  "Pendiente":   { icon: "fa-solid fa-hourglass-start",   color: "#374151" }
+                };
+        
+                const varsTarget = {
+                  gs_estadotarget:        data.artistData['Estado del Contrato'],
+                  gs_razontarget:         data.artistData['Razón'],
+                  gstudios_estadotarget:  data.artistData['Estado del Contrato'],
+                  gstudios_razontarget:   data.artistData['Razón'],
+                  gsrecords_estadotarget: data.artistData['Estado del Contrato GSRecords'],
+                  gsrecords_razontarget:  data.artistData['Razón GSRecords'],
+                  gsdesigns_estadotarget: data.artistData['Estado del Contrato GSDesigns'],
+                  gsdesigns_razontarget:  data.artistData['Razón GSDesigns']
+                };
+              
+                const targetContainers = document.querySelectorAll('[id^="estado-data-"][id$="-target"]');
+              
+                targetContainers.forEach(container => {
+                  // Extrae "gs", "gstudios", "gsrecords", etc. eliminando "estado-data-" y "-target"
+                  const sectionType = container.id.replace('estado-data-', '').replace('-target', '');
+              
+                  // Construcción dinámica: sectionType + '_estadotarget' / '_razontarget'
+                  const estadoVal = varsTarget[`${sectionType}_estadotarget`];
+                  const razonVal  = varsTarget[`${sectionType}_razontarget`];
+              
+                  if (estadoVal && estadoVal !== "Aprobado") {
+                    const config = estadoConfig[estadoVal] || { icon: "fa-solid fa-circle-info", color: "#6c5ce7" };
+                    const razonTexto = (razonVal && razonVal.trim() !== '') ? razonVal : "Sin razón especificada.";
+                    container.style.display = 'block';
+                    container.style.borderLeftColor = config.color;
+                    container.innerHTML = `
+                      <h1><i class="${config.icon}" style="color: ${config.color};"></i> ${estadoVal}</h1>
+                      <p>Su perfil en este organismo ha sido marcado como <strong>${estadoVal}</strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
+                      <p>${razonTexto}</p>
+                    `;
+                  }
                 });
               }
             })
@@ -5886,12 +6012,7 @@
         <summary style="background: linear-gradient(45deg, cyan, blue, magenta);padding: 5px;"><h1>Grouvex Studios</h1></summary>
           <main>
             <div class="artist-card">
-            <? const estadoContrato = filaArtista[headersArtistas.indexOf("Estado del Contrato")]; const estadoContratoRecords = filaArtista[headersArtistas.indexOf("Estado del Contrato GSRecords")]; const estadoContratoDesigns= filaArtista[headersArtistas.indexOf("Estado del Contrato GSDesigns")];?>
-            <? const razon = filaArtista[headersArtistas.indexOf("Razón")] || 'Razón no definida'; const razonRecords = filaArtista[headersArtistas.indexOf("Razón GSRecords")] || 'Razón no definida'; const razonDesigns = filaArtista[headersArtistas.indexOf("Razón GSDesigns")] || 'Razón no definida';?>
-            <div style="display: block;border-left: 5px solid red; background: rgba(108, 92, 231, 0.1); padding: 20px;    border-radius: 12px; margin-top: 5px; margin-bottom: 10px;">
-            <h1><i class="fa-solid fa-ban"></i> <?= estadoContrato ?></h1>
-            <p>Su perfil a sido marcado como <strong><?= estadoContrato ?></strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
-            <p><?= razon ?></p>
+            <div style="display: none; border-left: 5px solid red; background: rgba(108, 92, 231, 0.1); padding: 20px; border-radius: 12px; margin-top: 5px; margin-bottom: 10px;" id="estado-data-gs-target">
             </div>
             <h2 class="artist-title"><i class="fa-solid fa-user"></i> <span class="mostrarUserNameTarget"></span></h2>
             <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
@@ -6424,11 +6545,8 @@ if (window.history && window.history.pushState) {
         <summary style="background: linear-gradient(45deg, cyan, blue, magenta);padding: 5px;"><h1>Grouvex Studios Records</h1></summary>
           <main>
             <div class="artist-card">
-                  <div style="display: block; border-left: 5px solid red; background: rgba(108, 92, 231, 0.1); padding: 20px; border-radius: 12px; margin-top: 5px; margin-bottom: 10px;">
-                      <h1><i class="fa-solid fa-ban"></i> <?= estadoMostrar ?></h1>
-                      <p>Su perfil de artista ha sido marcado como <strong><?= estadoMostrar ?></strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
-                      <p><?= razonMostrar ?></p>
-                  </div>
+            <div style="display: none; border-left: 5px solid red; background: rgba(108, 92, 231, 0.1); padding: 20px; border-radius: 12px; margin-top: 5px; margin-bottom: 10px;" id="estado-data-gsrecords-target">
+            </div>
               <h2 class="artist-title"><i class="fa-solid fa-user"></i> <?= filaArtista[headersArtistas.indexOf("Nombre del Artista/Banda")] || 'Nombre no disponible' ?></h2>
               <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
               <div class="artist-details">
