@@ -2686,3 +2686,186 @@ function injectUpdateSystem(userId) {
     console.error("❌ Error inyectando sistema:", error);
   }
 }
+
+// Función para obtener la versión del usuario desde Google Sheets
+function getUserVersion(userId) {
+  try {
+    const SPREADSHEET_ID = "15FJWUFb6J52XDLbicgvTJmSCjJ0c0sRoWPpr5YFK5H8";
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName("Respuestas de formulario 2");
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    
+    // Buscar columnas necesarias
+    const idColumnIndex = headers.indexOf("Grouvex Studios UserID");
+    const versionColumnIndex = headers.indexOf("AppVersion");
+    
+    // Si no existe la columna de versión, crearla
+    if (versionColumnIndex === -1) {
+      return {
+        success: true,
+        version: "0.0.0" // Versión por defecto
+      };
+    }
+    
+    if (idColumnIndex === -1) {
+      return {
+        success: false,
+        error: "No se encontró la columna de UserID"
+      };
+    }
+    
+    // Buscar al usuario
+    for (let i = 1; i < data.length; i++) {
+      const rowId = data[i][idColumnIndex];
+      if (rowId && rowId.toString().trim() === userId.trim()) {
+        const version = data[i][versionColumnIndex] || "0.0.0";
+        return {
+          success: true,
+          version: version.toString().trim()
+        };
+      }
+    }
+    
+    // Usuario no encontrado, devolver versión por defecto
+    return {
+      success: true,
+      version: "0.0.0"
+    };
+    
+  } catch (error) {
+    console.error("Error en getUserVersion:", error);
+    return {
+      success: false,
+      error: error.message,
+      version: "0.0.0"
+    };
+  }
+}
+
+// Función para guardar la versión del usuario en Google Sheets
+function saveUserVersion(userId, version) {
+  try {
+    const SPREADSHEET_ID = "15FJWUFb6J52XDLbicgvTJmSCjJ0c0sRoWPpr5YFK5H8";
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName("Respuestas de formulario 2");
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    
+    // Buscar columnas necesarias
+    const idColumnIndex = headers.indexOf("Grouvex Studios UserID");
+    let versionColumnIndex = headers.indexOf("AppVersion");
+    
+    // Si no existe la columna de versión, crearla
+    if (versionColumnIndex === -1) {
+      versionColumnIndex = headers.length;
+      sheet.getRange(1, versionColumnIndex + 1).setValue("AppVersion");
+      // Actualizar headers
+      headers.push("AppVersion");
+    }
+    
+    if (idColumnIndex === -1) {
+      return {
+        success: false,
+        error: "No se encontró la columna de UserID"
+      };
+    }
+    
+    // Buscar al usuario y actualizar su versión
+    let userFound = false;
+    for (let i = 1; i < data.length; i++) {
+      const rowId = data[i][idColumnIndex];
+      if (rowId && rowId.toString().trim() === userId.trim()) {
+        // Actualizar la versión
+        sheet.getRange(i + 1, versionColumnIndex + 1).setValue(version);
+        userFound = true;
+        break;
+      }
+    }
+    
+    if (!userFound) {
+      return {
+        success: false,
+        error: "Usuario no encontrado"
+      };
+    }
+    
+    // Guardar también la fecha de actualización
+    const lastUpdateColumnIndex = headers.indexOf("LastUpdate") !== -1 ? 
+      headers.indexOf("LastUpdate") : headers.length;
+    
+    if (lastUpdateColumnIndex === headers.length) {
+      sheet.getRange(1, lastUpdateColumnIndex + 1).setValue("LastUpdate");
+    }
+    
+    for (let i = 1; i < data.length; i++) {
+      const rowId = data[i][idColumnIndex];
+      if (rowId && rowId.toString().trim() === userId.trim()) {
+        const now = new Date();
+        const formattedDate = Utilities.formatDate(now, Session.getScriptTimeZone(), "yyyy-MM-dd HH:mm:ss");
+        sheet.getRange(i + 1, lastUpdateColumnIndex + 1).setValue(formattedDate);
+        break;
+      }
+    }
+    
+    return {
+      success: true,
+      message: `Versión actualizada a ${version} para el usuario ${userId}`
+    };
+    
+  } catch (error) {
+    console.error("Error en saveUserVersion:", error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+// Función para inicializar la columna de versión si no existe
+function initializeVersionColumn() {
+  try {
+    const SPREADSHEET_ID = "15FJWUFb6J52XDLbicgvTJmSCjJ0c0sRoWPpr5YFK5H8";
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName("Respuestas de formulario 2");
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    
+    // Verificar si existe la columna AppVersion
+    const versionColumnIndex = headers.indexOf("AppVersion");
+    if (versionColumnIndex === -1) {
+      // Añadir columna AppVersion
+      const newColIndex = headers.length + 1;
+      sheet.getRange(1, newColIndex).setValue("AppVersion");
+      
+      // Establecer versión por defecto para todos los usuarios existentes
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        for (let i = 2; i <= lastRow; i++) {
+          sheet.getRange(i, newColIndex).setValue("0.0.0");
+        }
+      }
+      
+      console.log("✅ Columna AppVersion inicializada");
+    }
+    
+    // Verificar si existe la columna LastUpdate
+    const updateColumnIndex = headers.indexOf("LastUpdate");
+    if (updateColumnIndex === -1) {
+      const newColIndex = headers.length + (versionColumnIndex === -1 ? 2 : 1);
+      sheet.getRange(1, newColIndex).setValue("LastUpdate");
+      console.log("✅ Columna LastUpdate inicializada");
+    }
+    
+    return {
+      success: true,
+      message: "Columnas de versión inicializadas correctamente"
+    };
+    
+  } catch (error) {
+    console.error("Error en initializeVersionColumn:", error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
