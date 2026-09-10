@@ -99,7 +99,7 @@
 <!-- THEME COLOR DINÁMICO -->
 <meta name="theme-color" content="#2c3e50" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1a2530" media="(prefers-color-scheme: dark)">
-<script src="/google-script-simulator.js"></script><script src="/seguridadynotificacion.js"></script><script src="/injectUpdateSystem.js"></script>
+<script src="/google-script-simulator.js"></script><script src="/seguridadynotificacion.js"></script><!--<script src="/injectUpdateSystem.js"></script>-->
 <link rel="stylesheet" href="/style.css">
 <title>Grouvex Studios - Datos del Miembro</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -5640,6 +5640,7 @@ function signInWithGoogle() {
                     <i class="fas fa-inbox" style="font-size: 40px; margin-bottom: 12px; opacity: 0.5;"></i>
                     <h3 style="margin: 0 0 6px 0; font-size: 18px; color: #f8fafc;">Sin solicitudes</h3>
                     <p style="margin: 0; font-size: 14px; color: #94a3b8;">No se encontraron solicitudes registradas para tu usuario.</p>
+                    <p style="margin: 0; font-size: 14px; color: #ff0000;">Los datos se cargan al abrir esta sección y se actualizan si transcurren más de 10 minutos desde la última consulta.</p>
                   </div>
                 `;
                 return;
@@ -5765,6 +5766,7 @@ function signInWithGoogle() {
                       </table>
                     </div>
                   </details>
+                  <p style="margin: 0; font-size: 14px; color: #ff0000;">Los datos se cargan al abrir esta sección y se actualizan si transcurren más de 10 minutos desde la última consulta.</p>
                 </div>
               `;
 
