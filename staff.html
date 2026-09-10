@@ -1654,9 +1654,11 @@ function initSessionTimeout() {
             .getArtistData(targetId);
         }
 
-    let gs_id = null;
-    let urlTargetId = null;
-    let gs_fireID = null;
+      let gs_id = null;
+      let urlTargetId = null;
+      let isViewingOtherProfile = null;
+      let gs_fireID = null;
+      let mostrarId = null;
     // Auth state observer
     auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -17795,7 +17797,7 @@ document.head.appendChild(style);
     const searchUpcBtn = document.getElementById('searchUpcBtn');
     const songResultDiv = document.getElementById('songResult');
     const noSongFoundDiv = document.getElementById('noSongFound');
-    const mostrarId = isViewingOtherProfile && targetId ? targetId : staffid;
+    mostrarId = isViewingOtherProfile && targetId ? targetId : staffid;
     if (searchUpcBtn) {
       searchUpcBtn.addEventListener('click', function() {
         const upc = upcInput.value.trim();
