@@ -11050,7 +11050,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 1: Información del Usuario -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-user"></i> Información del Usuario
           </div>
@@ -11071,7 +11071,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 2: Información del Contrato -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-file-contract"></i> Información del Contrato
           </div>
@@ -11127,7 +11127,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 3: Formato de Distribución -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-compact-disc"></i> Formato de Distribución
           </div>
@@ -11159,7 +11159,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 4: Plazos y Duración -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-calendar-alt"></i> Plazos y Duración
           </div>
@@ -11224,7 +11224,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 5: Financiero -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-chart-line"></i> Aspectos Financieros
           </div>
@@ -11259,7 +11259,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 6: Información para Pagos -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-credit-card"></i> Información para Pagos (Obligatorio)
           </div>
@@ -11308,7 +11308,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 7: Cuenta RouteNote -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-user-circle"></i> Cuenta RouteNote
           </div>
@@ -11331,7 +11331,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 8: Perfiles de Artista -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-user-plus"></i> Perfiles de Artista
           </div>
@@ -11408,7 +11408,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 9: Información Legal -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-gavel"></i> Información Legal
           </div>
@@ -11448,7 +11448,7 @@ function loadMemberProfilesSection() {
         </div>
 
         <!-- Sección 10: Confirmación -->
-        <div class="form-section">
+        <div class="form-section-gsrecords">
           <div class="form-section-title">
             <i class="fas fa-check-circle"></i> Confirmación
           </div>
@@ -11535,7 +11535,7 @@ function loadMemberProfilesSection() {
         
         if (response.success) {
           if (response.canRequest) {
-            showGSRecordsStatus("✅ Puedes solicitar un contrato GSRecords. Tu estado actual es: <strong>No Aplica</strong>", "success");
+            showGSRecordsStatus("✅ Puedes solicitar un contrato GSRecords. Tu estado actual es: <strong>${response.currentStatus}</strong>", "success");
             enableGSRecordsForm();
             loadUserExistingData(response.userData);
           } else {
@@ -11572,6 +11572,10 @@ function loadMemberProfilesSection() {
         document.querySelectorAll('#gsrecordsForm input, #gsrecordsForm select, #gsrecordsForm textarea').forEach(element => {
           element.disabled = false;
         });
+
+            gsrecordsForm.querySelectorAll('.form-section-gsrecords').forEach(section => {
+              section.classList.add('active');
+            });
       }
 
       // Deshabilitar formulario
@@ -11582,6 +11586,9 @@ function loadMemberProfilesSection() {
             element.disabled = true;
           }
         });
+            gsrecordsForm.querySelectorAll('.form-section-gsrecords').forEach(section => {
+              section.classList.remove('active');
+            });
       }
 
       // Cargar datos existentes del usuario
