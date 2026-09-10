@@ -3761,19 +3761,14 @@
     }
 
     function viewProfile(profileId) {
-      if (!currentUser) return;
-      
-      const gs_fireID = gs_fireID;
-      const BASE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec';
-      
+      if (!currentUser) return;   
       const belongsToUser = profileId === gs_fireID || profileId.startsWith(gs_fireID + "-");
-      
       if (belongsToUser) {
-        const url = `${BASE_APPS_SCRIPT_URL}?id=${gs_fireID}&targetId=${encodeURIComponent(profileId)}`;
+        const url = `${BASE_PANEL_URL}member?id=${gs_fireID}&targetId=${encodeURIComponent(profileId)}`;
         window.open(url, '_blank');
       } else {
         if (isStaff) {
-          const url = `${BASE_APPS_SCRIPT_URL}?id=${gs_fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
+          const url = `${BASE_PANEL_URL}member?id=${gs_fireID}&targetId=${encodeURIComponent(profileId)}&isStaff=true`;
           window.open(url, '_blank');
         } else {
           alert("Solo el staff puede ver perfiles de otros usuarios.");
@@ -4048,8 +4043,7 @@
       if (staffPortalBtn) {
         staffPortalBtn.addEventListener('click', function() {
           if (!currentUser) return;
-          const BASE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec';
-          const url = `${BASE_APPS_SCRIPT_URL}?staffid=GS-${encodeURIComponent(currentUser.uid)}&isStaff=true`;
+          const url = `${BASE_PANEL_URL}staff?staffid=GS-${encodeURIComponent(currentUser.uid)}&isStaff=true`;
           window.open(url, '_blank');
         });
       }
@@ -4059,8 +4053,7 @@
       if (viewOwnProfileBtn) {
         viewOwnProfileBtn.addEventListener('click', function() {
           if (!currentUser) return;
-          const BASE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec';
-          const url = `${BASE_APPS_SCRIPT_URL}?id=GS-${encodeURIComponent(currentUser.uid)}`;
+          const url = `${BASE_PANEL_URL}member?id=${gs_fireID}`;
           window.open(url, '_top');
         });
       }
@@ -4071,10 +4064,8 @@
         searchForm.addEventListener('submit', function(e) {
           e.preventDefault();
           const targetId = document.getElementById('targetId').value.trim();
-          const staffId = document.getElementById('staffId').value.trim();
           if (targetId) {
-            const BASE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec';
-            const url = `${BASE_APPS_SCRIPT_URL}?id=${staffId}&targetId=${targetId}&isStaff=true`;
+            const url = `${BASE_PANEL_URL}member?id=${gs_id}&targetId=${targetId}&isStaff=true`;
             window.open(url, '_blank');
           }
         });
@@ -4525,7 +4516,7 @@
           const portalMember = document.getElementById('portalMember');
           const mainCentros = document.getElementById('main-centros-btn');
           // App constants
-          const BASE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec";
+          const BASE_PANEL_URL = "https://panel.grouvex.com/";
           const LOGIN_URL = "https://grouvex.github.io/login";
           
           // State variables
@@ -4886,7 +4877,7 @@
           // Logout handler
           logoutBtn.addEventListener('click', () => {
             auth.signOut().then(() => {
-            const gs_fireID = null;
+            gs_fireID = null;
             document.getElementById('gs-user-id').value = null;
               initSessionTimeout();
               removeActivityListeners();
@@ -4973,7 +4964,7 @@
           document.body.appendChild(overlay);
           
           document.getElementById('goToMyProfile').addEventListener('click', function() {
-            window.open(`${BASE_APPS_SCRIPT_URL}?id=GS-${firebase.auth().currentUser.uid}`, '_top');
+            window.open(`${BASE_PANEL_URL}member?id=GS-${firebase.auth().currentUser.uid}`, '_top');
           });
         }
 
@@ -5035,11 +5026,11 @@
           document.body.appendChild(overlay);
           
           document.getElementById('goToMyProfile').addEventListener('click', function() {
-            window.open(`${BASE_APPS_SCRIPT_URL}?id=GS-${firebase.auth().currentUser.uid}`, '_top');
+            window.open(`${BASE_PANEL_URL}member?id=GS-${gs_fireID}`, '_top');
           });
           
           document.getElementById('goToStaffSearch').addEventListener('click', function() {
-            window.open(`${BASE_APPS_SCRIPT_URL}?id=GS-${firebase.auth().currentUser.uid}`, '_top');
+            window.open(`${BASE_PANEL_URL}member?id=${gs_fireID}`, '_top');
           });
         }
 
@@ -5971,6 +5962,9 @@
     <div class="loading-section" style="text-align: center; padding: 50px;">
       <i class="fas fa-spinner fa-spin fa-2x" style="color: #d4a017;"></i>
       <p style="margin-top: 20px; color: #7f8c8d;">Cargando comunidad de miembros...</p>
+      <button id="btn-retry-profiles" onclick="loadMemberProfilesSection()" style="display: none; margin-top: 15px; padding: 8px 16px; cursor: pointer;">
+        Reintentar
+      </button>
     </div>
   </div>
   </div>
@@ -5990,7 +5984,15 @@
   /**
   * Cargar la sección de perfiles de miembros
   */
-  function loadMemberProfilesSection() {
+function loadMemberProfilesSection() {
+  const retryBtn = document.getElementById('btn-retry-profiles');
+
+  // Si el botón existe, deshabilitarlo mientras se procesa la llamada
+  if (retryBtn) {
+    retryBtn.disabled = true;
+    retryBtn.textContent = 'Esperando Respuesta...';
+  }
+
   google.script.run
     .withSuccessHandler(function(result) {
       if (result.success) {
@@ -5998,15 +6000,29 @@
         initMemberActionButtons();
         initMemberModalFunctions();
       } else {
+        // En caso de error de negocio, volver a habilitar el botón
+        if (retryBtn) {
+          retryBtn.style.display = 'inline-block';
+          retryBtn.disabled = false;
+          retryBtn.textContent = 'Reintentar';
+        }
         showNotification(result.message || 'Error al cargar perfiles', 'error');
       }
     })
     .withFailureHandler(function(error) {
       console.error('Error al cargar perfiles:', error);
+      
+      // Mostrar y habilitar el botón si la petición falla
+      if (retryBtn) {
+        retryBtn.style.display = 'inline-block';
+        retryBtn.disabled = false;
+        retryBtn.textContent = 'Reintentar';
+      }
+      
       showNotification('No se pudieron cargar los perfiles de miembros', 'error');
     })
     .getMemberProfilesIndependent(gs_id);
-  }
+}
 
   /**
   * Inicializar todos los botones de acción
