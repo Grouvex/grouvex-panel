@@ -3308,48 +3308,55 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-// 1. Función para iniciar el flujo de redirección
+// 1. Función para iniciar con google
 function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
     
+    // Forzar la selección de cuenta para que el usuario pueda elegir qué correo usar
     provider.setCustomParameters({
         prompt: 'select_account'
     });
     
+    // Opcional: Mostrar indicador de carga si tienes un elemento para ello
     const googleBtn = document.querySelector('.btn-google');
     if (googleBtn) {
         googleBtn.disabled = true;
         googleBtn.style.opacity = '0.7';
-        googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirigiendo a Google...';
+        googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando con Google...';
     }
 
-    // Cambiamos signInWithPopup por signInWithRedirect
-    auth.signInWithRedirect(provider);
-}
-
-// 2. Listener para capturar el resultado al volver a la página (colócalo fuera de la función, al cargar la página)
-document.addEventListener('DOMContentLoaded', () => {
-    auth.getRedirectResult()
+    auth.signInWithPopup(provider)
         .then((result) => {
-            // result.user solo existirá si la página se cargó tras regresar de Google
-            if (result && result.user) {
-                const user = result.user;
-                console.log("✅ Autenticación exitosa con Google via Redirect:", user.email);
-                
-                // Redirigir al panel o actualizar la interfaz
-                window.location.reload();
-            }
+            // El usuario ha iniciado sesión exitosamente
+            const user = result.user;
+            console.log("✅ Autenticación exitosa con Google:", user.email);
+            
+            // Puedes recargar la página o redirigir al panel principal
+            window.location.reload(); 
         })
         .catch((error) => {
+            // Manejo de errores detallado
             console.error("❌ Error en autenticación con Google:", error);
             
             let errorMessage = "No se pudo iniciar sesión con Google.";
-            if (error.message) {
+            if (error.code === 'auth/popup-closed-by-user') {
+                errorMessage = "Has cerrado la ventana de inicio de sesión.";
+            } else if (error.code === 'auth/popup-blocked') {
+                errorMessage = "El navegador bloqueó la ventana emergente. Por favor, permite las ventanas pop-up.";
+            } else if (error.message) {
                 errorMessage = error.message;
             }
+            
             alert(errorMessage);
+            
+            // Restaurar el botón en caso de error
+            if (googleBtn) {
+                googleBtn.disabled = false;
+                googleBtn.style.opacity = '1';
+                googleBtn.innerHTML = '<i class="fab fa-google" style="color: #ea4335;"></i> Continuar con Google';
+            }
         });
-});
+}
           
     let isStaff = false;
     let mostrarUserName = null;
