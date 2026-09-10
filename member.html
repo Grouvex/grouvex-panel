@@ -3312,60 +3312,276 @@
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-
-// 1. Función para iniciar con google
-function signInWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    
-    // Forzar la selección de cuenta para que el usuario pueda elegir qué correo usar
-    provider.setCustomParameters({
-        prompt: 'select_account'
-    });
-    
-    // Opcional: Mostrar indicador de carga si tienes un elemento para ello
-    const googleBtn = document.querySelector('.btn-google');
-    if (googleBtn) {
-        googleBtn.disabled = true;
-        googleBtn.style.opacity = '0.7';
-        googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando con Google...';
-    }
-
-    auth.signInWithPopup(provider)
-        .then((result) => {
-            // El usuario ha iniciado sesión exitosamente
-            const user = result.user;
-            console.log("✅ Autenticación exitosa con Google:", user.email);
-            
-            // Puedes recargar la página o redirigir al panel principal
-            window.location.reload(); 
-        })
-        .catch((error) => {
-            // Manejo de errores detallado
-            console.error("❌ Error en autenticación con Google:", error);
-            
-            let errorMessage = "No se pudo iniciar sesión con Google.";
-            if (error.code === 'auth/popup-closed-by-user') {
-                errorMessage = "Has cerrado la ventana de inicio de sesión.";
-            } else if (error.code === 'auth/popup-blocked') {
-                errorMessage = "El navegador bloqueó la ventana emergente. Por favor, permite las ventanas pop-up.";
-            } else if (error.message) {
-                errorMessage = error.message;
-            }
-            
-            alert(errorMessage);
-            
-            // Restaurar el botón en caso de error
-            if (googleBtn) {
-                googleBtn.disabled = false;
-                googleBtn.style.opacity = '1';
-                googleBtn.innerHTML = '<i class="fab fa-google" style="color: #ea4335;"></i> Continuar con Google';
-            }
-        });
-}
+      
+      // 1. Función para iniciar con google
+      function signInWithGoogle() {
+          const provider = new firebase.auth.GoogleAuthProvider();
           
-    let isStaff = false;
-    let mostrarUserName = null;
-    let mostrarUserNameTarget = null;
+          // Forzar la selección de cuenta para que el usuario pueda elegir qué correo usar
+          provider.setCustomParameters({
+              prompt: 'select_account'
+          });
+          
+          // Opcional: Mostrar indicador de carga si tienes un elemento para ello
+          const googleBtn = document.querySelector('.btn-google');
+          if (googleBtn) {
+              googleBtn.disabled = true;
+              googleBtn.style.opacity = '0.7';
+              googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando con Google...';
+          }
+      
+          auth.signInWithPopup(provider)
+              .then((result) => {
+                  // El usuario ha iniciado sesión exitosamente
+                  const user = result.user;
+                  console.log("✅ Autenticación exitosa con Google:", user.email);
+                  
+                  // Puedes recargar la página o redirigir al panel principal
+                  window.location.reload(); 
+              })
+              .catch((error) => {
+                  // Manejo de errores detallado
+                  console.error("❌ Error en autenticación con Google:", error);
+                  
+                  let errorMessage = "No se pudo iniciar sesión con Google.";
+                  if (error.code === 'auth/popup-closed-by-user') {
+                      errorMessage = "Has cerrado la ventana de inicio de sesión.";
+                  } else if (error.code === 'auth/popup-blocked') {
+                      errorMessage = "El navegador bloqueó la ventana emergente. Por favor, permite las ventanas pop-up.";
+                  } else if (error.message) {
+                      errorMessage = error.message;
+                  }
+                  
+                  alert(errorMessage);
+                  
+                  // Restaurar el botón en caso de error
+                  if (googleBtn) {
+                      googleBtn.disabled = false;
+                      googleBtn.style.opacity = '1';
+                      googleBtn.innerHTML = '<i class="fab fa-google" style="color: #ea4335;"></i> Continuar con Google';
+                  }
+              });
+      }
+
+
+    // ============================================================
+    // 5. OBSERVADOR PRINCIPAL DE AUTENTICACIÓN
+    // ============================================================
+
+      // DOM elements
+      const loginForm = document.getElementById('loginForm');
+      const userDashboard = document.getElementById('userDashboard');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const loginBtn = document.getElementById('loginBtn');
+      const loginText = document.getElementById('loginText');
+      const loginSpinner = document.getElementById('loginSpinner');
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+      const userEmail = document.getElementById('userEmail');
+      const staffBadge = document.getElementById('staffBadge');
+      const verifiedTeamBadge = document.getElementById('verifiedTeamBadge');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+      const memberPortalBtn = document.getElementById('memberPortalBtn');
+      const staffPortalBtn = document.getElementById('staffPortalBtn');
+      const portalMember = document.getElementById('portalMember');
+      const mainCentros = document.getElementById('main-centros-btn');
+      // App constants
+      const BASE_PANEL_URL = "https://panel.grouvex.com/";
+      
+      // State variables
+      let isStaff = false;
+      let mostrarUserName = null;
+      let mostrarUserNameTarget = null;
+      let isVerifiedTeam = false;
+      let gs_id = null;
+      let urlTargetId = null;
+      let isViewingOtherProfile = null;
+      let gs_fireID = null;
+      let mostrarId = null;
+      // Auth state observer
+      auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                  showNotification("Inicio de sesión correcto", 'success');
+                  currentUser = user;
+                  console.log('Usuario autenticado:', user.uid);
+                  
+                  // Cargar insignias
+                  loadUserData(user);
+                  loadUserDataTarget(user);
+                  // Cargar perfiles relacionados
+                  setTimeout(loadRelatedProfiles, 500);
+                  // Cargar configuración de personalización
+                  setTimeout(loadUserCustomization, 1000);
+                  
+                  // Mostrar dashboard
+                  const dashboard = document.getElementById('userDashboard');
+                  if (dashboard) {
+                        dashboard.classList.remove('hidden');
+                  }
+                  resetSessionTimer();
+                  setupActivityListeners();
+                  const currentUrl = window.location.href;
+                  gs_fireID = `GS-${user.uid}`;
+                  const params = new URLSearchParams(window.location.search);
+                  gs_id = params.get('id');
+                  urlTargetId = params.get('targetId');
+                  isViewingOtherProfile = gs_id !== null && gs_id !== gs_fireID;
+                  mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
+                  document.querySelectorAll('.mostrarId').forEach(el => {
+                        el.textContent = mostrarId;
+                  });
+                  
+                  const userAvatar = document.getElementById('user-avatar');
+                  const userAvatarTIGS = document.getElementById('user-avatarTIGS');
+                  if (user.photoURL) {
+                        console.log('🖼️ Imagen de perfil:', user.photoURL);
+                        userAvatar.src = user.photoURL;
+                        userAvatarTIGS.src = user.photoURL;
+                        userAvatarTIGS.style.display = 'block';
+                        userAvatar.style.display = 'block';
+                  } else {
+                        console.log('📸 No hay imagen de perfil');
+                        userAvatar.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/GROUVEX.png';
+                        userAvatarTIGS.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/GROUVEX.png';
+                        userAvatar.style.display = 'block';
+                        userAvatarTIGS.style.display = 'block';
+                  }
+                  
+                  // Mostrar nombre de usuario
+                  const userName = document.getElementById('user-name');
+                  if (user.displayName) {
+                        console.log('👤 Nombre:', user.displayName);
+                        userName.textContent = user.displayName;
+                  } else {
+                        userName.textContent = user.email;
+                  }
+                  // Mostrar si el email está verificado
+                  const emailVerified = document.getElementById('email-verified');
+                  const emailVerifiedX = document.getElementById('email-verified-x');
+                  if (user.emailVerified) {
+                        console.log('✅ Email verificado');
+                        emailVerified.style.display = 'inline';
+                        emailVerifiedX.style.display = 'none';
+                  } else {
+                        console.log('⚠️ Email no verificado');
+                        emailVerified.style.display = 'none';
+                        emailVerifiedX.style.display = 'inline';
+                  }
+                  const userLastSing = document.getElementById('userlastsing');
+                  if (user.metadata.lastSignInTime) {
+                        console.log('✅ Time verificado');
+                        userLastSing.textContent = user.metadata.lastSignInTime;
+                  } else {
+                        console.log('⚠️ Time no defined');
+                        userName.textContent = "Not Defined";
+                  }
+                  
+                  if (gs_id && gs_id !== gs_fireID) {
+                        console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
+                        gs_id = null;
+                        gs_fireID = null;
+                        auth.signOut().then(() => {
+                        initSessionTimeout();
+                        removeActivityListeners();
+                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);});
+                  } else if (!gs_id || !gs_fireID) {
+                        console.log('No hay ID en la URL o no hay fireID');
+                        gs_id = null;
+                        gs_fireID = null;
+                        auth.signOut().then(() => {
+                        initSessionTimeout();
+                        removeActivityListeners();
+                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                        // Logout success - handled by auth state observer
+                        });
+                  } else {
+                        console.log('El ID en la URL coincide con el usuario autenticado');
+                  }
+                  // Usuario normal intentando ver perfil ajeno
+                  if (!isStaff && gs_id && gs_id !== gs_fireID) {
+                        showIdMismatchOverlay();
+                        gs_id = null;
+                        gs_fireID = null;
+                        auth.signOut().then(() => {
+                        initSessionTimeout();
+                        removeActivityListeners();
+                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);});
+                  }
+                  // Staff intentando ver perfil ajeno sin parámetros correctos
+                  if (isStaff && gs_id && gs_id !== gs_fireID) {
+                        showIdMismatchOverlayStaff();
+                        gs_id = null;
+                        gs_fireID = null;
+                        auth.signOut().then(() => {
+                        initSessionTimeout();
+                        removeActivityListeners();
+                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);});
+                  }
+                  if (!gs_fireID || !gs_id) {
+                        showLoginRequiredOverlay();
+                        gs_id = null;
+                        gs_fireID = null;
+                        auth.signOut().then(() => {
+                        initSessionTimeout();
+                        removeActivityListeners();
+                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);});
+                  }
+                  await inicializarSeguridadUI();
+                  console.log('🔍 URL completa:', currentUrl);
+                  console.log('Firebase UID:', gs_fireID);
+                  console.log('URL ID:', gs_id);
+                  console.log('Target ID:', urlTargetId);
+                  console.log(isStaff);
+                  document.getElementById('crUserId').value = gs_id;
+                  document.getElementById('gs-user-id').value = gs_fireID;
+                  document.getElementById(`gsrecordsUserId`).value = mostrarId;
+                  // Check if user is staff or verified team
+                  try {
+                        // Update UI
+                        userEmail.textContent = user.email;
+                        // Show appropriate badge based on role
+                        if (isStaff) {
+                              staffBadge.classList.remove('hidden');
+                        } else if (isVerifiedTeam) {
+                              verifiedTeamBadge.classList.remove('hidden');
+                        }
+                        // Show dashboard
+                        loginForm.classList.add('hidden');
+                        userDashboard.classList.remove('hidden');
+                        logoutBtn.classList.remove('hidden');
+                        resetPasswordBtn.classList.remove('hidden');
+                  } catch (error) {
+                        console.error("Error checking user role:", error);
+                        showError(emailError, "Error al verificar tu cuenta. Intenta nuevamente.");
+                  }
+            } else {
+                  showNotification("Inicio de sesión incorrecto", 'error');
+                  // No user signed in
+                  gs_id = null;
+                  urlTargetId = null;
+                  isViewingOtherProfile = null;
+                  gs_fireID = null;
+                  currentUser = null;
+                  isStaff = false;
+                  isVerifiedTeam = false;
+                  loginForm.classList.remove('hidden');
+                  userDashboard.classList.add('hidden');
+                  logoutBtn.classList.add('hidden');
+                  resetPasswordBtn.classList.add('hidden');
+                  const dashboard = document.getElementById('userDashboard');
+                  if (dashboard) {
+                        dashboard.classList.add('hidden');
+                  }
+                  // Clear inputs
+                  emailInput.value = '';
+                  passwordInput.value = '';
+                  initSessionTimeout();
+                  removeActivityListeners();
+            }
+      });
+          
     let gs_estado = null;
     let gs_razon = null;
     let gsrecords_estado = null;
@@ -3380,7 +3596,7 @@ function signInWithGoogle() {
     let gsdesigns_estadotarget = null;
     let gsdesigns_razontarget = null;
     // ============================================================
-    // 2. FUNCIÓN PARA CARGAR DATOS e INSIGNIAS
+    // 3. FUNCIÓN PARA CARGAR DATOS e INSIGNIAS
     // ============================================================
       function loadUserData(user) {
         console.log('Cargando datos e insignias para usuario:', user?.uid);
@@ -3856,7 +4072,7 @@ function signInWithGoogle() {
     }
 
     // ============================================================
-    // 4. FUNCIONES PARA PERSONALIZACIÓN
+    // 5. FUNCIONES PARA PERSONALIZACIÓN
     // ============================================================
     const IMAGE_MAPPING = {
       'banner_predeterminado': 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/port/The%20Treasure.jpg',
@@ -3918,55 +4134,6 @@ function signInWithGoogle() {
         })
         .getUserCustomization(`GS-${currentUser.uid}`);
     }
-
-    // ============================================================
-    // 5. OBSERVADOR PRINCIPAL DE AUTENTICACIÓN
-    // ============================================================
-    auth.onAuthStateChanged(function(user) {
-      currentUser = user;
-      
-      if (user) {
-        console.log('Usuario autenticado:', user.uid);
-        
-        // Cargar insignias
-        loadUserData(user);
-        loadUserDataTarget(user);
-        // Cargar perfiles relacionados
-        setTimeout(loadRelatedProfiles, 500);
-        
-        // Actualizar elementos del usuario
-        const userAvatar = document.getElementById('user-avatar');
-        if (userAvatar && user.photoURL) {
-          userAvatar.src = user.photoURL;
-          userAvatar.style.display = 'block';
-        }
-        
-        const userName = document.getElementById('user-name');
-        if (userName) {
-          userName.textContent = user.displayName || user.email || 'Usuario';
-        }
-        
-        const userEmail = document.getElementById('userEmail');
-        if (userEmail) {
-          userEmail.textContent = user.email || '';
-        }
-        
-        // Cargar configuración de personalización
-        setTimeout(loadUserCustomization, 1000);
-        
-        // Mostrar dashboard
-        const dashboard = document.getElementById('userDashboard');
-        if (dashboard) {
-          dashboard.classList.remove('hidden');
-        }
-      } else {
-        console.log('Usuario no autenticado');
-        const dashboard = document.getElementById('userDashboard');
-        if (dashboard) {
-          dashboard.classList.add('hidden');
-        }
-      }
-    });
       
     // ============================================================
     // 6. EVENT LISTENERS
@@ -4574,213 +4741,6 @@ function signInWithGoogle() {
           setupActivityListeners();
           console.log('Sistema de timeout de sesión iniciado');
       }
-          
-          // DOM elements
-          const loginForm = document.getElementById('loginForm');
-          const userDashboard = document.getElementById('userDashboard');
-          const emailInput = document.getElementById('email');
-          const passwordInput = document.getElementById('password');
-          const loginBtn = document.getElementById('loginBtn');
-          const loginText = document.getElementById('loginText');
-          const loginSpinner = document.getElementById('loginSpinner');
-          const emailError = document.getElementById('emailError');
-          const passwordError = document.getElementById('passwordError');
-          const userEmail = document.getElementById('userEmail');
-          const staffBadge = document.getElementById('staffBadge');
-          const verifiedTeamBadge = document.getElementById('verifiedTeamBadge');
-          const logoutBtn = document.getElementById('logoutBtn');
-          const resetPasswordBtn = document.getElementById('resetPasswordBtn');
-          const memberPortalBtn = document.getElementById('memberPortalBtn');
-          const staffPortalBtn = document.getElementById('staffPortalBtn');
-          const portalMember = document.getElementById('portalMember');
-          const mainCentros = document.getElementById('main-centros-btn');
-          // App constants
-          const BASE_PANEL_URL = "https://panel.grouvex.com/";
-          
-          // State variables
-          let isVerifiedTeam = false;
-          let gs_id = null;
-          let urlTargetId = null;
-          let isViewingOtherProfile = null;
-          let gs_fireID = null;
-          let mostrarId = null;
-          // Auth state observer
-          auth.onAuthStateChanged(async (user) => {
-            if (user) {
-            showNotification("Inicio de sesión correcto", 'success');
-            currentUser = user;
-            resetSessionTimer();
-            setupActivityListeners();
-            const currentUrl = window.location.href;
-            gs_fireID = `GS-${user.uid}`;
-            const params = new URLSearchParams(window.location.search);
-            gs_id = params.get('id');
-            urlTargetId = params.get('targetId');
-            isViewingOtherProfile = gs_id !== null && gs_id !== gs_fireID;
-            mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
-            document.querySelectorAll('.mostrarId').forEach(el => {
-                el.textContent = mostrarId;
-            });
-              
-              const userAvatar = document.getElementById('user-avatar');
-              const userAvatarTIGS = document.getElementById('user-avatarTIGS');
-              if (user.photoURL) {
-                console.log('🖼️ Imagen de perfil:', user.photoURL);
-                userAvatar.src = user.photoURL;
-                userAvatarTIGS.src = user.photoURL;
-                userAvatarTIGS.style.display = 'block';
-                userAvatar.style.display = 'block';
-              } else {
-                console.log('📸 No hay imagen de perfil');
-                userAvatar.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/GROUVEX.png';
-                userAvatarTIGS.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/GROUVEX.png';
-                userAvatar.style.display = 'block';
-                userAvatarTIGS.style.display = 'block';
-              }
-              
-              // Mostrar nombre de usuario
-              const userName = document.getElementById('user-name');
-              if (user.displayName) {
-                console.log('👤 Nombre:', user.displayName);
-                userName.textContent = user.displayName;
-              } else {
-                userName.textContent = user.email;
-              }
-              // Mostrar si el email está verificado
-              const emailVerified = document.getElementById('email-verified');
-              const emailVerifiedX = document.getElementById('email-verified-x');
-              if (user.emailVerified) {
-                console.log('✅ Email verificado');
-                emailVerified.style.display = 'inline';
-                emailVerifiedX.style.display = 'none';
-              } else {
-                console.log('⚠️ Email no verificado');
-                emailVerified.style.display = 'none';
-                emailVerifiedX.style.display = 'inline';
-              }
-              const userLastSing = document.getElementById('userlastsing');
-              if (user.metadata.lastSignInTime) {
-                console.log('✅ Time verificado');
-                userLastSing.textContent = user.metadata.lastSignInTime;
-              } else {
-                console.log('⚠️ Time no defined');
-                userName.textContent = "Not Defined";
-              }
-            
-            if (gs_id && gs_id !== gs_fireID) {
-              console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
-              gs_id = null;
-              gs_fireID = null;
-              auth.signOut().then(() => {
-                  initSessionTimeout();
-                  removeActivityListeners();
-                  if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                  // Logout success - handled by auth state observer
-              });
-            } else if (!gs_id || !gs_fireID) {
-              console.log('No hay ID en la URL o no hay fireID');
-              gs_id = null;
-              gs_fireID = null;
-              auth.signOut().then(() => {
-                  initSessionTimeout();
-                  removeActivityListeners();
-                  if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                  // Logout success - handled by auth state observer
-              });
-            } else {
-              console.log('El ID en la URL coincide con el usuario autenticado');
-            }
-            // Usuario normal intentando ver perfil ajeno
-            if (!isStaff && gs_id && gs_id !== gs_fireID) {
-                showIdMismatchOverlay();
-              gs_id = null;
-              gs_fireID = null;
-              auth.signOut().then(() => {
-                  initSessionTimeout();
-                  removeActivityListeners();
-                  if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                  // Logout success - handled by auth state observer
-              });
-            }
-            // Staff intentando ver perfil ajeno sin parámetros correctos
-            if (isStaff && gs_id && gs_id !== gs_fireID) {
-                showIdMismatchOverlayStaff();
-                  gs_id = null;
-                  gs_fireID = null;
-                  auth.signOut().then(() => {
-                      initSessionTimeout();
-                      removeActivityListeners();
-                      if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                      // Logout success - handled by auth state observer
-                  });
-            }
-          if (!gs_fireID || !gs_id) {
-             showLoginRequiredOverlay();
-              gs_id = null;
-              gs_fireID = null;
-              auth.signOut().then(() => {
-                  initSessionTimeout();
-                  removeActivityListeners();
-                  if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                  // Logout success - handled by auth state observer
-              });
-           }
-          await inicializarSeguridadUI();
-            console.log('🔍 URL completa:', currentUrl);
-            console.log('Firebase UID:', gs_fireID);
-            console.log('URL ID:', gs_id);
-            console.log('Target ID:', urlTargetId);
-            console.log(isStaff);
-            document.getElementById('crUserId').value = gs_id;
-            document.getElementById('gs-user-id').value = gs_fireID;
-            document.getElementById(`gsrecordsUserId`).value = mostrarId;
-              // Check if user is staff or verified team
-              try {
-                
-                // Update UI
-                userEmail.textContent = user.email;
-                
-                // Show appropriate badge based on role
-                if (isStaff) {
-                  staffBadge.classList.remove('hidden');
-                } else if (isVerifiedTeam) {
-                  verifiedTeamBadge.classList.remove('hidden');
-                }
-                
-                // Show dashboard
-                loginForm.classList.add('hidden');
-                userDashboard.classList.remove('hidden');
-                logoutBtn.classList.remove('hidden');
-                resetPasswordBtn.classList.remove('hidden');
-              } catch (error) {
-                console.error("Error checking user role:", error);
-                showError(emailError, "Error al verificar tu cuenta. Intenta nuevamente.");
-              }
-            } else {
-              showNotification("Inicio de sesión incorrecto", 'error');
-              // No user signed in
-              gs_id = null;
-              urlTargetId = null;
-              isViewingOtherProfile = null;
-              gs_fireID = null;
-              currentUser = null;
-              isStaff = false;
-              isVerifiedTeam = false;
-              loginForm.classList.remove('hidden');
-              userDashboard.classList.add('hidden');
-              logoutBtn.classList.add('hidden');
-              resetPasswordBtn.classList.add('hidden');
-              
-              // Clear inputs
-              emailInput.value = '';
-              passwordInput.value = '';
-              initSessionTimeout();
-              removeActivityListeners();
-            }
-          });
-          
-
-          
           // Login handler
           loginBtn.addEventListener('click', () => {
             const email = emailInput.value.trim();
