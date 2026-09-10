@@ -3407,7 +3407,8 @@ function signInWithGoogle() {
             }
 
             // Evaluar si es personal verificado
-const isStaff = Array.isArray(data?.insignias) && data.insignias.some(ins => ins?.name === 'verified-staff');
+            isStaff = data.isStaff;
+                
             // 1. PROCESAR NOMBRE DE USUARIO
             mostrarUserName = 'Usuario Grouvex';
             if (data && data.found && data.artistData && data.artistData['Nombre de Usuario']) {
@@ -3716,7 +3717,24 @@ const isStaff = Array.isArray(data?.insignias) && data.insignias.some(ins => ins
           })
           .getArtistData(targetId);
       }
+
+      function loadArtistSongsData(user) {
+        console.log('Cargando datos de lanzamientos del artista:', user?.uid);
+        
+        // Prioriza gs_id global si existe, o construye el ID con user.uid
+        const targetId = (typeof gs_id !== 'undefined' && gs_id) ? gs_id : `GS-${user?.uid}`;
       
+        google.script.run
+          .withSuccessHandler(function(data) {
+            console.log('Datos recibidos de getArtistSongs:', data);
+
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error al cargar datos de lanzamientos del artista:', error);
+          })
+          .getArtistSongs(targetId);
+      }
+          
     // ============================================================
     // 3. FUNCIONES PARA PERFILES RELACIONADOS
     // ============================================================
@@ -4716,7 +4734,7 @@ const isStaff = Array.isArray(data?.insignias) && data.insignias.some(ins => ins
             document.getElementById('crUserId').value = gs_id;
             document.getElementById('gs-user-id').value = gs_fireID;
             document.getElementById(`gsrecordsUserId`).value = mostrarId;
-            injectUpdateSystem(gs_fireID);
+            // injectUpdateSystem(gs_fireID);
               // Check if user is staff or verified team
               try {
                 
