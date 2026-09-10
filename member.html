@@ -3424,7 +3424,7 @@
                   document.querySelectorAll('.mostrarId').forEach(el => {
                         el.textContent = mostrarId;
                   });
-                  
+                  google.script.run.withSuccessHandler(function(data) {isStaff = data.isStaff;}).withFailureHandler(function(error) {}).getArtistData(targetId);
                   const userAvatar = document.getElementById('user-avatar');
                   const userAvatarTIGS = document.getElementById('user-avatarTIGS');
                   if (user.photoURL) {
