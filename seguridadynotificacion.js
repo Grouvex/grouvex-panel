@@ -3,132 +3,177 @@
 // EXTERNAL LINK MODAL (original code preserved)
 // ============================================
 (function() {
-    const allowedUrls = [
+    'use strict';
+
+    // Lista explícita de dominios permitidos (solo estos exactos no mostrarán el modal)
+    const ALLOWED_DOMAINS = new Set([
         'www.grouvex.com',
         'grouvex.com',
         'records.grouvex.com',
         'panel.grouvex.com',
-        'grouvex.github.io',
-        'https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link'
+        'grouvex.github.io'
+    ]);
+
+    // Prefijos exactos de URLs externas permitidas
+    const ALLOWED_PREFIXES = [
+        'https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT'
     ];
 
+    let targetDestination = null;
+    let targetWindowAttr = null;
+    let previousActiveElement = null;
+
+    // Referencia limpia a window.open nativo
+    const originalWindowOpen = window.open;
+
+    /**
+     * Valida si una URL pertenece a un sitio externo
+     */
     function isExternalLink(href) {
-        if (!href) return false;
+        if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+            return false;
+        }
+
         try {
-            const url = new URL(href, window.location.origin);
-            
-            const isAllowed = allowedUrls.some(allowedUrl => {
-                if (!allowedUrl.includes('://')) {
-                    return url.hostname === allowedUrl;
-                } else {
-                    return url.href === allowedUrl || url.href.startsWith(allowedUrl);
-                }
-            });
-            
-            return !isAllowed;
-        } catch (e) {
+            const targetUrl = new URL(href, window.location.href);
+
+            // Mismo origen exacto (local)
+            if (targetUrl.hostname === window.location.hostname) {
+                return false;
+            }
+
+            // Validación en el conjunto explícito de dominios
+            if (ALLOWED_DOMAINS.has(targetUrl.hostname)) {
+                return false;
+            }
+
+            // Validación por prefijos permitidos
+            if (ALLOWED_PREFIXES.some(prefix => targetUrl.href.startsWith(prefix))) {
+                return false;
+            }
+
+            return true;
+        } catch {
             return false;
         }
     }
 
-    // Create modal if it doesn't exist
+    // --- Inyección del Modal Responsivo en el DOM ---
     let modal = document.getElementById('customModal');
-    
+
     if (!modal) {
         const modalHTML = `
-        <div id="customModal" class="modal">
-            <div class="modal-content">
-                <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/Grouvex1.png" alt="Logo" class="modal-logo">
-                <div class="modal-text">
-                    <p>Estás a punto de salir de <n>Grouvex Studios</n>. Grouvex Studios no se responsabiliza por el contenido, la seguridad, las políticas de privacidad o las prácticas de los sitios de terceros, fuera del dominio, puesto que los Términos de Servicio y Políticas de Privacidad, de Grouvex Studios, solo tienen validez dentro del dominio o donde el equipo tenga permiso para actuar.</p>
-                    <p>Si le da a Cancelar, permanecerá dentro de Grouvex Studios.</p>
-                    <p>Si le da a Continuar, se le redirigirá a la página seleccionada.</p>
+        <div id="customModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; z-index: 999999; padding: 12px; box-sizing: border-box; backdrop-filter: blur(2px);">
+            <div class="modal-content" style="background: #000000; padding: clamp(16px, 4vw, 28px); border-radius: 12px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: system-ui, -apple-system, sans-serif; box-sizing: border-box;">
+                <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Banner.png" alt="Logo Grouvex" class="modal-logo" style="max-width: clamp(70px, 15vw, 95px); height: auto; margin-bottom: 12px;">
+                
+                <div class="modal-text" style="font-size: clamp(12px, 3.5vw, 13.5px); color: #ffffff; line-height: 1.6; text-align: left; word-break: break-word;">
+                    <p style="margin: 0 0 10px 0;">Estás a punto de salir de <strong id="modalTitle">Grouvex Studios</strong>. Grouvex Studios no se responsabiliza por el contenido, la seguridad, las políticas de privacidad o las prácticas de los sitios de terceros, fuera del dominio, puesto que los Términos de Servicio y Políticas de Privacidad, de Grouvex Studios, solo tienen validez dentro del dominio o donde el equipo tenga permiso para actuar.</p>
+                    <p style="margin: 0 0 10px 0;">Si le da a Cancelar, permanecerá dentro de Grouvex Studios.</p>
+                    <p style="margin: 0;">Si le da a Continuar, se le redirigirá a la página seleccionada.</p>
                 </div>
-                <div class="modal-buttons">
-                    <button class="modal-button cancel">Cancelar</button>
-                    <button class="modal-button continue">Continuar</button>
+                
+                <div class="modal-buttons" style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="modal-button cancel" style="flex: 1 1 110px; min-height: 42px; padding: 10px 16px; border-radius: 6px; border: none; background-color: #ff0000; color: #000000; cursor: pointer; font-weight: bold; font-size: clamp(12px, 3vw, 13.5px); box-sizing: border-box;">Cancelar</button>
+                    <button type="button" class="modal-button continue" style="flex: 1 1 110px; min-height: 42px; padding: 10px 16px; border-radius: 6px; border: none; background-color: #1aff00; color: #000000; cursor: pointer; font-weight: bold; font-size: clamp(12px, 3vw, 13.5px); box-sizing: border-box;">Continuar</button>
                 </div>
             </div>
-        </div>
-        `;
+        </div>`;
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         modal = document.getElementById('customModal');
     }
 
-    let targetLink = null;
-    let targetAttribute = null;
+    const continueBtn = modal.querySelector('.continue');
+    const cancelBtn = modal.querySelector('.cancel');
 
-    // Modal buttons
-    const cancelButton = modal?.querySelector('.cancel');
-    const continueButton = modal?.querySelector('.continue');
-
-    if (cancelButton) {
-        cancelButton.addEventListener('click', function() {
-            modal.style.display = 'none';
-            targetLink = null;
-            targetAttribute = null;
-        });
+    function openModal(url, target) {
+        targetDestination = url;
+        targetWindowAttr = target;
+        previousActiveElement = document.activeElement;
+        modal.style.display = 'flex';
+        continueBtn.focus();
     }
 
-    if (continueButton) {
-        continueButton.addEventListener('click', function() {
-            if (targetLink) {
-                modal.style.display = 'none';
-                
-                if (targetAttribute === '_blank') {
-                    window.open(targetLink, '_blank');
-                } else {
-                    window.location.href = targetLink;
-                }
-                
-                targetLink = null;
-                targetAttribute = null;
-            }
-        });
+    function closeModal() {
+        modal.style.display = 'none';
+        targetDestination = null;
+        targetWindowAttr = null;
+        if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+            previousActiveElement.focus();
+        }
     }
 
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-                targetLink = null;
-                targetAttribute = null;
-            }
-        });
-    }
+    cancelBtn.addEventListener('click', closeModal);
 
-    // Intercept clicks on links
-    document.addEventListener('click', function(event) {
-        const element = event.target.closest('[href]');
-        if (element) {
-            const href = element.getAttribute('href');
-            
-            if (isExternalLink(href)) {
-                event.preventDefault();
-                targetLink = href;
-                targetAttribute = element.getAttribute('target');
-                
-                if (modal) {
-                    modal.style.display = 'block';
-                }
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+    });
+
+    continueBtn.addEventListener('click', function() {
+        if (targetDestination) {
+            const dest = targetDestination;
+            const target = targetWindowAttr;
+            closeModal();
+
+            if (target === '_blank') {
+                originalWindowOpen.call(window, dest, '_blank', 'noopener,noreferrer');
+            } else {
+                window.location.href = dest;
             }
+        } else {
+            closeModal();
         }
     });
 
-    // Intercept window.open
-    const originalWindowOpen = window.open;
-    window.open = function(url, target, features) {
-        if (isExternalLink(url)) {
-            targetLink = url;
-            targetAttribute = target || '_self';
-            
-            if (modal) {
-                modal.style.display = 'block';
-            }
-            return null;
+    // Tecla ESC para cerrar
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            closeModal();
         }
-        return originalWindowOpen(url, target, features);
+    });
+
+    // --- MÉTODOS SEGUROS DE INTERCEPTACIÓN ---
+
+    // 1. Clics globales en enlaces HTML (<a>)
+    document.addEventListener('click', function(event) {
+        const anchor = event.target.closest('a');
+        if (!anchor) return;
+
+        const href = anchor.getAttribute('href') || anchor.href;
+
+        if (isExternalLink(href)) {
+            event.preventDefault();
+            event.stopPropagation();
+            openModal(new URL(href, window.location.href).href, anchor.getAttribute('target'));
+        }
+    }, true);
+
+    // 2. Override permitido y seguro de window.open()
+    window.open = function(url, target, features) {
+        if (!url) return originalWindowOpen.call(window, url, target, features);
+
+        try {
+            const absoluteUrl = new URL(url, window.location.href).href;
+
+            if (isExternalLink(absoluteUrl)) {
+                openModal(absoluteUrl, target || '_self');
+                return null;
+            }
+        } catch {}
+
+        return originalWindowOpen.call(window, url, target, features);
     };
+
+    // 3. Interceptación de navegaciones dinámicas (Navigation API moderna si el navegador la soporta)
+    if (window.navigation) {
+        window.navigation.addEventListener('navigate', function(event) {
+            if (event.canIntercept && isExternalLink(event.destination.url)) {
+                event.preventDefault();
+                openModal(event.destination.url, '_self');
+            }
+        });
+    }
+
 })();
 
 /// Manejo de Permisos y Notificaciones
