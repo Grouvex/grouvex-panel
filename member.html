@@ -3000,7 +3000,7 @@
           <p>Se está cargando la infromación. En caso de que no cargue:</p>
           <p>Este perfil no está verificado o no existe. Por favor, contacte con el soporte de Grouvex Studios si cree que esto es un error.</p>
         </div>
-        <a href="https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec" target="_top" rel="noopener noreferrer"> <i class="fas fa-arrow-left"></i> Volver al Inicio
+        <a href="https://panel.grouvex.com/" target="_top" rel="noopener noreferrer"> <i class="fas fa-arrow-left"></i> Volver al Inicio
         </a>
       </div>
       <div class="form-group">
@@ -3019,7 +3019,10 @@
         <span id="loginText">Iniciar sesión</span>
         <i id="loginSpinner" class="fas fa-spinner loading-spinner hidden"></i>
       </button>
-          
+      <button onclick="signInWithGoogle()" class="btn-google">
+          <i class="fab fa-google"></i>
+          Continuar con Google
+      </button>
       <p style="color:white">
         Al iniciar sesión, aceptas nuestros 
         <a href="https://drive.google.com/drive/u/0/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
@@ -3304,6 +3307,50 @@
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+
+// 1. Función para iniciar el flujo de redirección
+function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    
+    provider.setCustomParameters({
+        prompt: 'select_account'
+    });
+    
+    const googleBtn = document.querySelector('.btn-google');
+    if (googleBtn) {
+        googleBtn.disabled = true;
+        googleBtn.style.opacity = '0.7';
+        googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirigiendo a Google...';
+    }
+
+    // Cambiamos signInWithPopup por signInWithRedirect
+    auth.signInWithRedirect(provider);
+}
+
+// 2. Listener para capturar el resultado al volver a la página (colócalo fuera de la función, al cargar la página)
+document.addEventListener('DOMContentLoaded', () => {
+    auth.getRedirectResult()
+        .then((result) => {
+            // result.user solo existirá si la página se cargó tras regresar de Google
+            if (result && result.user) {
+                const user = result.user;
+                console.log("✅ Autenticación exitosa con Google via Redirect:", user.email);
+                
+                // Redirigir al panel o actualizar la interfaz
+                window.location.reload();
+            }
+        })
+        .catch((error) => {
+            console.error("❌ Error en autenticación con Google:", error);
+            
+            let errorMessage = "No se pudo iniciar sesión con Google.";
+            if (error.message) {
+                errorMessage = error.message;
+            }
+            alert(errorMessage);
+        });
+});
+          
     let isStaff = false;
     let mostrarUserName = null;
     let mostrarUserNameTarget = null;
