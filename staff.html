@@ -114,7 +114,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <!--<script>!function(){'use strict';const n=(m,t="🚫 ACCIÓN BLOQUEADA")=>{const e=document.createElement("div");e.style.cssText="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:2147483647;display:flex;align-items:center;justify-content:center;color:#ff4444;font-family:Arial,sans-serif;text-align:center;flex-direction:column;backdrop-filter:blur(5px)",e.innerHTML=`<div style="font-size:28px;font-weight:bold;margin-bottom:15px">${t}</div><div style="font-size:16px;color:#ff9999;max-width:80%;margin:0 auto">${m}</div><div style="font-size:12px;color:#ccc;margin-top:25px">Desaparece en <span id="cnt">10</span>s</div>`,document.body.appendChild(e);let s=10;const i=setInterval(()=>{s--,document.getElementById("cnt")&&(document.getElementById("cnt").textContent=s),s<=0&&(clearInterval(i),e.remove())},1e3)};document.addEventListener("keydown",e=>{if(e.key==="p"&&(e.ctrlKey||e.metaKey))return e.preventDefault(),e.stopImmediatePropagation(),n("No se permite imprimir esta página","🚫 IMPRESIÓN BLOQUEADA"),!1;if((e.ctrlKey&&e.shiftKey&&(e.key==="I"||e.key==="J"||e.key==="C"||e.key==="U"))||e.key==="F12"||e.keyCode===123)return e.preventDefault(),e.stopImmediatePropagation(),n("Acceso restringido","🔧 ACCIÓN BLOQUEADA"),!1},!0);["contextmenu","dragstart"].forEach(e=>{document.addEventListener(e,t=>{t.preventDefault(),t.stopImmediatePropagation()},!0)});const e=document.createElement("style");e.textContent="@media print{*{display:none!important}body::before{content:'IMPRESIÓN BLOQUEADA';display:block!important;font-size:24px;color:red;text-align:center;margin-top:100px;font-weight:bold}}",document.head.appendChild(e);window.matchMedia("print").addListener(t=>{t.matches&&n("No se permite imprimir esta página","🚫 IMPRESIÓN BLOQUEADA")})}();</script>-->
-<style><?!= include('CSS'); ?></style>
 <style>
     /* MANTENIENDO LA ESTRUCTURA ORIGINAL PERO MEJORANDO */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap');
@@ -347,207 +346,6 @@
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     }
 </style>
-<!-- Código para manejar enlaces y el modal -->
-<script>
-  (function() {
-    // ============================================
-    // Configuración con Identificadores Únicos
-    // ============================================
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .grvx-modal-container {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            z-index: 99999;
-            overflow-y: auto;
-            backdrop-filter: blur(4px);
-        }
-        
-        .grvx-modal-wrapper {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #111;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            animation: grvxFadeIn 0.3s ease-out;
-            border: 1px solid #333;
-        }
-        
-        @keyframes grvxFadeIn {
-            from { opacity: 0; transform: translate(-50%, -48%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
-        }
-        
-        .grvx-modal-logo {
-            width: 120px;
-            height: auto;
-            margin: 0 auto 20px;
-            display: block;
-        }
-        
-        .grvx-modal-body {
-            margin: 20px 0;
-            color: #f0f0f0;
-            font-size: 15px;
-            line-height: 1.6;
-            text-align: left;
-        }
-        
-        .grvx-modal-body n {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-        
-        .grvx-modal-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 25px;
-        }
-        
-        .grvx-btn {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        
-        .grvx-btn-cancel {
-            background-color: #444;
-            color: white;
-        }
-        
-        .grvx-btn-cancel:hover { background-color: #555; }
-        
-        .grvx-btn-confirm {
-            background-color: #4CAF50;
-            color: white;
-        }
-        
-        .grvx-btn-confirm:hover { background-color: #45a049; }
-        
-        @media (min-width: 768px) {
-            .grvx-modal-wrapper { max-width: 600px; padding: 30px; }
-            .grvx-modal-body { font-size: 16px; }
-            .grvx-modal-actions { flex-direction: row; justify-content: center; gap: 15px; }
-            .grvx-btn { width: auto; min-width: 140px; }
-        }
-    `;
-    document.head.appendChild(style);
-
-    let grvx_activeModal = null;
-    let grvx_targetUrl = null;
-    let grvx_targetTab = null;
-    let grvx_isConfirmed = false;
-
-    const grvx_allowedDomains = [
-        'www.grouvex.com',
-        'grouvex.com', 
-        'grouvex.github.io',
-        '<?= BASE_PANEL_URL ?>',
-        'https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link'
-    ];
-
-    function grvx_checkIsExternal(href) {
-        if (!href || href.startsWith('#') || href.startsWith('javascript:')) return false;
-        try {
-            const url = new URL(href, window.location.origin);
-            return !grvx_allowedDomains.some(allowed => {
-                if (!allowed.includes('://')) return url.hostname === allowed;
-                return url.href === allowed || url.href.startsWith(allowed);
-            });
-        } catch (e) { return false; }
-    }
-
-    function grvx_createModal() {
-        const modalHtml = `
-        <div id="grvx_exit_modal" class="grvx-modal-container">
-            <div class="grvx-modal-wrapper">
-                <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/Grouvex1.png" alt="Logo" class="grvx-modal-logo">
-                <div class="grvx-modal-body">
-                    <p>Estás a punto de salir de <n>Grouvex Studios</n>. Grouvex Studios no se responsabiliza por el contenido, la seguridad o las prácticas de sitios de terceros fuera de nuestro dominio.</p>
-                    <p>Si hace clic en <b>Cancelar</b>, permanecerá aquí.</p>
-                    <p>Si hace clic en <b>Continuar</b>, será redirigido a la página externa.</p>
-                </div>
-                <div class="grvx-modal-actions">
-                    <button class="grvx-btn grvx-btn-cancel" id="grvx_btn_cancel">Cancelar</button>
-                    <button class="grvx-btn grvx-btn-confirm" id="grvx_btn_continue">Continuar</button>
-                </div>
-            </div>
-        </div>`;
-        
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        grvx_activeModal = document.getElementById('grvx_exit_modal');
-
-        document.getElementById('grvx_btn_cancel').onclick = () => {
-            grvx_activeModal.style.display = 'none';
-            grvx_isConfirmed = false;
-        };
-
-        document.getElementById('grvx_btn_continue').onclick = () => {
-            if (grvx_targetUrl) {
-                grvx_isConfirmed = true;
-                grvx_activeModal.style.display = 'none';
-                if (grvx_targetTab === '_blank') {
-                    window.open(grvx_targetUrl, '_blank');
-                } else {
-                    window.location.href = grvx_targetUrl;
-                }
-            }
-        };
-
-        grvx_activeModal.onclick = (e) => {
-            if (e.target === grvx_activeModal) grvx_activeModal.style.display = 'none';
-        };
-    }
-
-    // Interceptar clics en el documento
-    document.addEventListener('click', function(e) {
-        const link = e.target.closest('[href]');
-        if (link) {
-            const href = link.getAttribute('href');
-            if (grvx_checkIsExternal(href)) {
-                e.preventDefault();
-                grvx_targetUrl = href;
-                grvx_targetTab = link.getAttribute('target');
-                if (!grvx_activeModal) grvx_createModal();
-                grvx_activeModal.style.display = 'block';
-            }
-        }
-    });
-
-    // Interceptar window.open
-    const grvx_originalOpen = window.open;
-    window.open = function(url, target, features) {
-        if (grvx_checkIsExternal(url) && !grvx_isConfirmed) {
-            grvx_targetUrl = url;
-            grvx_targetTab = target || '_self';
-            if (!grvx_activeModal) grvx_createModal();
-            grvx_activeModal.style.display = 'block';
-            return null;
-        }
-        grvx_isConfirmed = false; // Reset para la siguiente llamada
-        return grvx_originalOpen(url, target, features);
-    };
-
-  })();
-</script>
-<!-- Cierre Código para manejar enlaces y el modal -->
 </head>
 <body>
 <div class="header">
@@ -644,13 +442,11 @@
                   <!-- Email y badges de staff -->
                   <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 4px; flex-wrap: wrap;">
                     <span id="userEmail" class="user-email" style="color: #666; font-size: 14px; line-height: 1.3; word-break: break-word; hyphens: auto;"></span>
-                    <? if (insigniasEspeciales.staff || (isStaff)) { ?>
                       <div style="display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: 5px;">
                         <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/verified-team.png" alt="Verificado" style="width: 16px; height: 16px; vertical-align: middle;">
                         <span id="staffBadge" class="staff-badge" style="font-size: 12px; font-weight: bold; color: #007bff;">STAFF</span>
                         <span id="verifiedTeamBadge" class="verified-team-badge" style="font-size: 12px; font-weight: bold; color: #28a745;">VERIFIED TEAM</span>
                       </div>
-                    <? } ?>
                   </div>
                   
                   <!-- Insignias en línea horizontal -->
@@ -1164,26 +960,21 @@
                 <!-- Cierre Sección para buscar perfiles relacionados -->
 
                 <!-- Sección Staff -->
-                <? if (insigniasEspeciales.staff || (isStaff)) { ?>
                   <div class="staff-access">
                     <details>
                     <summary><h3><i class="fas fa-user-shield"></i> Acceso de Staff</h3></summary>
-                    <p>Estás viendo <?= isViewingOtherProfile ? 'el perfil de otro usuario' : 'tu propio perfil' ?> como miembro del Staff</p>
-                    <p>Cualquier información que no pueda ver de <strong><?= targetId ?></strong> solicitelo a <a href="mailto:legal@grouvex.com">legal@grouvex.com</a> el GSUserID del miembro. Envie captura de el recuadro naranja de Acceso de Staff.</p>
-                    <? if (isViewingOtherProfile) { ?>
-                    <p>Viendo perfil de: <strong><?= targetId ?></strong></p>
-                    <? } ?>
+                    <p>Estás viendo como miembro del Staff</p>
+                    <p>Cualquier información que no pueda ver de <strong><span class="mostrarId"></span></strong> solicitelo a <a href="mailto:legal@grouvex.com">legal@grouvex.com</a> el GSUserID del miembro. Envie captura de el recuadro naranja de Acceso de Staff.</p>
+                    <p>Viendo perfil de: <strong><span class="mostrarId"></span></strong></p>
                     <div class="portal-section">
                       <div class="portal-actions">
                         <!-- For staff members -->
                         <button id="staffPortalBtn" class="btn btn-portal btn-block">
                           <i class="fas fa-user-shield"></i> Portal de Staff
                         </button>
-                        <? if (isViewingOtherProfile) { ?>
                         <button id="viewOwnProfileBtn" class="btn btn-portal btn-block">
                           <i class="fas fa-user"></i> Ver mi perfil
                         </button>
-                        <? } ?>
                       </div>
                     </div>
                     <div>
@@ -1222,7 +1013,6 @@
                     });
                   }
                   </script>
-                <? } ?>
         </details>
       </div>
 <!-- Cierre de Verificación de Usuario -->
@@ -1472,187 +1262,338 @@ function initSessionTimeout() {
       return urlParams.has('targetId') && urlParams.get('isStaff') === 'true';
     }
     
-        function loadUserData(user) {
-          console.log('Cargando datos e insignias para usuario:', user?.uid);
-          
-          // Prioriza gs_id global si existe, o construye el ID con user.uid
-          const targetId = (typeof gs_id !== 'undefined' && gs_id) ? gs_id : `GS-${user?.uid}`;
+      function loadUserData(user) {
+        console.log('Cargando datos e insignias para usuario:', user?.uid);
         
-          google.script.run
-            .withSuccessHandler(function(data) {
-              console.log('Datos recibidos de getArtistData:', data);
-              
-              // 1. PROCESAR NOMBRE DE USUARIO
-              let mostrarUserName = 'Usuario Grouvex';
-              if (data && data.found && data.artistData && data.artistData['Nombre de Usuario']) {
-                mostrarUserName = data.artistData['Nombre de Usuario'];
-              }
-        
-              document.querySelectorAll('.mostrarUserName').forEach(el => {
-                el.textContent = mostrarUserName;
-              });
-        
-              // 2. PROCESAR INSIGNIAS
-              const containers = document.querySelectorAll('.insignias-container');
-  
-              // Extraer URLs directamente del objeto de insignias que devuelve getArtistData
-              let urls = [];
-              if (data && data.found && Array.isArray(data.insignias)) {
-                urls = data.insignias.map(ins => ins.url).filter(Boolean);
-              }
-        
-              if (containers.length > 0) {
-                if (urls.length > 0) {
-                  const html = '<div style="display: flex; gap: 5px; flex-wrap: wrap;">' +
-                    urls.map(url => `<img src="${url}" alt="Insignia" style="width: 20px; height: 20px; border-radius: 50%;">`).join('') +
-                    '</div>';
-        
-                  containers.forEach(container => {
-                    container.innerHTML = html;
-                    container.style.display = 'block';
-                  });
-                  console.log('✅ Insignias mostradas en', containers.length, 'contenedores');
-                } else {
-                  containers.forEach(container => {
-                    container.style.display = 'none';
-                    container.innerHTML = '';
-                  });
-                  console.log('🔒 Contenedores ocultados (sin insignias)');
-                }
-              }
-            })
-            .withFailureHandler(function(error) {
-              console.error('Error al cargar datos e insignias:', error);
-              
-              // Ocultar contenedores de insignias en caso de falla
-              document.querySelectorAll('.insignias-container').forEach(container => {
-                container.style.display = 'none';
-              });
-            })
-            .getArtistData(targetId);
-        }
-        
-        function loadUserDataTarget(user) {
-          console.log('Cargando datos e insignias para usuario:', mostrarId);
-          
-          const targetId = (typeof mostrarId !== 'undefined' && mostrarId) ? mostrarId : `GS-${user?.uid}`;
-        
-          // Campos no permitidos específicamente para "gstudios"
-          const gstudiosIgnoredFields = new Set([
-            "Marca temporal", "Insignias", "Estado del Contrato", "Razón", 
-            "Estado del Contrato GSRecords", "Razón GSRecords", "Estado del Contrato GSDesigns", 
-            "Razón GSDesigns", "Dirección", "Ciudad, Código Postal", "Teléfono", 
-            "Prefijo del Teléfono", "Nombre y Apellidos Reales", "Dinero Total GSRecords", 
-            "Porcentaje de Ingresos", "Porcentaje de Regalías", "Mediación, arbitraje, etc", 
-            "DNI, NIE o Pasaporte (Documento Nacional de Identidad)", 
-            "NIF/CIF (Número de Identificación Fiscal)", "ID de la cuenta artística de Routenote", 
-            "Firma", "Nombre del Artista/Banda Legal", "Título/Posición del Artista/Banda", 
-            "Aceptación de Solicitud de Terminación de Contrato Inmediato", "Selector", 
-            "Selecciona la Sección", "Ir a la Selección de Secciones", "Selecciona", 
-            "Número de Días - 1", "Número de Días - 2", "Número de Días - 3", 
-            "Número de Años - 1", "Número de Años - 2", "Número de Años - 3", 
-            "Número de Años - 4", "FirebaseToken", "Perfiles Bloqueados", "Perfil Seguido"
-          ]);
+        // Prioriza gs_id global si existe, o construye el ID con user.uid
+        const targetId = (typeof gs_id !== 'undefined' && gs_id) ? gs_id : `GS-${user?.uid}`;
+      
+        google.script.run
+          .withSuccessHandler(function(data) {
+            console.log('Datos recibidos de getArtistData:', data);
 
-          const gstudiosrecordsIgnoredFields = new Set([
-            "Marca temporal", "Insignias", "Estado del Contrato", "Razón", 
-            "Estado del Contrato GSRecords", "Razón GSRecords", "Estado del Contrato GSDesigns", 
-            "Razón GSDesigns", "Dirección", "Ciudad, Código Postal", "Teléfono", 
-            "Prefijo del Teléfono", "Nombre y Apellidos Reales", "Dinero Total GSRecords", 
-            "Porcentaje de Ingresos", "Porcentaje de Regalías", "Mediación, arbitraje, etc", 
-            "DNI, NIE o Pasaporte (Documento Nacional de Identidad)", 
-            "NIF/CIF (Número de Identificación Fiscal)", "ID de la cuenta artística de Routenote", 
-            "Firma", "Nombre del Artista/Banda Legal", "Título/Posición del Artista/Banda", 
-            "Aceptación de Solicitud de Terminación de Contrato Inmediato", "Selector", 
-            "Selecciona la Sección", "Ir a la Selección de Secciones", "Selecciona", 
-            "Número de Días - 1", "Número de Días - 2", "Número de Días - 3", 
-            "Número de Años - 1", "Número de Años - 2", "Número de Años - 3", 
-            "Número de Años - 4", "FirebaseToken", "Perfiles Bloqueados", "Perfil Seguido"
-          ]);
-          google.script.run
-            .withSuccessHandler(function(data) {
-              console.log('Datos recibidos de getArtistData:', data);
-              
-              // 1. PROCESAR NOMBRE DE USUARIO
-              let mostrarUserNameTarget = 'Usuario Grouvex';
-              if (data && data.found && data.artistData && data.artistData['Nombre de Usuario']) {
-                mostrarUserNameTarget = data.artistData['Nombre de Usuario'];
-              }
-        
-              document.querySelectorAll('.mostrarUserNameTarget').forEach(el => {
-                el.textContent = mostrarUserNameTarget;
-              });
-        
-              // 2. PROCESAR INSIGNIAS
-              const containers = document.querySelectorAll('.insignias-container-target');
-              let urls = [];
-              if (data && data.found && Array.isArray(data.insignias)) {
-                urls = data.insignias.map(ins => ins.url).filter(Boolean);
-              }
-        
-              if (containers.length > 0) {
-                if (urls.length > 0) {
-                  const html = '<div style="display: flex; gap: 5px; flex-wrap: wrap;">' +
-                    urls.map(url => `<img src="${url}" alt="Insignia" style="width: 20px; height: 20px; border-radius: 50%;">`).join('') +
-                    '</div>';
-        
-                  containers.forEach(container => {
-                    container.innerHTML = html;
-                    container.style.display = 'block';
-                  });
-                } else {
-                  containers.forEach(container => {
-                    container.style.display = 'none';
-                    container.innerHTML = '';
-                  });
+            if (data && data.found && data.artistData) {
+              // 1. Spans estándar (ejemplo: class="database-Ciudad,_Código_Postal")
+              document.querySelectorAll('[class*="database-"]:not([class*="-target"])').forEach(el => {
+                // Busca la clase que empieza por "database-"
+                const match = Array.from(el.classList).find(c => c.startsWith('database-') && !c.endsWith('-target'));
+                if (match) {
+                  // Extrae la clave y reemplaza los '_' por espacios para coincidir con la base de datos
+                  const key = match.replace('database-', '').replace(/_/g, ' ');
+                  const valor = data.artistData[key];
+                  if (valor !== undefined && valor !== null) el.textContent = valor;
                 }
+              });
+            }
+      
+            // 1. PROCESAR NOMBRE DE USUARIO
+            mostrarUserName = 'Usuario Grouvex';
+            if (data && data.found && data.artistData && data.artistData['Nombre de Usuario']) {
+              mostrarUserName = data.artistData['Nombre de Usuario'];
+            }
+      
+            document.querySelectorAll('.mostrarUserName').forEach(el => {
+              el.textContent = mostrarUserName;
+            });
+      
+            // 2. PROCESAR INSIGNIAS
+            const containers = document.querySelectorAll('.insignias-container');
+
+            // Extraer URLs directamente del objeto de insignias que devuelve getArtistData
+            let urls = [];
+            if (data && data.found && Array.isArray(data.insignias)) {
+              urls = data.insignias.map(ins => ins.url).filter(Boolean);
+            }
+      
+            if (containers.length > 0) {
+              if (urls.length > 0) {
+                const html = '<div style="display: flex; gap: 5px; flex-wrap: wrap;">' +
+                  urls.map(url => `<img src="${url}" alt="Insignia" style="width: 20px; height: 20px; border-radius: 50%;">`).join('') +
+                  '</div>';
+      
+                containers.forEach(container => {
+                  container.innerHTML = html;
+                  container.style.display = 'block';
+                });
+                console.log('✅ Insignias mostradas en', containers.length, 'contenedores');
+              } else {
+                containers.forEach(container => {
+                  container.style.display = 'none';
+                  container.innerHTML = '';
+                });
+                console.log('🔒 Contenedores ocultados (sin insignias)');
               }
+            };
+      
+            // 3. PROCESAR VARIABLES GENERALES
+            gs_estado = "En Espera";
+            gs_razon = "En Espera";
+            gsrecords_estado = "En Espera";
+            gsrecords_razon = "En Espera";
+            gsdesigns_estado = "En Espera";
+            gsdesigns_razon = "En Espera";
+
+            // =========================================================================
+            // BLOQUE 1: ELEMENTOS ESTÁNDAR (sin "-target")
+            // =========================================================================
+            if (data && data.found && data.artistData) {
+              const estadoConfig = {
+                "Aprobado":    { icon: "fa-solid fa-circle-check",      color: "#0f766e" },
+                "Denegado":    { icon: "fa-solid fa-ban",               color: "#b91c1c" },
+                "Modificar":   { icon: "fa-solid fa-pen-to-square",     color: "#d97706" },
+                "Comprobando": { icon: "fa-solid fa-magnifying-glass",  color: "#1d4ed8" },
+                "Suspendido":  { icon: "fa-solid fa-triangle-exclamation", color: "#6b21a8" },
+                "En Espera":   { icon: "fa-solid fa-clock",             color: "#4b5563" },
+                "Pendiente":   { icon: "fa-solid fa-hourglass-start",   color: "#374151" }
+              };
+      
+              const varsEstandar = {
+                gs_estado:              data.artistData['Estado del Contrato'],
+                gs_razon:               data.artistData['Razón'],
+                gstudios_estado:        data.artistData['Estado del Contrato'],
+                gstudios_razon:         data.artistData['Razón'],
+                gsrecords_estado:       data.artistData['Estado del Contrato GSRecords'],
+                gsrecords_razon:        data.artistData['Razón GSRecords'],
+                gsdesigns_estado:       data.artistData['Estado del Contrato GSDesigns'],
+                gsdesigns_razon:        data.artistData['Razón GSDesigns']
+              };
+            
+              const standardContainers = document.querySelectorAll('[id^="estado-data-"]:not([id$="-target"])');
+            
+              standardContainers.forEach(container => {
+                // Extrae "gs", "gstudios", "gsrecords", etc.
+                const sectionType = container.id.replace('estado-data-', '');
+                const estadoVal = varsEstandar[`${sectionType}_estado`];
+                const razonVal  = varsEstandar[`${sectionType}_razon`];
+      
+                document.querySelectorAll(`.uestado-data-${sectionType}`).forEach(el => {
+                  if (estadoVal) el.textContent = estadoVal;
+                });
+                document.querySelectorAll(`.urazon-data-${sectionType}`).forEach(el => {
+                  if (razonVal) el.textContent = razonVal;
+                });
+            
+                if (estadoVal && estadoVal !== "Aprobado") {
+                  const config = estadoConfig[estadoVal] || { icon: "fa-solid fa-circle-info", color: "#6c5ce7" };
+                  const razonTexto = (razonVal && razonVal.trim() !== '') ? razonVal : "Sin razón especificada.";
+                  container.style.display = 'block';
+                  container.style.borderLeftColor = config.color;
+                  container.innerHTML = `
+                    <h1><i class="${config.icon}" style="color: ${config.color};"></i> ${estadoVal}</h1>
+                    <p>Su perfil en este organismo ha sido marcado como <strong>${estadoVal}</strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
+                    <p>${razonTexto}</p>
+                  `;
+                }
+              });
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error al cargar datos e insignias:', error);
+            
+            // Ocultar contenedores de insignias en caso de falla
+            document.querySelectorAll('.insignias-container').forEach(container => {
+              container.style.display = 'none';
+            });
+          })
+          .getArtistData(targetId);
+      }
+      
+      function loadUserDataTarget(user) {
+        console.log('Cargando datos e insignias para usuario:', mostrarId);
         
-              // 3. PROCESAR TABLAS DINÁMICAS (id="tabla-data-*")
-              if (data && data.found && data.headers && data.artistData) {
-                const dataTables = document.querySelectorAll('[id^="tabla-data-"]');
-        
-                dataTables.forEach(tableContainer => {
-                  const tableType = tableContainer.id.replace('tabla-data-', '');
-                  let itemsHtml = '';
-        
-                  data.headers.forEach((header, index) => {
-                    const valor = data.artistData[header];
-        
-                    // Filtro específico si el contenedor es tabla-data-gstudios
-                    if (tableType === 'gstudios') {
-                      if (index === 0 || gstudiosIgnoredFields.has(header) || gstudiosrecordsIgnoredFields.has(header)) {
-                        return; // Omitir esta columna
-                      }
-                    }
-        
-                    // Solo renderiza si hay un valor presente
-                    if (valor !== undefined && valor !== null && valor !== '') {
-                      itemsHtml += `
-                        <div class="info-item">
-                          <span class="info-label">${header}</span>
-                          <span class="info-value">${valor}</span>
-                        </div>
-                      `;
-                    }
-                  });
-        
-                  tableContainer.innerHTML = itemsHtml;
+        const targetId = (typeof mostrarId !== 'undefined' && mostrarId) ? mostrarId : `GS-${user?.uid}`;
+      
+        // Campos no permitidos específicamente para "gstudios"
+        const gstudiosIgnoredFields = new Set([
+          "Marca temporal", "Insignias", "Estado del Contrato", "Razón", 
+          "Estado del Contrato GSRecords", "Razón GSRecords", "Estado del Contrato GSDesigns", 
+          "Razón GSDesigns", "Dirección", "Ciudad, Código Postal", "Teléfono", 
+          "Prefijo del Teléfono", "Nombre y Apellidos Reales", "Dinero Total GSRecords", 
+          "Porcentaje de Ingresos", "Porcentaje de Regalías", "Mediación, arbitraje, etc", 
+          "DNI, NIE o Pasaporte (Documento Nacional de Identidad)", 
+          "NIF/CIF (Número de Identificación Fiscal)", "ID de la cuenta artística de Routenote", 
+          "Firma", "Nombre del Artista/Banda Legal", "Título/Posición del Artista/Banda", 
+          "Aceptación de Solicitud de Terminación de Contrato Inmediato", "Selector", 
+          "Selecciona la Sección", "Ir a la Selección de Secciones", "Selecciona", 
+          "Número de Días - 1", "Número de Días - 2", "Número de Días - 3", 
+          "Número de Años - 1", "Número de Años - 2", "Número de Años - 3", 
+          "Número de Años - 4", "FirebaseToken", "Perfiles Bloqueados", "Perfil Seguido"
+        ]);
+
+        const gstudiosrecordsIgnoredFields = new Set([
+          "Marca temporal", "Insignias", "Estado del Contrato", "Razón", 
+          "Estado del Contrato GSRecords", "Razón GSRecords", "Estado del Contrato GSDesigns", 
+          "Razón GSDesigns", "Dirección", "Ciudad, Código Postal", "Teléfono", 
+          "Prefijo del Teléfono", "Nombre y Apellidos Reales", "Dinero Total GSRecords", 
+          "Dinero Total", "Porcentaje de Ingresos", "Porcentaje de Regalías", 
+          "Mediación, arbitraje, etc", "DNI, NIE o Pasaporte (Documento Nacional de Identidad)", 
+          "NIF/CIF (Número de Identificación Fiscal)", "ID de la cuenta artística de Routenote", 
+          "Firma", "Nombre del Artista/Banda Legal", "Título/Posición del Artista/Banda", 
+          "Aceptación de Solicitud de Terminación de Contrato Inmediato", "Selector", 
+          "Selecciona la Sección", "Ir a la Selección de Secciones", "Selecciona", 
+          "Número de Días - 1", "Número de Días - 2", "Número de Días - 3", 
+          "Número de Años - 1", "Número de Años - 2", "Número de Años - 3", 
+          "Número de Años - 4", "FirebaseToken", "Perfiles Bloqueados", "Perfil Seguido"
+        ]);
+      
+        google.script.run
+          .withSuccessHandler(function(data) {
+            console.log('Datos recibidos de getArtistData:', data);
+
+            if (data && data.found && data.artistData) {
+              // 2. Spans target (ejemplo: class="database-Ciudad,_Código_Postal-target")
+              document.querySelectorAll('[class*="database-"][class*="-target"]').forEach(el => {
+                // Busca la clase que empieza por "database-" y termina en "-target"
+                const match = Array.from(el.classList).find(c => c.startsWith('database-') && c.endsWith('-target'));
+                if (match) {
+                  // Extrae la clave eliminando prefijo y sufijo, y reemplaza '_' por espacios
+                  const key = match.replace('database-', '').replace('-target', '').replace(/_/g, ' ');
+                  const valor = data.artistData[key];
+                  if (valor !== undefined && valor !== null) el.textContent = valor;
+                }
+              });
+            }
+      
+            // 1. PROCESAR NOMBRE DE USUARIO
+            mostrarUserNameTarget = 'Usuario Grouvex';
+            if (data && data.found && data.artistData && data.artistData['Nombre de Usuario']) {
+              mostrarUserNameTarget = data.artistData['Nombre de Usuario'];
+            }
+      
+            document.querySelectorAll('.mostrarUserNameTarget').forEach(el => {
+              el.textContent = mostrarUserNameTarget;
+            });
+      
+            // 2. PROCESAR INSIGNIAS
+            const containers = document.querySelectorAll('.insignias-container-target');
+            let urls = [];
+            if (data && data.found && Array.isArray(data.insignias)) {
+              urls = data.insignias.map(ins => ins.url).filter(Boolean);
+            }
+      
+            if (containers.length > 0) {
+              if (urls.length > 0) {
+                const html = '<div style="display: flex; gap: 5px; flex-wrap: wrap;">' +
+                  urls.map(url => `<img src="${url}" alt="Insignia" style="width: 20px; height: 20px; border-radius: 50%;">`).join('') +
+                  '</div>';
+      
+                containers.forEach(container => {
+                  container.innerHTML = html;
+                  container.style.display = 'block';
+                });
+              } else {
+                containers.forEach(container => {
+                  container.style.display = 'none';
+                  container.innerHTML = '';
                 });
               }
-            })
-            .withFailureHandler(function(error) {
-              console.error('Error al cargar datos e insignias:', error);
-              document.querySelectorAll('.insignias-container-target').forEach(container => {
-                container.style.display = 'none';
+            }
+      
+            // 3. PROCESAR TABLAS DINÁMICAS (id="tabla-data-*")
+            if (data && data.found && data.headers && data.artistData) {
+              const dataTables = document.querySelectorAll('[id^="tabla-data-"]');
+      
+              dataTables.forEach(tableContainer => {
+                const tableType = tableContainer.id.replace('tabla-data-', '');
+                let itemsHtml = '';
+      
+                data.headers.forEach((header, index) => {
+                  const valor = data.artistData[header];
+      
+                  // Filtro específico si el contenedor es tabla-data-gstudios
+                  if (tableType === 'gstudios') {
+                    if (index === 0 || gstudiosIgnoredFields.has(header) || gstudiosrecordsIgnoredFields.has(header)) {
+                      return; // Omitir esta columna
+                    }
+                  }
+      
+                  // Solo renderiza si hay un valor presente
+                  if (valor !== undefined && valor !== null && valor !== '') {
+                    itemsHtml += `
+                      <div class="info-item">
+                        <span class="info-label">${header}</span>
+                        <span class="info-value">${valor}</span>
+                      </div>
+                    `;
+                  }
+                });
+      
+                tableContainer.innerHTML = itemsHtml;
               });
-              
-              document.querySelectorAll('.mostrarUserNameTarget').forEach(container => {
-                container.style.display = 'none';
+            }
+
+            // 4. PROCESAR VARIABLES GENERALES
+            gs_estadotarget = "En Espera";
+            gs_razon = "En Espera";
+            gsrecords_estadotarget = "En Espera";
+            gsrecords_razontarget = "En Espera";
+            gsdesigns_estadotarget = "En Espera";
+            gsdesigns_razontarget = "En Espera";
+
+            if (data && data.found && data.artistData) {
+              const estadoConfig = {
+                "Aprobado":    { icon: "fa-solid fa-circle-check",      color: "#0f766e" },
+                "Denegado":    { icon: "fa-solid fa-ban",               color: "#b91c1c" },
+                "Modificar":   { icon: "fa-solid fa-pen-to-square",     color: "#d97706" },
+                "Comprobando": { icon: "fa-solid fa-magnifying-glass",  color: "#1d4ed8" },
+                "Suspendido":  { icon: "fa-solid fa-triangle-exclamation", color: "#6b21a8" },
+                "En Espera":   { icon: "fa-solid fa-clock",             color: "#4b5563" },
+                "Pendiente":   { icon: "fa-solid fa-hourglass-start",   color: "#374151" }
+              };
+      
+              const varsTarget = {
+                gs_estadotarget:        data.artistData['Estado del Contrato'],
+                gs_razontarget:         data.artistData['Razón'],
+                gstudios_estadotarget:  data.artistData['Estado del Contrato'],
+                gstudios_razontarget:   data.artistData['Razón'],
+                gsrecords_estadotarget: data.artistData['Estado del Contrato GSRecords'],
+                gsrecords_razontarget:  data.artistData['Razón GSRecords'],
+                gsdesigns_estadotarget: data.artistData['Estado del Contrato GSDesigns'],
+                gsdesigns_razontarget:  data.artistData['Razón GSDesigns']
+              };
+            
+              const targetContainers = document.querySelectorAll('[id^="estado-data-"][id$="-target"]');
+            
+              targetContainers.forEach(container => {
+                // Extrae "gs", "gstudios", "gsrecords", etc. eliminando "estado-data-" y "-target"
+                const sectionTypeTarget = container.id.replace('estado-data-', '').replace('-target', '');
+                const estadoVal = varsTarget[`${sectionTypeTarget}_estadotarget`];
+                const razonVal  = varsTarget[`${sectionTypeTarget}_razontarget`];
+
+                document.querySelectorAll(`.uestado-data-${sectionTypeTarget}-target`).forEach(el => {
+                  if (estadoVal) el.textContent = estadoVal;
+                });
+                
+                document.querySelectorAll(`.urazon-data-${sectionTypeTarget}-target`).forEach(el => {
+                  if (razonVal) el.textContent = razonVal;
+                });
+      
+                if (estadoVal && estadoVal !== "Aprobado") {
+                  const config = estadoConfig[estadoVal] || { icon: "fa-solid fa-circle-info", color: "#6c5ce7" };
+                  const razonTexto = (razonVal && razonVal.trim() !== '') ? razonVal : "Sin razón especificada.";
+                  container.style.display = 'block';
+                  container.style.borderLeftColor = config.color;
+                  container.innerHTML = `
+                    <h1><i class="${config.icon}" style="color: ${config.color};"></i> ${estadoVal}</h1>
+                    <p>Su perfil en este organismo ha sido marcado como <strong>${estadoVal}</strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
+                    <p>${razonTexto}</p>
+                  `;
+                }
               });
-            })
-            .getArtistData(targetId);
-        }
+            }
+          })
+          .withFailureHandler(function(error) {
+            console.error('Error al cargar datos e insignias:', error);
+            document.querySelectorAll('.insignias-container-target').forEach(container => {
+              container.style.display = 'none';
+            });
+            
+            document.querySelectorAll('.mostrarUserNameTarget').forEach(container => {
+              container.style.display = 'none';
+            });
+          })
+          .getArtistData(targetId);
+      }
 
       let gs_id = null;
       let urlTargetId = null;
@@ -1673,7 +1614,7 @@ function initSessionTimeout() {
       const params = new URLSearchParams(window.location.search);
       gs_id = params.get('id');
       urlTargetId = params.get('targetId');
-      const isViewingOtherProfile = gs_id !== null && gs_id !== gs_fireID;
+      isViewingOtherProfile = gs_id !== null && gs_id !== gs_fireID;
       mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
       document.querySelectorAll('.mostrarId').forEach(el => {
         el.textContent = mostrarId;
@@ -2316,11 +2257,11 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Website DataBase -->
   <div class="container">
     <p>Al usar esta app, acepta los <a href="https://drive.google.com/drive/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT?usp=drive_link" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-shield-halved"></i>Documentos Oficiales de Grouvex Studios<i class="fa-solid fa-shield-halved"></i></a></p>
-    <p>Ante cualquier duda de que correo se debe usar en cada situación, enviar un correo al <a href="mailto:oficina@grouvex.com?subject=Formas de Contacto - [<?= mostrarId ?>]">oficina@grouvex.com</a></p>
+    <p>Ante cualquier duda de que correo se debe usar en cada situación, enviar un correo al <a href="mailto:oficina@grouvex.com?subject=Formas de Contacto">oficina@grouvex.com</a></p>
     <details><summary><i class="fa-solid fa-circle-exclamation"></i> Información Importante</summary>
-    <p><strong>Al enviar un correo es importante usar el correo que aparece en la sección "Dirección de correo electrónico", y que el asunto se mantenga. En caso de que este vacio, indicar el tema del correo, pero nunca dejar el Asunto vacio. En el correo siempre tiene que aparecer <?= mostrarId ?> en el asunto. Delante de <?= mostrarId ?>, podeis indicar el tema a tratar.</strong></p>
+    <p><strong>Al enviar un correo es importante usar el correo que aparece en la sección "Dirección de correo electrónico", y que el asunto se mantenga. En caso de que este vacio, indicar el tema del correo, pero nunca dejar el Asunto vacio. En el correo siempre tiene que aparecer <span class="mostrarId"></span> en el asunto. Delante de <span class="mostrarId"></span>, podeis indicar el tema a tratar.</strong></p>
     <hr>
-    <p>Si desea modificar alguna información del DataBase, que no pueda realizar en la sección de Solicitudes de Cambios, consulte a <a href="mailto:administracion@grouvex.com?subject=Modificación de DatataBase - [<?= mostrarId ?>]">administracion@grouvex.com</a>, indique su GS-UserID en el correo y que información desea modificar de su perfil de miembro. Tenga en cuenta que se modificará tambien en todas las plataformas de música. El estado de su contrato pasará a ser: <strong>Comprobando</strong>, hasta que se complete el proceso y se le informe por correo electrónico.</p>
+    <p>Si desea modificar alguna información del DataBase, que no pueda realizar en la sección de Solicitudes de Cambios, consulte a <a href="mailto:administracion@grouvex.com?subject=Modificación de DatataBase">administracion@grouvex.com</a>, indique su GS-UserID en el correo y que información desea modificar de su perfil de miembro. Tenga en cuenta que se modificará tambien en todas las plataformas de música. El estado de su contrato pasará a ser: <strong>Comprobando</strong>, hasta que se complete el proceso y se le informe por correo electrónico.</p>
     <hr>
     <h4>Tipos de estados del Perfil</h4>
     <p>El estado del perfil se aplica a todo Grouvex Studios y sus suborganismos. A contenido nos referimos a cualquier contenido que tenga como miembro, artista, etc.</p>
@@ -2334,12 +2275,11 @@ document.addEventListener('DOMContentLoaded', function() {
     </ul>
     <p>El Grouvex Studios UserID, en adelante GSUserID, es unico y por lo tanto, no debe compartirlo con nadie. El GSUserID te servirá para acceder al formulario de contrato de proyecto, y tambien para en caso de olvidar alguna información sobre un proyecto o tu contrato o algo que tenga que ver con Grouvex Studios, proporcionando el GSUserID nosotros podremos saber su información.</p>
     </details>
-    <p>Puede solicitar un Perfil de Cuenta en Stripe para poder ver tus suscripciones y pagos a <a href="mailto:records.gstudios@gmail.com?subject=Perfil de Cuenta en Stripe - [<?= mostrarId ?>]">records.gstudios@gmail.com</a></p>
+    <p>Puede solicitar un Perfil de Cuenta en Stripe para poder ver tus suscripciones y pagos a <a href="mailto:records.gstudios@gmail.com?subject=Perfil de Cuenta en Stripe">records.gstudios@gmail.com</a></p>
     <hr>
     <!-- Cierre Logo - Intro -->
 
     <!-- Grouvex Studios -->
-    <? if (filaArtista) { ?>
         <!-- Sección de Solicitud de modificación -->
           <!-- Sección de Solicitud de Cambios -->
           <details style="background: linear-gradient(45deg, purple, cyan, white, green);padding: 5px; width: 100%;">
@@ -2350,7 +2290,7 @@ document.addEventListener('DOMContentLoaded', function() {
               <p style="color:red">Los campos con asterisco (*) son obligatorios a la hora de poder enviar el formulario.</p>
               
               <form id="changeRequestForm">
-                <input type="hidden" id="crUserId" value="<?= mostrarId ?>">
+                <input type="hidden" id="crUserId">
                 
                 <div class="form-group">
                   <label for="requestType">Tipo de Solicitud*:</label>
@@ -3077,38 +3017,10 @@ document.addEventListener('DOMContentLoaded', function() {
           <summary style="background: linear-gradient(45deg, cyan, blue, magenta);padding: 5px;"><h1>Grouvex Studios</h1></summary>
           <main>
           <div class="artist-card">
-          <? const estadoContrato = filaArtista[headersArtistas.indexOf("Estado del Contrato")]; const estadoContratoRecords = filaArtista[headersArtistas.indexOf("Estado del Contrato GSRecords")]; const estadoContratoDesings= filaArtista[headersArtistas.indexOf("Estado del Contrato GSDesings")];?>
-          <? const razon = filaArtista[headersArtistas.indexOf("Razón")] || 'Razón no definida'; const razonRecords = filaArtista[headersArtistas.indexOf("Razón GSRecords")] || 'Razón no definida'; const razonDesings = filaArtista[headersArtistas.indexOf("Razón GSDesings")] || 'Razón no definida';?>
-          <? if (estadoContrato === "Denegado") { ?>
-          <div style="display: block;border-left: 5px solid red; background: rgba(108, 92, 231, 0.1); padding: 20px;    border-radius: 12px; margin-top: 5px; margin-bottom: 10px;">
-          <h1><i class="fa-solid fa-ban"></i> <?= estadoContrato ?></h1>
-          <p>Su perfil a sido marcado como <strong><?= estadoContrato ?></strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
-          <p><?= razon ?></p>
-          </div>
-          <? } ?>
-          <? if (estadoContrato === "Modificar") { ?>
-          <div style="display: block;border-left: 5px solid orange; background: rgb(0 0 0); padding: 20px;    border-radius: 12px; margin-top: 5px; margin-bottom: 10px;">
-          <h1><i class="fa-solid fa-bug"></i> <?= estadoContrato ?></h1>
-          <p>Su perfil a sido marcado como <strong><?= estadoContrato ?></strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
-          <p><?= razon ?></p>
-          </div>
-          <? } ?>
-          <? if (estadoContrato === "Suspendido") { ?>
-          <div style="display: block;border-left: 5px solid purple; background: rgba(108, 92, 231, 0.1); padding: 20px;    border-radius: 12px; margin-top: 5px; margin-bottom: 10px;">
-          <h1><i class="fa-solid fa-triangle-exclamation"></i> <?= estadoContrato ?></h1>
-          <p>Su perfil a sido marcado como <strong><?= estadoContrato ?></strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
-          <p><?= razon ?></p>
-          </div>
-          <? } ?>
-          <? if (estadoContrato === "Comprobando") { ?>
-          <div style="display: block;border-left: 5px solid blue; background: rgba(108, 92, 231, 0.1); padding: 20px;    border-radius: 12px; margin-top: 5px; margin-bottom: 10px;">
-          <h1><i class="fa-solid fa-clock"></i> <?= estadoContrato ?></h1>
-          <p>Su perfil a sido marcado como <strong><?= estadoContrato ?></strong> por nuestro equipo, por la(s) siguiente(s) razón(es):</p>
-          <p><?= razon ?></p>
-          </div>
-          <? } ?>
-            <h2 class="artist-title"><i class="fa-solid fa-user"></i> <?= filaArtista[headersArtistas.indexOf("Nombre de Usuario")] || 'Nombre no disponible' ?></h2>
-            <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <?= mostrarId ?></p>
+            <div style="display: none; border-left: 5px solid red; background: rgba(108, 92, 231, 0.1); padding: 20px; border-radius: 12px; margin-top: 5px; margin-bottom: 10px;" id="estado-data-gs-target">
+            </div>
+            <h2 class="artist-title"><i class="fa-solid fa-user"></i> <span class="mostrarUserNameTarget"></span></h2>
+            <p class="artist-subtitle"><i class="fa-solid fa-id-card"></i> GS-UserID: <span class="mostrarId"></span></p>
             <div class="artist-details">
                 <h4>Insignias</h4>
                 <div class="insignias-container-target" style="display: none; text-align: center; padding: 5px 0;"></div>
@@ -3116,7 +3028,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="artist-info" id="tabla-data-gstudios">
               <p class="loading-text">Cargando información...</p>
             </div>
-              <p>Los datos que no salgan solicitalos a <a href="mailto:administracion@grouvex.com?subject=Solicitud de ARCOS - [<?= mostrarId ?>&cc=legal@grouvex.com]">administracion@grouvex.com (cc: legal@grouvex.com)</a></p>
+              <p>Los datos que no salgan solicitalos a <a href="mailto:administracion@grouvex.com?subject=Solicitud de ARCOS&cc=legal@grouvex.com]">administracion@grouvex.com (cc: legal@grouvex.com)</a></p>
               <details>
                 <p>Datos Ocultos por seguridad</p>
                 <ul>
@@ -13150,7 +13062,6 @@ title="Ir al índice de plantillas">
     <div id="adminResult" style="display: none; margin-top: 15px; padding: 15px; border-radius: 8px;"></div>
   </div>
 </details>
-<? if (insigniasEspeciales.vemployee || insigniasEspeciales.sistema) { ?>
 <style>
 .central-admin-section {
   padding: 20px;
@@ -14130,7 +14041,6 @@ function formatFirebaseTimestamp(timestamp) {
   }
 }
 </script>
-<? } ?>
 <!-- ================================================== -->
 <!-- SECCIÓN DE GESTIÓN DE USUARIOS -->
 <!-- ================================================== -->
@@ -16218,7 +16128,7 @@ function performSearch() {
 
 // Función para buscar canción por UPC
 function searchSongByUPC() {
-  const currentUserId = '<?= mostrarId ?>';
+  const currentUserId = mostrarId;
   const upc = document.getElementById('relatedId').value.trim();
   if (!upc) return;
   
@@ -17594,31 +17504,6 @@ document.head.appendChild(style);
 </body>
     <!-- Cierre --> 
 
- <? } else { ?>
-    <div class="not-found">
-      <h1>Miembro no encontrado</h1>
-      <p>No se encontró ningún miembro con el ID: <?= mostrarId ?></p>
-      <div style="margin-top: 30px;">
-        <a href="https://www.grouvex.com/grouvex-studios-records#Buscador_de_Artista_Oficial" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Intentar con otro ID
-        </a>
-      </div>
-    </div>
-    <? } ?>
-
-<? } else { ?>
-  <section class="special-section" style="border-left-color: #ff0000; background: rgb(255 0 0 / 64%);">
-    <h3><i class="fa-solid fa-ban"></i> Acceso NO Autorizado</h3>
-    <p>No Eres miembro del Staff</p>
-  </section>
-<? } ?>
-
-<? } else { ?>
-  <section class="special-section" style="border-left-color: #ff0000; background: rgb(255 0 0 / 64%);">
-    <h3><i class="fa-solid fa-ban"></i> Acceso NO Autorizado</h3>
-    <p>La WebDataBase está cerrada por mantenimiento. Solo puede acceder el Sistema.</p>
-   <!-- <span id="unixtimeUpdate" data-timestamp="1756677600" data-nonexpired-text="Se restablecerá la WebDataBase en:" data-expired-text="Ya está disponible para todos los usuarios."></span> -->
-  </section>
-<? } ?>
 <footer>
   <div class="footer-container">
     <!-- Redes sociales arriba -->
@@ -17754,10 +17639,10 @@ document.head.appendChild(style);
     <div class="footer-bottom">
       <p>
         <a href="https://drive.google.com/drive/u/0/folders/1d9RgDnoGOU9ce2bf9gvUxByZtgzQOBnT" target="_blank" rel="noopener noreferrer">
-          ©2021 - <?= new Date().getFullYear() ?> Grouvex Studios. Todos los derechos reservados.
+          ©2021 - 2026 Grouvex Studios. Todos los derechos reservados.
         </a>
       </p>
-      <p>©<?= new Date().getFullYear() ?>-v0.0.6</p>
+      <p>©2026-v0.0.6</p>
     </div>
   </div>
 
@@ -17806,7 +17691,7 @@ document.head.appendChild(style);
           songResultDiv.innerHTML = '<div class="loading">Buscando canción...</div>';
           songResultDiv.style.display = 'block';
 
-          const currentUserId = '<?= mostrarId ?>';
+          const currentUserId = mostrarId;
           
           google.script.run
             .withSuccessHandler(showSongDetails)
