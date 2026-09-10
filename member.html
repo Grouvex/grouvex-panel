@@ -5583,7 +5583,7 @@ function signInWithGoogle() {
           </script>
 
         <!-- Sección de Estado de Solicitudes (actualizada) -->
-        <details style="background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%); padding: 12px; width: 100%; border-radius: 12px; color: white; box-sizing: border-box;">
+        <details ontoggle="if(this.open && typeof window.fetchUserRequests === 'function' && (!this.dataset.lastFetch || Date.now() - this.dataset.lastFetch > 600000)) { this.dataset.lastFetch = Date.now(); window.fetchUserRequests(); }" style="background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%); padding: 12px; width: 100%; border-radius: 12px; color: white; box-sizing: border-box;">
           <summary style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); padding: 12px 20px; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; user-select: none;">
             <h3 style="display: inline; margin: 0; font-size: 18px;">
               <i class="fas fa-clipboard-list" style="margin-right: 10px;"></i>Estado de mis Solicitudes
