@@ -3407,14 +3407,6 @@
                   currentUser = user;
                   console.log('Usuario autenticado:', user.uid);
                   
-                  // Cargar insignias
-                  loadUserData(user);
-                  loadUserDataTarget(user);
-                  // Cargar perfiles relacionados
-                  setTimeout(loadRelatedProfiles, 500);
-                  // Cargar configuración de personalización
-                  setTimeout(loadUserCustomization, 1000);
-                  
                   // Mostrar dashboard
                   const dashboard = document.getElementById('userDashboard');
                   if (dashboard) {
@@ -3482,19 +3474,21 @@
                         console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
                         gs_id = null;
                         gs_fireID = null;
+                        mostrarId = null;
                         auth.signOut().then(() => {
-                        initSessionTimeout();
-                        removeActivityListeners();
-                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);});
+                              initSessionTimeout();
+                              removeActivityListeners();
+                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                        });
                   } else if (!gs_id || !gs_fireID) {
                         console.log('No hay ID en la URL o no hay fireID');
                         gs_id = null;
                         gs_fireID = null;
+                        mostrarId = null;
                         auth.signOut().then(() => {
-                        initSessionTimeout();
-                        removeActivityListeners();
-                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                        // Logout success - handled by auth state observer
+                              initSessionTimeout();
+                              removeActivityListeners();
+                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
                         });
                   } else {
                         console.log('El ID en la URL coincide con el usuario autenticado');
@@ -3504,35 +3498,47 @@
                         showIdMismatchOverlay();
                         gs_id = null;
                         gs_fireID = null;
+                        mostrarId = null;
                         auth.signOut().then(() => {
-                        initSessionTimeout();
-                        removeActivityListeners();
-                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);});
+                              initSessionTimeout();
+                              removeActivityListeners();
+                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                        });
                   }
                   // Staff intentando ver perfil ajeno sin parámetros correctos
                   if (isStaff && gs_id && gs_id !== gs_fireID) {
                         showIdMismatchOverlayStaff();
                         gs_id = null;
                         gs_fireID = null;
+                        mostrarId = null;
                         auth.signOut().then(() => {
-                        initSessionTimeout();
-                        removeActivityListeners();
-                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);});
+                              initSessionTimeout();
+                              removeActivityListeners();
+                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                        });
                   }
                   if (!gs_fireID || !gs_id) {
                         showLoginRequiredOverlay();
                         gs_id = null;
                         gs_fireID = null;
+                        mostrarId = null;
                         auth.signOut().then(() => {
-                        initSessionTimeout();
-                        removeActivityListeners();
-                        if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);});
+                              initSessionTimeout();
+                              removeActivityListeners();
+                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+                        });
                   }
                   await inicializarSeguridadUI();
+                  // Cargar datos
+                  loadUserData(user);
+                  loadUserDataTarget(user);
+                  setTimeout(loadRelatedProfiles, 500);
+                  setTimeout(loadUserCustomization, 1000);
                   console.log('🔍 URL completa:', currentUrl);
                   console.log('Firebase UID:', gs_fireID);
                   console.log('URL ID:', gs_id);
                   console.log('Target ID:', urlTargetId);
+                  console.log('ID a mostrar:', mostrarId);
                   console.log(isStaff);
                   document.getElementById('crUserId').value = gs_id;
                   document.getElementById('gs-user-id').value = gs_fireID;
