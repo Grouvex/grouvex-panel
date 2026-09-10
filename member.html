@@ -99,7 +99,7 @@
 <!-- THEME COLOR DINÁMICO -->
 <meta name="theme-color" content="#2c3e50" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1a2530" media="(prefers-color-scheme: dark)">
-<script src="/google-script-simulator.js"></script><script src="/seguridadynotificacion.js"></script><!--<script src="/injectUpdateSystem.js"></script>-->
+<script src="/google-script-simulator.js"></script><script src="/seguridadynotificacion.js"></script>
 <link rel="stylesheet" href="/style.css">
 <title>Grouvex Studios - Datos del Miembro</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -4734,7 +4734,6 @@ function signInWithGoogle() {
             document.getElementById('crUserId').value = gs_id;
             document.getElementById('gs-user-id').value = gs_fireID;
             document.getElementById(`gsrecordsUserId`).value = mostrarId;
-            // injectUpdateSystem(gs_fireID);
               // Check if user is staff or verified team
               try {
                 
@@ -5604,7 +5603,7 @@ function signInWithGoogle() {
           </script>
 
         <!-- Sección de Estado de Solicitudes (actualizada) -->
-        <details ontoggle="if(this.open && typeof window.fetchUserRequests === 'function' && (!this.dataset.lastFetch || Date.now() - this.dataset.lastFetch > 600000)) { this.dataset.lastFetch = Date.now(); window.fetchUserRequests(); }" style="background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%); padding: 12px; width: 100%; border-radius: 12px; color: white; box-sizing: border-box;">
+        <details ontoggle="if(this.open && typeof window.fetchUserRequests === 'function' && (!this.dataset.lastFetch || Date.now() - this.dataset.lastFetch > 60000)) { this.dataset.lastFetch = Date.now(); window.fetchUserRequests(); }" style="background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%); padding: 12px; width: 100%; border-radius: 12px; color: white; box-sizing: border-box;">
           <summary style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); padding: 12px 20px; color: white; border-radius: 8px; cursor: pointer; font-weight: 600; user-select: none;">
             <h3 style="display: inline; margin: 0; font-size: 18px;">
               <i class="fas fa-clipboard-list" style="margin-right: 10px;"></i>Estado de mis Solicitudes
@@ -5661,7 +5660,7 @@ function signInWithGoogle() {
                     <i class="fas fa-inbox" style="font-size: 40px; margin-bottom: 12px; opacity: 0.5;"></i>
                     <h3 style="margin: 0 0 6px 0; font-size: 18px; color: #f8fafc;">Sin solicitudes</h3>
                     <p style="margin: 0; font-size: 14px; color: #94a3b8;">No se encontraron solicitudes registradas para tu usuario.</p>
-                    <p style="margin: 0; font-size: 14px; color: #ff0000;">Los datos se cargan al abrir esta sección y se actualizan si transcurren más de 10 minutos desde la última consulta.</p>
+                    <p style="margin: 0; font-size: 14px; color: #ff0000;">Los datos se cargan al abrir esta sección y se actualizan si transcurren más de 1 minuto desde la última consulta.</p>
                   </div>
                 `;
                 return;
@@ -5787,7 +5786,7 @@ function signInWithGoogle() {
                       </table>
                     </div>
                   </details>
-                  <p style="margin: 0; font-size: 14px; color: #ff0000;">Los datos se cargan al abrir esta sección y se actualizan si transcurren más de 10 minutos desde la última consulta.</p>
+                  <p style="margin: 0; font-size: 14px; color: #ff0000;">Los datos se cargan al abrir esta sección y se actualizan si transcurren más de 1 minuto desde la última consulta.</p>
                 </div>
               `;
 
