@@ -4517,7 +4517,6 @@
           const mainCentros = document.getElementById('main-centros-btn');
           // App constants
           const BASE_PANEL_URL = "https://panel.grouvex.com/";
-          const LOGIN_URL = "https://grouvex.github.io/login";
           
           // State variables
           let isVerifiedTeam = false;
@@ -5075,7 +5074,7 @@
           document.body.appendChild(overlay);
           
           document.getElementById('loginBtnOverlay').addEventListener('click', function() {
-            window.location.href = LOGIN_URL;
+            window.location.href = BASE_PANEL_URL;
           });
         }
     </script>
