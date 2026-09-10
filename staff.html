@@ -1619,7 +1619,7 @@ function initSessionTimeout() {
       document.querySelectorAll('.mostrarId').forEach(el => {
         el.textContent = mostrarId;
       });
-          
+      document.getElementById('staffId').value = gs_id;
       console.log('🔍 URL completa:', currentUrl);
       console.log('Firebase UID:', gs_fireID);
       console.log('URL ID:', gs_id);
@@ -3924,7 +3924,8 @@ document.addEventListener("DOMContentLoaded", () => {
         max-height: 400px;
         padding: 20px;
         border: none;
-        background: white;
+        background: black;
+        color: white;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         line-height: 1.6;
         outline: none;
@@ -3932,7 +3933,7 @@ document.addEventListener("DOMContentLoaded", () => {
         font-size: 14px;
       }
       .editor-content:empty:before { content: attr(placeholder); color: #9ca3af; font-style: italic; }
-      .editor-content:focus { outline: none; background: #fafbfc; }
+      .editor-content:focus { outline: none; background: #476f96; }
       .html-source {
         width: 100%;
         min-height: 200px;
