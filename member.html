@@ -14383,74 +14383,92 @@ function loadMemberProfilesSection() {
             inputEl.value = '';
           }
 
-          function ejecutarImpresion(idx) {
-            recalcularPaginacion(idx);
+function ejecutarImpresion(idx) {
+  recalcularPaginacion(idx);
 
-            const docWrapper = document.getElementById(`plantilla-${idx}`);
-            let allValid = true;
-            let firstInvalid = null;
+  const docWrapper = document.getElementById(`plantilla-${idx}`);
+  if (!docWrapper) return; // Salvaguarda en caso de que el ID no exista
 
-            docWrapper.querySelectorAll('.modificable, .modificable-opcional').forEach(el => {
-              const valid = validateFieldElement(el);
-              if (!valid) {
-                allValid = false;
-                if (!firstInvalid) firstInvalid = el;
-              }
-            });
+  let allValid = true;
+  let firstInvalid = null;
 
-            docWrapper.querySelectorAll('input.input-editable').forEach(input => {
-              if (input.hasAttribute('required') && !input.value.trim()) {
-                allValid = false;
-                input.classList.add('invalid');
-              } else {
-                input.classList.remove('invalid');
-              }
-            });
+  // 1. Validación de modificables
+  docWrapper.querySelectorAll('.modificable, .modificable-opcional').forEach(el => {
+    const valid = validateFieldElement(el);
+    if (!valid) {
+      allValid = false;
+      if (!firstInvalid) firstInvalid = el;
+    }
+  });
 
-            docWrapper.querySelectorAll('select.select-editable').forEach(select => {
-              const val = getSelectSelectedValues(select);
-              const isEmpty = Array.isArray(val) ? val.length === 0 : (!val || val === "");
-              if (select.hasAttribute('required') && isEmpty) {
-                allValid = false;
-                select.classList.add('invalid');
-              } else {
-                select.classList.remove('invalid');
-              }
-            });
+  // 2. Validación de Inputs
+  docWrapper.querySelectorAll('input.input-editable').forEach(input => {
+    if (input.hasAttribute('required') && !input.value.trim()) {
+      allValid = false;
+      input.classList.add('invalid');
+      if (!firstInvalid) firstInvalid = input;
+    } else {
+      input.classList.remove('invalid');
+    }
+  });
 
-            if (!allValid) {
-              mostrarToast("Existen campos obligatorios sin completar o inválidos");
-              if (firstInvalid) openFieldEditor(firstInvalid);
-              return;
-            }
+  // 3. Validación de Selects
+  docWrapper.querySelectorAll('select.select-editable').forEach(select => {
+    const val = getSelectSelectedValues(select);
+    const isEmpty = Array.isArray(val) ? val.length === 0 : (!val || val === "");
+    if (select.hasAttribute('required') && isEmpty) {
+      allValid = false;
+      select.classList.add('invalid');
+      if (!firstInvalid) firstInvalid = select;
+    } else {
+      select.classList.remove('invalid');
+    }
+  });
 
-            docWrapper.querySelectorAll('.input-editable, .input-editableopcional').forEach(input => {
-              if (input.type === 'checkbox' || input.type === 'radio') {
-                if (input.checked) input.setAttribute('checked', 'checked');
-                else input.removeAttribute('checked');
-              } else {
-                input.setAttribute('value', input.value);
-              }
-            });
+  if (!allValid) {
+    mostrarToast("Existen campos obligatorios sin completar o inválidos");
+    if (firstInvalid) openFieldEditor(firstInvalid);
+    return;
+  }
 
-            docWrapper.querySelectorAll('.select-editable, .select-editableopcional').forEach(select => {
-              const currentVal = getSelectSelectedValues(select);
-              setSelectSelectedValues(select, currentVal);
-            });
+  // 4. Sincronización del estado de los inputs con el DOM impreso
+  docWrapper.querySelectorAll('.input-editable, .input-editableopcional').forEach(input => {
+    if (input.type === 'checkbox' || input.type === 'radio') {
+      if (input.checked) input.setAttribute('checked', 'checked');
+      else input.removeAttribute('checked');
+    } else {
+      input.setAttribute('value', input.value);
+    }
+  });
 
-            const filenameInput = document.getElementById(`filename-${idx}`);
-            const oldTitle = document.title;
-            if (filenameInput && filenameInput.value) {
-              document.title = filenameInput.value;
-            }
+  docWrapper.querySelectorAll('.select-editable, .select-editableopcional').forEach(select => {
+    const currentVal = getSelectSelectedValues(select);
+    setSelectSelectedValues(select, currentVal);
+  });
 
-            docWrapper.classList.add('print-active-target');
+  // 5. Cambio de título para el PDF/Impresión
+  const filenameInput = document.getElementById(`filename-${idx}`);
+  const oldTitle = document.title;
+  if (filenameInput && filenameInput.value) {
+    document.title = filenameInput.value;
+  }
 
-            window.print();
+  // 6. Activación del estado de impresión con ciclo de renderizado (Fix para GitHub Pages)
+  docWrapper.classList.add('print-active-target');
 
-            docWrapper.classList.remove('print-active-target');
-            document.title = oldTitle;
-          }
+  // Permitir que el motor de renderizado aplique los cambios visuales antes del diálogo
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      window.print();
+
+      // Restauración limpia de la interfaz tras cerrar/imprimir
+      setTimeout(() => {
+        docWrapper.classList.remove('print-active-target');
+        document.title = oldTitle;
+      }, 100);
+    }, 50);
+  });
+}
 
           filterBar.addEventListener('click', (e) => {
             if (!e.target.classList.contains('btn-filter')) return;
