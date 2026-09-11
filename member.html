@@ -4306,7 +4306,7 @@
       if (staffPortalBtn) {
         staffPortalBtn.addEventListener('click', function() {
           if (!currentUser) return;
-          const url = `${BASE_PANEL_URL}staff?staffid=GS-${encodeURIComponent(currentUser.uid)}&isStaff=true`;
+          const url = `${BASE_PANEL_URL}staff?id=GS-${encodeURIComponent(currentUser.uid)}&isStaff=true`;
           window.open(url, '_blank');
         });
       }
