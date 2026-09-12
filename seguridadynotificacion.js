@@ -23,6 +23,11 @@
     let targetWindowAttr = null;
     let previousActiveElement = null;
 
+    // Variables para referencias DOM aisladas
+    let modal = null;
+    let continueBtn = null;
+    let cancelBtn = null;
+
     // Referencia limpia a window.open nativo
     const originalWindowOpen = window.open;
 
@@ -58,11 +63,30 @@
         }
     }
 
-    // --- Inyección del Modal Responsivo en el DOM ---
+    function openModal(url, target) {
+        if (!modal) return;
+        targetDestination = url;
+        targetWindowAttr = target;
+        previousActiveElement = document.activeElement;
+        modal.style.display = 'flex';
+        if (continueBtn) continueBtn.focus();
+    }
+
+    function closeModal() {
+        if (!modal) return;
+        modal.style.display = 'none';
+        targetDestination = null;
+        targetWindowAttr = null;
+        if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+            previousActiveElement.focus();
+        }
+    }
+
+    // --- Inyección del Modal Responsivo e Inicialización de Eventos DOM ---
     (function inicializarModal() {
-        function inyectar() {
-            let modal = document.getElementById('customModal');
-    
+        function inyectarYVincular() {
+            modal = document.getElementById('customModal');
+
             if (!modal) {
                 const modalHTML = `
                 <div id="customModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; z-index: 999999; padding: 12px; box-sizing: border-box; backdrop-filter: blur(2px);">
@@ -82,67 +106,53 @@
                     </div>
                 </div>`;
                 document.body.insertAdjacentHTML('beforeend', modalHTML);
+                modal = document.getElementById('customModal');
             }
+
+            // Obtener botones de forma segura tras garantizar la presencia del modal
+            continueBtn = modal.querySelector('.continue');
+            cancelBtn = modal.querySelector('.cancel');
+
+            // Asignación de Listeners directos del Modal
+            cancelBtn.addEventListener('click', closeModal);
+
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeModal();
+            });
+
+            continueBtn.addEventListener('click', function() {
+                if (targetDestination) {
+                    const dest = targetDestination;
+                    const target = targetWindowAttr;
+                    closeModal();
+
+                    if (target === '_blank') {
+                        originalWindowOpen.call(window, dest, '_blank', 'noopener,noreferrer');
+                    } else {
+                        window.location.href = dest;
+                    }
+                } else {
+                    closeModal();
+                }
+            });
+
+            // Tecla ESC para cerrar
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+                    closeModal();
+                }
+            });
         }
-    
-        // Si el body ya existe en el DOM lo inyecta, si no, espera a que termine la carga del DOM
+
+        // Ejecución segura respetando el estado de la carga de la página
         if (document.body) {
-            inyectar();
+            inyectarYVincular();
         } else {
-            document.addEventListener('DOMContentLoaded', inyectar);
+            document.addEventListener('DOMContentLoaded', inyectarYVincular);
         }
     })();
 
-    const continueBtn = modal.querySelector('.continue');
-    const cancelBtn = modal.querySelector('.cancel');
-
-    function openModal(url, target) {
-        targetDestination = url;
-        targetWindowAttr = target;
-        previousActiveElement = document.activeElement;
-        modal.style.display = 'flex';
-        continueBtn.focus();
-    }
-
-    function closeModal() {
-        modal.style.display = 'none';
-        targetDestination = null;
-        targetWindowAttr = null;
-        if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
-            previousActiveElement.focus();
-        }
-    }
-
-    cancelBtn.addEventListener('click', closeModal);
-
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) closeModal();
-    });
-
-    continueBtn.addEventListener('click', function() {
-        if (targetDestination) {
-            const dest = targetDestination;
-            const target = targetWindowAttr;
-            closeModal();
-
-            if (target === '_blank') {
-                originalWindowOpen.call(window, dest, '_blank', 'noopener,noreferrer');
-            } else {
-                window.location.href = dest;
-            }
-        } else {
-            closeModal();
-        }
-    });
-
-    // Tecla ESC para cerrar
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.style.display === 'flex') {
-            closeModal();
-        }
-    });
-
-    // --- MÉTODOS SEGUROS DE INTERCEPTACIÓN ---
+    // --- MÉTODOS SEGUROS DE INTERCEPTACIÓN GLOBAL ---
 
     // 1. Clics globales en enlaces HTML (<a>)
     document.addEventListener('click', function(event) {
@@ -174,7 +184,7 @@
         return originalWindowOpen.call(window, url, target, features);
     };
 
-    // 3. Interceptación de navegaciones dinámicas (Navigation API moderna si el navegador la soporta)
+    // 3. Interceptación de navegaciones dinámicas (Navigation API)
     if (window.navigation) {
         window.navigation.addEventListener('navigate', function(event) {
             if (event.canIntercept && isExternalLink(event.destination.url)) {
