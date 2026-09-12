@@ -3424,7 +3424,6 @@
                   urlTargetId = params.get('targetId');
                   isViewingOtherProfile = gs_id !== null && gs_id !== gs_fireID;
                   mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
-                  window.mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
                   document.querySelectorAll('.mostrarId').forEach(el => {
                         el.textContent = mostrarId;
                   });
@@ -10109,7 +10108,7 @@ function loadMemberProfilesSection() {
                                 Los campos con asterisco (*) son obligatorios para enviar el formulario.
                               </p>
                               <form class="change-request-form" data-lanzamiento="${escapeHtml(lanzamientoData.upcEan)}" onsubmit="event.preventDefault(); submitChangeRequestLanzamiento('${idSuffix}')">
-                                <input type="hidden" id="crUserId-${idSuffix}" value="${escapeHtml(window.mostrarId || '')}">
+                                <input type="hidden" id="crUserId-${idSuffix}" value="${escapeHtml(typeof mostrarId !== 'undefined' && mostrarId ? mostrarId : '')}">
                                 <input type="hidden" id="relatedId-${idSuffix}" value="${escapeHtml(lanzamientoData.upcEan)}">
                                 <input type="hidden" id="requestType-${idSuffix}" value="music">
 
@@ -10413,7 +10412,6 @@ function loadMemberProfilesSection() {
                     const form = document.querySelector(`#changesContainer-${idSuffix}`).closest('form');
                     const requestType = document.getElementById(`requestType-${idSuffix}`).value;
                     const relatedId = document.getElementById(`relatedId-${idSuffix}`).value;
-
                     if (requestType === 'music' && !relatedId) {
                       showResultLanzamiento(idSuffix, 'error', 'Para cambios musicales, debes proporcionar el UPC.');
                       return;
@@ -10443,7 +10441,7 @@ function loadMemberProfilesSection() {
                     if (hasErrors) return;
 
                     const requestData = {
-                      userId: document.getElementById(`crUserId-${idSuffix}`).value,
+                      userId: document.getElementById(`crUserId-${idSuffix}`)?.value || (typeof mostrarId !== 'undefined' ? mostrarId : ''),
                       requestType: requestType,
                       changes: changes,
                       relatedId: relatedId || null
@@ -10534,8 +10532,7 @@ function loadMemberProfilesSection() {
                     ARRANQUE
                     ============================================================ */
                   document.addEventListener('DOMContentLoaded', function() {
-                    // Se asume que `mostrarId` está disponible en el scope global (window.mostrarId)
-                    const userId = (typeof mostrarId !== 'undefined') ? mostrarId : (window.mostrarId || '');
+                    const userId = mostrarId || null;
 
                     if (!userId) {
                       document.getElementById('lanzamientos-grid').innerHTML = `
