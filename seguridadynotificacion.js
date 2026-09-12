@@ -59,29 +59,39 @@
     }
 
     // --- Inyección del Modal Responsivo en el DOM ---
-    let modal = document.getElementById('customModal');
-
-    if (!modal) {
-        const modalHTML = `
-        <div id="customModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; z-index: 999999; padding: 12px; box-sizing: border-box; backdrop-filter: blur(2px);">
-            <div class="modal-content" style="background: #000000; padding: clamp(16px, 4vw, 28px); border-radius: 12px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: system-ui, -apple-system, sans-serif; box-sizing: border-box;">
-                <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Banner.png" alt="Logo Grouvex" class="modal-logo" style="max-width: clamp(70px, 15vw, 95px); height: auto; margin-bottom: 12px;">
-                
-                <div class="modal-text" style="font-size: clamp(12px, 3.5vw, 13.5px); color: #ffffff; line-height: 1.6; text-align: left; word-break: break-word;">
-                    <p style="margin: 0 0 10px 0;">Estás a punto de salir de <strong id="modalTitle">Grouvex Studios</strong>. Grouvex Studios no se responsabiliza por el contenido, la seguridad, las políticas de privacidad o las prácticas de los sitios de terceros, fuera del dominio, puesto que los Términos de Servicio y Políticas de Privacidad, de Grouvex Studios, solo tienen validez dentro del dominio o donde el equipo tenga permiso para actuar.</p>
-                    <p style="margin: 0 0 10px 0;">Si le da a Cancelar, permanecerá dentro de Grouvex Studios.</p>
-                    <p style="margin: 0;">Si le da a Continuar, se le redirigirá a la página seleccionada.</p>
-                </div>
-                
-                <div class="modal-buttons" style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                    <button type="button" class="modal-button cancel" style="flex: 1 1 110px; min-height: 42px; padding: 10px 16px; border-radius: 6px; border: none; background-color: #ff0000; color: #000000; cursor: pointer; font-weight: bold; font-size: clamp(12px, 3vw, 13.5px); box-sizing: border-box;">Cancelar</button>
-                    <button type="button" class="modal-button continue" style="flex: 1 1 110px; min-height: 42px; padding: 10px 16px; border-radius: 6px; border: none; background-color: #1aff00; color: #000000; cursor: pointer; font-weight: bold; font-size: clamp(12px, 3vw, 13.5px); box-sizing: border-box;">Continuar</button>
-                </div>
-            </div>
-        </div>`;
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        modal = document.getElementById('customModal');
-    }
+    (function inicializarModal() {
+        function inyectar() {
+            let modal = document.getElementById('customModal');
+    
+            if (!modal) {
+                const modalHTML = `
+                <div id="customModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.65); align-items: center; justify-content: center; z-index: 999999; padding: 12px; box-sizing: border-box; backdrop-filter: blur(2px);">
+                    <div class="modal-content" style="background: #000000; padding: clamp(16px, 4vw, 28px); border-radius: 12px; max-width: 500px; width: 100%; max-height: 90vh; overflow-y: auto; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: system-ui, -apple-system, sans-serif; box-sizing: border-box;">
+                        <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Banner.png" alt="Logo Grouvex" class="modal-logo" style="max-width: clamp(70px, 15vw, 95px); height: auto; margin-bottom: 12px;">
+                        
+                        <div class="modal-text" style="font-size: clamp(12px, 3.5vw, 13.5px); color: #ffffff; line-height: 1.6; text-align: left; word-break: break-word;">
+                            <p style="margin: 0 0 10px 0;">Estás a punto de salir de <strong id="modalTitle">Grouvex Studios</strong>. Grouvex Studios no se responsabiliza por el contenido, la seguridad, las políticas de privacidad o las prácticas de los sitios de terceros, fuera del dominio, puesto que los Términos de Servicio y Políticas de Privacidad, de Grouvex Studios, solo tienen validez dentro del dominio o donde el equipo tenga permiso para actuar.</p>
+                            <p style="margin: 0 0 10px 0;">Si le da a Cancelar, permanecerá dentro de Grouvex Studios.</p>
+                            <p style="margin: 0;">Si le da a Continuar, se le redirigirá a la página seleccionada.</p>
+                        </div>
+                        
+                        <div class="modal-buttons" style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                            <button type="button" class="modal-button cancel" style="flex: 1 1 110px; min-height: 42px; padding: 10px 16px; border-radius: 6px; border: none; background-color: #ff0000; color: #000000; cursor: pointer; font-weight: bold; font-size: clamp(12px, 3vw, 13.5px); box-sizing: border-box;">Cancelar</button>
+                            <button type="button" class="modal-button continue" style="flex: 1 1 110px; min-height: 42px; padding: 10px 16px; border-radius: 6px; border: none; background-color: #1aff00; color: #000000; cursor: pointer; font-weight: bold; font-size: clamp(12px, 3vw, 13.5px); box-sizing: border-box;">Continuar</button>
+                        </div>
+                    </div>
+                </div>`;
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+            }
+        }
+    
+        // Si el body ya existe en el DOM lo inyecta, si no, espera a que termine la carga del DOM
+        if (document.body) {
+            inyectar();
+        } else {
+            document.addEventListener('DOMContentLoaded', inyectar);
+        }
+    })();
 
     const continueBtn = modal.querySelector('.continue');
     const cancelBtn = modal.querySelector('.cancel');
