@@ -3424,6 +3424,7 @@
                   urlTargetId = params.get('targetId');
                   isViewingOtherProfile = gs_id !== null && gs_id !== gs_fireID;
                   mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
+                  window.mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
                   document.querySelectorAll('.mostrarId').forEach(el => {
                         el.textContent = mostrarId;
                   });
