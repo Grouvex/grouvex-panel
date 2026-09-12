@@ -10532,7 +10532,8 @@ function loadMemberProfilesSection() {
                     ARRANQUE
                     ============================================================ */
                   document.addEventListener('DOMContentLoaded', function() {
-                    const userId = mostrarId || null;
+                    console.log('El id del usuario detectado es:', mostrarId, gs_id);
+                    const userId = mostrarId || gs_id || null;
 
                     if (!userId) {
                       document.getElementById('lanzamientos-grid').innerHTML = `
