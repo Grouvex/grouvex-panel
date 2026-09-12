@@ -9800,1180 +9800,763 @@ function loadMemberProfilesSection() {
                 </details>
 
                 <details style="background: linear-gradient(45deg, black, cyan, white, green);padding: 3px; width: 100%;"><summary style="background: linear-gradient(45deg, cyan, blue, magenta);padding: 3px;"><h5>Lanzamientos</h5></summary>
-                    <div class="lanzamientos-grid" style="
+                  <div id="lanzamientos-grid" class="lanzamientos-grid">
+                    <div id="lanzamientos-loading" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6b7280;">
+                      <div style="font-size: 2rem; margin-bottom: 8px;">⏳</div>
+                      Cargando lanzamientos...
+                    </div>
+                  </div>
+
+                  <script>
+                  /* ============================================================
+                    ESTADO GLOBAL
+                    ============================================================ */
+                  let changeCountersLanzamiento = {};   // { idSuffix: n }
+                  let currentFieldsMapLanzamiento = {}; // { idSuffix: [campos] }
+
+                  /* ============================================================
+                    CONSTANTES
+                    ============================================================ */
+                  const ESTADO_COLORES = {
+                    'Sello Discográfico - Aprobado': { bg: '#10b981', text: 'white', icon: '✓' },
+                    'Sello Discográfico - Modificar': { bg: '#f59e0b', text: 'white', icon: '✎' },
+                    'Distribuidora - Aprobado': { bg: '#10b981', text: 'white', icon: '✓' },
+                    'Distribuidora - Aprobado (Not Content ID Services)': { bg: '#10b981', text: 'white', icon: '✓' },
+                    'Distribuidora - Modificar': { bg: '#f59e0b', text: 'white', icon: '✎' },
+                    'Sello Discográfico - Revisando': { bg: '#dea449', text: 'white', icon: '⏳' },
+                    'Distribuidora - Revisando': { bg: '#dea449', text: 'white', icon: '⏳' },
+                    'Sello Discográfico - Denegado': { bg: '#ef4444', text: 'white', icon: '✗' },
+                    'Distribuidora - Denegado': { bg: '#ef4444', text: 'white', icon: '✗' },
+                    'Sello Discográfico - Eliminado': { bg: '#6b7280', text: 'white', icon: '🗑' },
+                    'Sello Discográfico - En Espera': { bg: '#9ca3af', text: 'white', icon: '⏸' },
+                    'Distribuidora - En Espera': { bg: '#9ca3af', text: 'white', icon: '⏸' }
+                  };
+
+                  /* ============================================================
+                    HELPERS
+                    ============================================================ */
+                  function escapeHtml(str) {
+                    if (str === null || str === undefined) return '';
+                    return String(str)
+                      .replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+                  }
+
+                  function formatearFecha(fecha) {
+                    if (!fecha) return '-';
+                    try {
+                      return new Date(fecha).toLocaleDateString('es-ES', {
+                        day: '2-digit', month: 'short', year: 'numeric'
+                      });
+                    } catch (e) {
+                      return String(fecha);
+                    }
+                  }
+
+                  function buildHeaderMap(headers) {
+                    const map = {};
+                    headers.forEach((header, index) => {
+                      if (header) map[String(header).trim()] = index;
+                    });
+                    return map;
+                  }
+
+                  function extractSongsFromRowJS(fila, headerMap) {
+                    const songs = [];
+                    const artistaPrincipal = fila[headerMap["Artista"]] || 'Artista desconocido';
+
+                    for (let i = 1; i <= 15; i++) {
+                      const titulo = fila[headerMap[`Título ${i}`]];
+                      const artistaAdicional = fila[headerMap[`Artistas ${i}`]];
+
+                      if (titulo) {
+                        const artista = (artistaAdicional && String(artistaAdicional).trim() !== '')
+                          ? artistaAdicional
+                          : artistaPrincipal;
+
+                        songs.push({
+                          numero: i,
+                          titulo: titulo,
+                          artista: artista,
+                          compositor: fila[headerMap[`Compositores ${i}`]] || '-',
+                          isrc: fila[headerMap[`ISRC ${i}`]] || '-',
+                          tieneLetras: fila[headerMap[`¿Contiene letras? ${i}`]] || 'No'
+                        });
+                      }
+                    }
+                    return songs;
+                  }
+
+                  /* ============================================================
+                    CARGA DE LANZAMIENTOS VÍA google.script.run
+                    ============================================================ */
+                  function cargarLanzamientosArtista(userId) {
+                    const grid = document.getElementById('lanzamientos-grid');
+
+                    google.script.run
+                      .withSuccessHandler(function(res) {
+                        if (!res || !res.rows || res.rows.length === 0) {
+                          grid.innerHTML = `
+                            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: #6b7280; background: white; border-radius: 16px; border: 1px dashed #e5e7eb;">
+                              <div style="font-size: 3rem; margin-bottom: 12px;">🎵</div>
+                              <h3 style="margin: 0 0 6px 0; color: #374151;">No hay lanzamientos</h3>
+                              <p style="margin: 0; font-size: 0.9rem;">Aún no tienes lanzamientos registrados.</p>
+                            </div>`;
+                          return;
+                        }
+
+                        const headerMap = buildHeaderMap(res.headers);
+                        const tarjetasHtml = [];
+
+                        res.rows.forEach((fila, idx) => {
+                          const lanzamientoData = {
+                            tituloAlbum: fila[headerMap["Título del álbum/sencillo/EP"]] || 'Sin título',
+                            artistaPrincipal: fila[headerMap["Artista"]] || 'Artista desconocido',
+                            fechaLanzamiento: fila[headerMap["Fecha de inicio de ventas"]],
+                            generoPrimario: fila[headerMap["Género primario"]] || '-',
+                            estadoContrato: fila[headerMap["Estado del Contrato"]] || '-',
+                            plataformas: fila[headerMap["Plataformas de Lanzamiento."]] || '-',
+                            upcEan: fila[headerMap["UPC/EAN"]] || '-',
+                            categoria: fila[headerMap["Categoría del Lanzamiento"]] || '-',
+                            selloDiscografico: fila[headerMap["Nombre del sello discográfico"]] || '-',
+                            imagenUrl: fila[headerMap["Archivo de la ilustración"]] || '',
+                            porcentajeFinal: fila[headerMap["Porcentaje final"]] || '-',
+                            entregado: fila[headerMap["Entregado"]] || '-',
+                            timestamp: fila[headerMap["Marca temporal"]]
+                          };
+
+                          const canciones = extractSongsFromRowJS(fila, headerMap);
+                          // idSuffix único: usamos el UPC si existe, si no un índice
+                          const idSuffix = (lanzamientoData.upcEan && lanzamientoData.upcEan !== '-')
+                            ? String(lanzamientoData.upcEan)
+                            : `idx${idx}`;
+
+                          tarjetasHtml.push(generarTarjetaLanzamiento(lanzamientoData, canciones, idSuffix));
+                        });
+
+                        grid.innerHTML = tarjetasHtml.join('');
+
+                        // Inicializar contadores de cambios y listeners de cada tarjeta
+                        inicializarEventosLanzamientos();
+                      })
+                      .withFailureHandler(function(err) {
+                        console.error('Error cargando lanzamientos:', err);
+                        grid.innerHTML = `
+                          <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ef4444; background: #fef2f2; border-radius: 16px; border: 1px solid #fecaca;">
+                            <div style="font-size: 2rem; margin-bottom: 8px;">⚠️</div>
+                            <strong>Error al cargar los lanzamientos</strong>
+                            <p style="margin: 8px 0 0 0; font-size: 0.85rem;">${escapeHtml(err.message || 'Inténtalo de nuevo más tarde.')}</p>
+                          </div>`;
+                      })
+                      .getArtistSongs(userId);
+                  }
+
+                  /* ============================================================
+                    GENERADOR DE TARJETA
+                    ============================================================ */
+                  function generarTarjetaLanzamiento(lanzamientoData, canciones, idSuffix) {
+                    const tipo = canciones.length === 1 ? 'Sencillo'
+                              : (canciones.length <= 6 ? 'EP' : 'Álbum');
+
+                    const estadoInfo = ESTADO_COLORES[lanzamientoData.estadoContrato]
+                      || { bg: '#6b7280', text: 'white', icon: '?' };
+
+                    const fechaFormateada = formatearFecha(lanzamientoData.fechaLanzamiento);
+                    const tituloCorto = lanzamientoData.tituloAlbum.length > 45
+                      ? lanzamientoData.tituloAlbum.substring(0, 45) + '...'
+                      : lanzamientoData.tituloAlbum;
+
+                    // Lista de canciones
+                    const cancionesHtml = canciones.map((cancion, idx) => {
+                      const esArtistaDiferente = cancion.artista !== lanzamientoData.artistaPrincipal;
+                      const borderBottom = idx < canciones.length - 1 ? '1px solid #e5e7eb' : 'none';
+
+                      const imagenCancionHtml = lanzamientoData.imagenUrl
+                        ? `<img src="${escapeHtml(lanzamientoData.imagenUrl)}" alt="${escapeHtml(lanzamientoData.tituloAlbum)}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentNode.innerHTML='<div style=\\'background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:1.2rem;\\'>🎵</div>'">`
+                        : `<div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:1.2rem;">🎵</div>`;
+
+                      const letrasBadge = cancion.tieneLetras === 'Sí'
+                        ? `<div style="font-size:0.75rem;color:#10b981;display:flex;align-items:center;gap:4px;background:#d1fae5;padding:2px 8px;border-radius:12px;"><svg style="width:12px;height:12px;fill:#10b981;" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Con letras</div>`
+                        : '';
+
+                      const isrcHtml = (cancion.isrc && cancion.isrc !== '-')
+                        ? `<div style="font-size:0.75rem;color:#9ca3af;font-family:monospace;background:#f9fafb;padding:6px 10px;border-radius:6px;border:1px solid #e5e7eb;white-space:nowrap;">${escapeHtml(cancion.isrc)}</div>`
+                        : '';
+
+                      return `
+                        <div style="padding:16px;border-bottom:${borderBottom};display:flex;align-items:center;gap:16px;transition:background 0.2s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                          <div style="width:50px;height:50px;flex-shrink:0;border-radius:8px;overflow:auto;position:relative;">
+                            ${imagenCancionHtml}
+                            <div style="position:absolute;bottom:2px;right:2px;background:rgba(0,0,0,0.7);color:white;font-size:0.7rem;font-weight:600;padding:2px 6px;border-radius:4px;">${cancion.numero}</div>
+                          </div>
+                          <div style="flex:1;min-width:0;">
+                            <div style="font-size:1rem;font-weight:700;color:#1f2937;margin-bottom:4px;white-space:nowrap;overflow:auto;">${escapeHtml(cancion.titulo)}</div>
+                            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                              <div style="font-size:0.875rem;color:#6b7280;display:flex;align-items:center;gap:4px;">
+                                <svg style="width:14px;height:14px;fill:#6b7280;" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                <span>${escapeHtml(cancion.artista)}${esArtistaDiferente ? '<span style="color:#8b5cf6;font-size:0.75rem;margin-left:4px;">(ft.)</span>' : ''}</span>
+                              </div>
+                              ${letrasBadge}
+                            </div>
+                          </div>
+                          ${isrcHtml}
+                        </div>`;
+                    }).join('');
+
+                    // Opciones del select para el formulario (fallback cuando aún no se cargan los editables del servidor)
+                    let opcionesCanciones = '';
+                    canciones.forEach((c, i) => {
+                      const n = i + 1;
+                      opcionesCanciones += `<option value="Título ${n}">Título canción ${n} (${escapeHtml(c.titulo)})</option>`;
+                      opcionesCanciones += `<option value="Artistas ${n}">Artista canción ${n} (${escapeHtml(c.artista)})</option>`;
+                    });
+
+                    const imagenPrincipalHtml = lanzamientoData.imagenUrl
+                      ? `<img src="${escapeHtml(lanzamientoData.imagenUrl)}" alt="${escapeHtml(lanzamientoData.tituloAlbum)}" style="width:100%;height:100%;object-fit:cover;transition:transform 0.3s ease-in-out;" onerror="this.style.display='none';this.parentNode.innerHTML='<div style=\\'background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:3rem;opacity:0.8;\\'>🎵</div>'" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">`
+                      : `<div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:3rem;opacity:0.8;">🎵</div>`;
+
+                    return `
+                    <div style="background:white;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06);transition:all 0.3s ease;position:relative;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+                      <div style="position:relative;height:220px;overflow:hidden;cursor:pointer;" onclick="toggleDetailsLanzamiento('details-${idSuffix}')">
+                        ${imagenPrincipalHtml}
+                        <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.7) 50%,transparent 100%);padding:20px 16px 16px;color:white;z-index:100;">
+                          <div style="background:linear-gradient(135deg,rgba(255,255,255,0.25) 0%,rgba(255,255,255,0.15) 100%);backdrop-filter:blur(8px);color:white;padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;display:inline-block;margin-bottom:12px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 2px 8px rgba(0,0,0,0.2);letter-spacing:0.5px;">${tipo}</div>
+                          <h3 style="margin:0 0 6px 0;font-size:1.3rem;font-weight:800;line-height:1.2;text-shadow:0 2px 6px rgba(0,0,0,0.6);">${escapeHtml(tituloCorto)}</h3>
+                          <p style="margin:0;font-size:0.95rem;opacity:0.95;display:flex;align-items:center;gap:8px;">
+                            <svg style="width:16px;height:16px;fill:white;opacity:0.9;" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                            <span style="font-weight:500;">${escapeHtml(lanzamientoData.artistaPrincipal)}</span>
+                          </p>
+                        </div>
+                        <div style="position:absolute;top:12px;right:12px;background:${estadoInfo.bg};color:${estadoInfo.text};padding:6px 12px;border-radius:12px;font-size:0.7rem;font-weight:700;display:flex;align-items:center;gap:4px;box-shadow:0 3px 10px rgba(0,0,0,0.25);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.15);z-index:10;">
+                          <span style="font-size:0.9rem;line-height:1;">${estadoInfo.icon}</span>
+                          ${escapeHtml(lanzamientoData.estadoContrato)}
+                        </div>
+                      </div>
+
+                      <div style="padding:20px;">
+                        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px;">
+                          <div>
+                            <div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px;display:flex;align-items:center;gap:4px;"><svg style="width:14px;height:14px;fill:#6b7280;" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>Título</div>
+                            <div style="font-size:1.3rem;font-weight:600;color:#1f2937;">${escapeHtml(tituloCorto)}</div>
+                          </div>
+                          <div>
+                            <div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px;display:flex;align-items:center;gap:4px;"><svg style="width:14px;height:14px;fill:#6b7280;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>Estado del Lanzamiento</div>
+                            <div style="font-size:0.7rem;font-weight:600;color:#1f2937;">${escapeHtml(lanzamientoData.estadoContrato)}</div>
+                          </div>
+                          <div>
+                            <div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px;display:flex;align-items:center;gap:4px;"><svg style="width:14px;height:14px;fill:#6b7280;" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>Fecha</div>
+                            <div style="font-size:0.95rem;font-weight:600;color:#1f2937;">${fechaFormateada}</div>
+                          </div>
+                          <div>
+                            <div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px;display:flex;align-items:center;gap:4px;"><svg style="width:14px;height:14px;fill:#6b7280;" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 4h16v2H4zm0 4h16v2H4zm0 4h16v2H4z"/></svg>Canciones</div>
+                            <div style="font-size:0.95rem;font-weight:600;color:#1f2937;">${canciones.length}</div>
+                          </div>
+                          <div>
+                            <div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px;display:flex;align-items:center;gap:4px;"><svg style="width:14px;height:14px;fill:#6b7280;" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>Género</div>
+                            <div style="font-size:0.95rem;font-weight:600;color:#1f2937;">${escapeHtml(lanzamientoData.generoPrimario)}</div>
+                          </div>
+                          <div>
+                            <div style="font-size:0.75rem;color:#6b7280;margin-bottom:4px;display:flex;align-items:center;gap:4px;"><svg style="width:14px;height:14px;fill:#6b7280;" viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>Regalías</div>
+                            <div style="font-size:0.95rem;font-weight:600;color:#1f2937;">${escapeHtml(lanzamientoData.porcentajeFinal)}%</div>
+                          </div>
+                        </div>
+
+                        <div style="display:flex;overflow-y:auto;justify-content:space-between;align-items:center;border-top:1px solid #e5e7eb;padding-top:16px;">
+                          <button onclick="toggleDetailsLanzamiento('details-${idSuffix}')" style="background:transparent;color:#3b82f6;border:2px solid #3b82f6;padding:8px 20px;border-radius:8px;font-size:0.875rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all 0.2s;">
+                            <svg style="width:18px;height:18px;fill:#3b82f6;" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+                            <span id="toggle-text-${idSuffix}">Ver detalles</span>
+                          </button>
+                          <span style="background:#10b981;color:white;padding:6px 12px;border-radius:12px;font-size:0.75rem;font-weight:600;display:flex;align-items:center;gap:6px;">
+                            <svg style="width:14px;height:14px;fill:white;" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                            ${escapeHtml(lanzamientoData.entregado)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div id="details-${idSuffix}" style="max-height:0;overflow:auto;transition:max-height 0.5s cubic-bezier(0.4,0,0.2,1);background:#f8fafc;border-top:1px solid #e5e7eb;">
+                        <div style="padding:24px;">
+                          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:24px;">
+                            <div><div style="font-size:0.875rem;color:#6b7280;margin-bottom:6px;font-weight:600;">Artista Principal</div><div style="font-size:1rem;font-weight:500;color:#1f2937;padding:8px 12px;background:white;border-radius:8px;border:1px solid #e5e7eb;">${escapeHtml(lanzamientoData.artistaPrincipal)}</div></div>
+                            <div><div style="font-size:0.875rem;color:#6b7280;margin-bottom:6px;font-weight:600;">Sello discográfico</div><div style="font-size:1rem;font-weight:500;color:#1f2937;padding:8px 12px;background:white;border-radius:8px;border:1px solid #e5e7eb;">${escapeHtml(lanzamientoData.selloDiscografico)}</div></div>
+                            <div><div style="font-size:0.875rem;color:#6b7280;margin-bottom:6px;font-weight:600;">Categoría</div><div style="font-size:1rem;font-weight:500;color:#1f2937;padding:8px 12px;background:white;border-radius:8px;border:1px solid #e5e7eb;">${escapeHtml(lanzamientoData.categoria)}</div></div>
+                            <div><div style="font-size:0.875rem;color:#6b7280;margin-bottom:6px;font-weight:600;">Plataformas</div><div style="font-size:1rem;font-weight:500;color:#1f2937;padding:8px 12px;background:white;border-radius:8px;border:1px solid #e5e7eb;">${escapeHtml(lanzamientoData.plataformas)}</div></div>
+                            <div><div style="font-size:0.875rem;color:#6b7280;margin-bottom:6px;font-weight:600;">UPC/EAN</div><div style="font-size:1rem;font-weight:500;color:#1f2937;font-family:monospace;padding:8px 12px;background:white;border-radius:8px;border:1px solid #e5e7eb;">${escapeHtml(lanzamientoData.upcEan)}</div></div>
+                          </div>
+
+                          ${canciones.length > 0 ? `
+                          <div style="margin-bottom:24px;">
+                            <div style="font-size:1rem;font-weight:700;color:#1f2937;margin-bottom:16px;display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:2px solid #e5e7eb;">
+                              <svg style="width:20px;height:20px;fill:#6b7280;" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                              Lista de canciones (${canciones.length})
+                            </div>
+                            <div style="background:white;border-radius:12px;border:1px solid #e5e7eb;overflow:auto;">${cancionesHtml}</div>
+                          </div>` : ''}
+
+                          <details style="background:linear-gradient(45deg,#8b5cf6,#06b6d4,white,#10b981);padding:8px;border-radius:12px;border:2px solid transparent;margin-top:20px;overflow:auto;">
+                            <summary style="background:linear-gradient(45deg,#fbbf24,#3b82f6,#10b981);padding:12px 16px;border-radius:8px;color:white;font-weight:600;font-size:1rem;cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;">
+                              <svg style="width:20px;height:20px;fill:white;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                              Solicitar Cambios en este Lanzamiento
+                            </summary>
+                            <div style="background:rgba(108,92,231,0.08);padding:20px;border-radius:12px;border-left:4px solid #6c5ce7;margin:16px 0;">
+                              <p style="margin-bottom:12px;color:#4b5563;font-size:0.95rem;">Utiliza este formulario para solicitar cambios en la información de "<strong>${escapeHtml(lanzamientoData.tituloAlbum)}</strong>".</p>
+                              <p>Si desea eliminar una canción seleccione: "Título del album/sencillo/EP", y en "Nuevo Valor Solicitado" escriba: <strong style="color:red">GSRecords-Delete</strong>. <small>Si desea revertir la acción, tiene 7 días hábiles para solicitar un cambio y que se restaure, escribiendo: <strong style="color:green">GSRecords-ReLaunch</strong></small></p>
+                              <p style="color:#ef4444;font-size:0.9rem;margin-bottom:20px;font-weight:500;">
+                                <svg style="width:16px;height:16px;fill:#ef4444;vertical-align:middle;margin-right:4px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                                Los campos con asterisco (*) son obligatorios para enviar el formulario.
+                              </p>
+                              <form class="change-request-form" data-lanzamiento="${escapeHtml(lanzamientoData.upcEan)}" onsubmit="event.preventDefault(); submitChangeRequestLanzamiento('${idSuffix}')">
+                                <input type="hidden" id="crUserId-${idSuffix}" value="${escapeHtml(window.mostrarId || '')}">
+                                <input type="hidden" id="relatedId-${idSuffix}" value="${escapeHtml(lanzamientoData.upcEan)}">
+                                <input type="hidden" id="requestType-${idSuffix}" value="music">
+
+                                <div style="margin-bottom:20px;">
+                                  <div style="font-size:0.875rem;color:#6b7280;margin-bottom:6px;font-weight:600;">Lanzamiento a modificar:</div>
+                                  <div style="padding:12px;background:white;border-radius:8px;border:1px solid #e5e7eb;font-weight:500;color:#1f2937;">
+                                    <div><strong>${escapeHtml(lanzamientoData.tituloAlbum)}</strong></div>
+                                    <div style="font-size:0.9rem;color:#6b7280;margin-top:4px;">UPC: ${escapeHtml(lanzamientoData.upcEan)}</div>
+                                  </div>
+                                </div>
+
+                                <div id="changesContainer-${idSuffix}" style="margin-bottom:20px;">
+                                  <div class="change-item-form" data-change-id="1">
+                                    <div class="change-header">
+                                      <h4 style="margin:0;color:#2d3748;font-size:1rem;">Cambio 1</h4>
+                                      <button type="button" class="btn-remove-change" onclick="removeChangeLanzamiento(1,'${idSuffix}')" style="display:none;background:#ef4444;color:white;border:none;padding:4px 8px;border-radius:4px;font-size:0.75rem;cursor:pointer;">
+                                        <svg style="width:12px;height:12px;fill:white;vertical-align:middle;" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                                        Eliminar
+                                      </button>
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                      <label style="display:block;margin-bottom:6px;font-weight:600;color:#2d3748;font-size:0.875rem;">Campo a Modificar*:</label>
+                                      <p style="margin:0 0 8px 0;color:#6b7280;font-size:0.85rem;">Si no aparece el campo que desea modificar es porque es un dato privado. Póngase en contacto con legal@grouvex.com, indicando que desea modificar un campo privado.</p>
+                                      <select id="fieldToModify1-${idSuffix}" required onchange="updateCurrentValueLanzamiento(1,'${idSuffix}')" style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:6px;font-size:0.9rem;">
+                                        <option value="">Seleccionar campo...</option>
+                                        <option value="Título del álbum/sencillo/EP">Título del álbum/sencillo/EP</option>
+                                        <option value="Artista">Artista principal</option>
+                                        ${opcionesCanciones}
+                                        <option value="Fecha de inicio de ventas">Fecha de lanzamiento</option>
+                                        <option value="Género primario">Género primario</option>
+                                        <option value="Género secundario">Género secundario</option>
+                                        <option value="Plataformas de Lanzamiento.">Plataformas</option>
+                                        <option value="Nombre del sello discográfico">Sello discográfico</option>
+                                      </select>
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                      <label style="display:block;margin-bottom:6px;font-weight:600;color:#2d3748;font-size:0.875rem;">Valor Actual*:</label>
+                                      <input type="text" id="currentValue1-${idSuffix}" readonly style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:6px;background:#f7fafc;color:#718096;">
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                      <label style="display:block;margin-bottom:6px;font-weight:600;color:#2d3748;font-size:0.875rem;">Nuevo Valor Solicitado*:</label>
+                                      <input type="text" id="requestedValue1-${idSuffix}" required style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:6px;font-size:0.9rem;">
+                                    </div>
+
+                                    <div style="margin-bottom:16px;">
+                                      <label style="display:block;margin-bottom:6px;font-weight:600;color:#2d3748;font-size:0.875rem;">Justificación del Cambio:</label>
+                                      <textarea id="justification1-${idSuffix}" rows="3" style="width:100%;padding:10px;border:2px solid #e2e8f0;border-radius:6px;font-size:0.9rem;resize:vertical;" placeholder="Explica por qué necesitas realizar este cambio..."></textarea>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <button type="button" id="addChangeBtn-${idSuffix}" onclick="addChangeLanzamiento('${idSuffix}')" style="background:#38a169;color:white;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;margin-bottom:20px;display:flex;align-items:center;gap:6px;">
+                                  <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                                  Añadir otro cambio
+                                </button>
+
+                                <div style="margin-top:20px;">
+                                  <p style="margin:0 0 12px 0;color:#6b7280;font-size:0.85rem;">
+                                    <svg style="width:16px;height:16px;fill:#6b7280;vertical-align:middle;margin-right:4px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                                    Cuando le dé al botón, espere unos segundos a que se le indique que se ha enviado su petición.
+                                  </p>
+                                  <button type="submit" style="background:linear-gradient(135deg,#6c5ce7 0%,#3498db 100%);color:white;border:none;padding:12px 24px;border-radius:8px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:transform 0.2s ease;">
+                                    <svg style="width:18px;height:18px;fill:white;" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                                    Enviar Solicitud
+                                  </button>
+                                  <p style="margin:12px 0 0 0;color:#6b7280;font-size:0.85rem;">
+                                    <svg style="width:16px;height:16px;fill:#6b7280;vertical-align:middle;margin-right:4px;" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                    Se le informará del estado de su solicitud por correo electrónico.
+                                  </p>
+                                </div>
+                              </form>
+
+                              <div id="requestResult-${idSuffix}" style="display:none;margin-top:20px;padding:15px;border-radius:8px;"></div>
+                            </div>
+                          </details>
+
+                          <div style="text-align:center;margin-top:20px;">
+                            <button onclick="toggleDetailsLanzamiento('details-${idSuffix}')" style="background:#6b7280;color:white;border:none;padding:8px 16px;border-radius:8px;font-size:0.875rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                              <svg style="width:16px;height:16px;fill:white;" viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+                              Compactar detalles
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>`;
+                  }
+
+                  /* ============================================================
+                    FUNCIONES DE INTERACCIÓN (adaptadas para usar idSuffix)
+                    ============================================================ */
+                  function toggleDetailsLanzamiento(id) {
+                    // id viene como "details-<idSuffix>"
+                    const element = document.getElementById(id);
+                    if (!element) return;
+
+                    const idSuffix = id.replace('details-', '');
+                    const toggleText = document.getElementById(`toggle-text-${idSuffix}`);
+
+                    if (element.style.maxHeight && element.style.maxHeight !== '0px') {
+                      element.style.maxHeight = '0';
+                      if (toggleText) toggleText.textContent = 'Ver detalles';
+                    } else {
+                      element.style.maxHeight = element.scrollHeight + "px";
+                      if (toggleText) toggleText.textContent = 'Ocultar detalles';
+                      loadEditableFieldsLanzamiento(idSuffix);
+                    }
+                  }
+
+                  function loadEditableFieldsLanzamiento(idSuffix) {
+                    const userIdEl = document.getElementById(`crUserId-${idSuffix}`);
+                    const requestTypeEl = document.getElementById(`requestType-${idSuffix}`);
+                    if (!userIdEl || !requestTypeEl) return;
+
+                    const userId = userIdEl.value;
+                    const requestType = requestTypeEl.value;
+
+                    google.script.run
+                      .withSuccessHandler(function(fields) {
+                        currentFieldsMapLanzamiento[idSuffix] = fields;
+                        updateFieldDropdownsLanzamiento(fields, idSuffix);
+
+                        if (!changeCountersLanzamiento[idSuffix]) changeCountersLanzamiento[idSuffix] = 1;
+
+                        const changesContainer = document.getElementById(`changesContainer-${idSuffix}`);
+                        if (!changesContainer) return;
+
+                        const additionalChanges = changesContainer.querySelectorAll('.change-item-form:not(:first-child)');
+                        additionalChanges.forEach(el => el.remove());
+
+                        const firstRemoveBtn = changesContainer.querySelector('.change-item-form:first-child .btn-remove-change');
+                        if (firstRemoveBtn) firstRemoveBtn.style.display = 'none';
+                      })
+                      .withFailureHandler(function(error) {
+                        console.error('Error loading editable fields:', error);
+                      })
+                      .getEditableFields('artist', requestType);
+                  }
+
+                  function updateFieldDropdownsLanzamiento(fields, idSuffix) {
+                    const selects = document.querySelectorAll(`select[id^="fieldToModify"][id$="-${idSuffix}"]`);
+
+                    selects.forEach(select => {
+                      const currentValue = select.value;
+
+                      while (select.options.length > 1) select.remove(1);
+
+                      fields.forEach(field => {
+                        const option = document.createElement('option');
+                        option.value = field;
+                        option.textContent = field;
+                        select.appendChild(option);
+                      });
+
+                      if (currentValue && fields.includes(currentValue)) select.value = currentValue;
+
+                      if (select.value) {
+                        const match = select.id.match(/fieldToModify(\d+)/);
+                        if (match) updateCurrentValueLanzamiento(match[1], idSuffix);
+                      }
+                    });
+                  }
+
+                  function addChangeLanzamiento(idSuffix) {
+                    if (!changeCountersLanzamiento[idSuffix]) changeCountersLanzamiento[idSuffix] = 1;
+                    changeCountersLanzamiento[idSuffix]++;
+                    const newChangeId = changeCountersLanzamiento[idSuffix];
+
+                    const newChange = document.createElement('div');
+                    newChange.className = 'change-item-form';
+                    newChange.setAttribute('data-change-id', newChangeId);
+
+                    newChange.innerHTML = `
+                      <div class="change-header">
+                        <h4 style="margin: 0; color: #2d3748; font-size: 1rem;">Cambio ${newChangeId}</h4>
+                        <button type="button" class="btn-remove-change" onclick="removeChangeLanzamiento(${newChangeId},'${idSuffix}')"
+                                style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
+                          <svg style="width: 12px; height: 12px; fill: white; vertical-align: middle;" viewBox="0 0 24 24">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                          </svg>
+                          Eliminar
+                        </button>
+                      </div>
+
+                      <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">Campo a Modificar*:</label>
+                        <select id="fieldToModify${newChangeId}-${idSuffix}" required
+                                onchange="updateCurrentValueLanzamiento(${newChangeId},'${idSuffix}')"
+                                style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+                          <option value="">Seleccionar campo...</option>
+                        </select>
+                      </div>
+
+                      <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">Valor Actual*:</label>
+                        <input type="text" id="currentValue${newChangeId}-${idSuffix}" readonly
+                              style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; background: #f7fafc; color: #718096;">
+                      </div>
+
+                      <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">Nuevo Valor Solicitado*:</label>
+                        <input type="text" id="requestedValue${newChangeId}-${idSuffix}" required
+                              style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+                      </div>
+
+                      <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">Justificación del Cambio:</label>
+                        <textarea id="justification${newChangeId}-${idSuffix}" rows="3"
+                                  style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; resize: vertical;"
+                                  placeholder="Explica por qué necesitas realizar este cambio..."></textarea>
+                      </div>
+                    `;
+
+                    if (currentFieldsMapLanzamiento[idSuffix]) {
+                      const select = newChange.querySelector(`#fieldToModify${newChangeId}-${idSuffix}`);
+                      currentFieldsMapLanzamiento[idSuffix].forEach(field => {
+                        const option = document.createElement('option');
+                        option.value = field;
+                        option.textContent = field;
+                        select.appendChild(option);
+                      });
+                    }
+
+                    document.getElementById(`changesContainer-${idSuffix}`).appendChild(newChange);
+
+                    if (changeCountersLanzamiento[idSuffix] > 1) {
+                      const firstRemoveBtn = document.querySelector(`#changesContainer-${idSuffix} .change-item-form:first-child .btn-remove-change`);
+                      if (firstRemoveBtn) firstRemoveBtn.style.display = 'inline-block';
+                    }
+                  }
+
+                  function removeChangeLanzamiento(changeId, idSuffix) {
+                    if (changeCountersLanzamiento[idSuffix] <= 1) return;
+
+                    const changeElement = document.querySelector(`#changesContainer-${idSuffix} [data-change-id="${changeId}"]`);
+                    if (!changeElement) return;
+
+                    changeElement.remove();
+                    changeCountersLanzamiento[idSuffix]--;
+
+                    const changes = document.querySelectorAll(`#changesContainer-${idSuffix} .change-item-form`);
+                    changes.forEach((change, idx) => {
+                      const newId = idx + 1;
+                      const currentId = change.getAttribute('data-change-id');
+
+                      change.querySelector('h4').textContent = `Cambio ${newId}`;
+
+                      change.querySelectorAll('[id]').forEach(input => {
+                        const oldId = input.id;
+                        const baseId = oldId.split('-')[0].replace(/\d+$/, '');
+                        input.id = `${baseId}${newId}-${idSuffix}`;
+
+                        if (input.hasAttribute('onchange')) {
+                          input.setAttribute('onchange', input.getAttribute('onchange').replace(new RegExp(`\\(${currentId},`), `(${newId},`));
+                        }
+                        if (input.hasAttribute('onclick')) {
+                          input.setAttribute('onclick', input.getAttribute('onclick').replace(new RegExp(`\\(${currentId},`), `(${newId},`));
+                        }
+                      });
+
+                      change.setAttribute('data-change-id', newId);
+                    });
+
+                    if (changeCountersLanzamiento[idSuffix] <= 1) {
+                      const firstRemoveBtn = document.querySelector(`#changesContainer-${idSuffix} .change-item-form:first-child .btn-remove-change`);
+                      if (firstRemoveBtn) firstRemoveBtn.style.display = 'none';
+                    }
+                  }
+
+                  function updateCurrentValueLanzamiento(changeId, idSuffix) {
+                    const fieldSelect = document.getElementById(`fieldToModify${changeId}-${idSuffix}`);
+                    const currentValueInput = document.getElementById(`currentValue${changeId}-${idSuffix}`);
+                    if (!fieldSelect || !currentValueInput) return;
+
+                    const field = fieldSelect.value;
+                    if (!field) { currentValueInput.value = ''; return; }
+
+                    const userId = document.getElementById(`crUserId-${idSuffix}`).value;
+                    const requestType = document.getElementById(`requestType-${idSuffix}`).value;
+                    const relatedId = document.getElementById(`relatedId-${idSuffix}`).value;
+                    currentValueInput.value = "Cargando...";
+
+                    if (requestType === 'music' && relatedId) {
+                      google.script.run
+                        .withSuccessHandler(function(response) {
+                          currentValueInput.value = response.success
+                            ? (response.value || "(Vacío)")
+                            : "Error: " + response.error;
+                        })
+                        .withFailureHandler(function(error) {
+                          currentValueInput.value = "Error al cargar valor";
+                          console.error('Error:', error);
+                        })
+                        .getSongFieldValue(userId, relatedId, field);
+                    }
+                  }
+
+                  function submitChangeRequestLanzamiento(idSuffix) {
+                    const form = document.querySelector(`#changesContainer-${idSuffix}`).closest('form');
+                    const requestType = document.getElementById(`requestType-${idSuffix}`).value;
+                    const relatedId = document.getElementById(`relatedId-${idSuffix}`).value;
+
+                    if (requestType === 'music' && !relatedId) {
+                      showResultLanzamiento(idSuffix, 'error', 'Para cambios musicales, debes proporcionar el UPC.');
+                      return;
+                    }
+
+                    const changes = [];
+                    let hasErrors = false;
+
+                    for (let i = 1; i <= (changeCountersLanzamiento[idSuffix] || 1); i++) {
+                      const field = document.getElementById(`fieldToModify${i}-${idSuffix}`)?.value;
+                      const currentValue = document.getElementById(`currentValue${i}-${idSuffix}`)?.value;
+                      const requestedValue = document.getElementById(`requestedValue${i}-${idSuffix}`)?.value;
+                      const justification = document.getElementById(`justification${i}-${idSuffix}`)?.value || '';
+
+                      if (!field || !requestedValue) {
+                        showResultLanzamiento(idSuffix, 'error', 'Todos los campos marcados con * son obligatorios.');
+                        hasErrors = true; break;
+                      }
+                      if (currentValue === requestedValue) {
+                        showResultLanzamiento(idSuffix, 'error', `El cambio ${i} debe tener un valor diferente al actual.`);
+                        hasErrors = true; break;
+                      }
+
+                      changes.push({ field, currentValue, requestedValue, justification });
+                    }
+
+                    if (hasErrors) return;
+
+                    const requestData = {
+                      userId: document.getElementById(`crUserId-${idSuffix}`).value,
+                      requestType: requestType,
+                      changes: changes,
+                      relatedId: relatedId || null
+                    };
+
+                    google.script.run
+                      .withSuccessHandler(function(response) {
+                        showResultLanzamiento(idSuffix, 'success', response.message);
+                        form.reset();
+
+                        changeCountersLanzamiento[idSuffix] = 1;
+                        const changesContainer = document.getElementById(`changesContainer-${idSuffix}`);
+                        const additionalChanges = changesContainer.querySelectorAll('.change-item-form:not(:first-child)');
+                        additionalChanges.forEach(el => el.remove());
+
+                        const firstRemoveBtn = changesContainer.querySelector('.change-item-form:first-child .btn-remove-change');
+                        if (firstRemoveBtn) firstRemoveBtn.style.display = 'none';
+                      })
+                      .withFailureHandler(function(error) {
+                        showResultLanzamiento(idSuffix, 'error', 'Error: ' + error.message);
+                      })
+                      .processChangeRequest(requestData);
+                  }
+
+                  function showResultLanzamiento(idSuffix, type, message) {
+                    const resultDiv = document.getElementById(`requestResult-${idSuffix}`);
+                    if (!resultDiv) return;
+                    resultDiv.style.display = 'block';
+
+                    if (type === 'success') {
+                      resultDiv.style.background = '#e6f7ec';
+                      resultDiv.style.border = '1px solid #a3d9b1';
+                      resultDiv.style.color = '#0f5132';
+                      resultDiv.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                          <svg style="width: 24px; height: 24px; fill: #0f5132;" viewBox="0 0 24 24">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                          </svg>
+                          <div><strong>${escapeHtml(message)}</strong></div>
+                        </div>`;
+                      setTimeout(() => { resultDiv.style.display = 'none'; }, 5000);
+                    } else {
+                      resultDiv.style.background = '#fde8e8';
+                      resultDiv.style.border = '1px solid #f5b7b7';
+                      resultDiv.style.color = '#721c24';
+                      resultDiv.innerHTML = `<p style="margin: 0;"><strong>${escapeHtml(message)}</strong></p>`;
+                    }
+                  }
+
+                  /* ============================================================
+                    INICIALIZACIÓN DE EVENTOS DESPUÉS DE RENDERIZAR
+                    ============================================================ */
+                  function inicializarEventosLanzamientos() {
+                    // Hover de tarjetas (aplicado al contenedor principal de cada tarjeta)
+                    const cards = document.querySelectorAll('#lanzamientos-grid > div[style*="border-radius:16px"]');
+                    cards.forEach(card => {
+                      card.addEventListener('mouseenter', function() {
+                        this.style.transform = 'translateY(-4px)';
+                        this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
+                      });
+                      card.addEventListener('mouseleave', function() {
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+                      });
+                    });
+
+                    // Inicializar contadores
+                    document.querySelectorAll('#lanzamientos-grid [id^="changesContainer-"]').forEach(container => {
+                      const idSuffix = container.id.replace('changesContainer-', '');
+                      if (!changeCountersLanzamiento[idSuffix]) changeCountersLanzamiento[idSuffix] = 1;
+                    });
+
+                    // Listeners de UPC (aunque en este caso es readonly, mantenemos por si acaso)
+                    document.querySelectorAll('#lanzamientos-grid input[id^="relatedId-"]').forEach(input => {
+                      input.addEventListener('change', function() {
+                        const idSuffix = this.id.replace('relatedId-', '');
+                        for (let i = 1; i <= (changeCountersLanzamiento[idSuffix] || 1); i++) {
+                          const fieldElement = document.getElementById(`fieldToModify${i}-${idSuffix}`);
+                          if (fieldElement && fieldElement.value) {
+                            updateCurrentValueLanzamiento(i, idSuffix);
+                          }
+                        }
+                      });
+                    });
+                  }
+
+                  /* ============================================================
+                    ARRANQUE
+                    ============================================================ */
+                  document.addEventListener('DOMContentLoaded', function() {
+                    // Se asume que `mostrarId` está disponible en el scope global (window.mostrarId)
+                    const userId = (typeof mostrarId !== 'undefined') ? mostrarId : (window.mostrarId || '');
+
+                    if (!userId) {
+                      document.getElementById('lanzamientos-grid').innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ef4444;">
+                          No se ha detectado el ID del usuario.
+                        </div>`;
+                      return;
+                    }
+
+                    cargarLanzamientosArtista(userId);
+                  });
+                  </script>
+
+                  <style>
+                    /* Grid responsivo (mover de inline a aquí) */
+                    .lanzamientos-grid {
                       display: grid;
                       grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
                       gap: 24px;
                       margin-top: 20px;
-                    ">
-                      <? 
-                      // Mapear headers a índices
-                      const headerMap = {};
-                      headersCanciones.forEach((header, index) => {
-                        if (header) {
-                          headerMap[header.trim()] = index;
-                        }
-                      });
-
-                      // Función para extraer canciones
-                      function extractSongsFromRow(fila, headerMap) {
-                        const songs = [];
-                        const artistaPrincipal = fila[headerMap["Artista"]] || 'Artista desconocido';
-                        
-                        for (let i = 1; i <= 15; i++) {
-                          const titulo = fila[headerMap[`Título ${i}`]];
-                          const artistaAdicional = fila[headerMap[`Artistas ${i}`]];
-                          
-                          // Si existe título, es una canción válida
-                          if (titulo) {
-                            // Usar Artista adicional si existe, sino usar Artista principal
-                            const artista = artistaAdicional && artistaAdicional.trim() !== '' ? 
-                                          artistaAdicional : artistaPrincipal;
-                            
-                            songs.push({
-                              numero: i,
-                              titulo: titulo,
-                              artista: artista,
-                              compositor: fila[headerMap[`Compositores ${i}`]] || '-',
-                              isrc: fila[headerMap[`ISRC ${i}`]] || '-',
-                              tieneLetras: fila[headerMap[`¿Contiene letras? ${i}`]] || 'No'
-                            });
-                          }
-                        }
-                        return songs;
-                      }
-
-                      // Mapeo de estados con colores
-                      const estadoColores = {
-                        'Sello Discográfico - Aprobado': { bg: '#10b981', text: 'white', icon: '✓' },
-                        'Sello Discográfico - Modificar': { bg: '#f59e0b', text: 'white', icon: '✎' },
-                        'Distribuidora - Aprobado': { bg: '#10b981', text: 'white', icon: '✓' },
-                        'Distribuidora - Aprobado (Not Content ID Services)': { bg: '#10b981', text: 'white', icon: '✓' },
-                        'Distribuidora - Modificar': { bg: '#f59e0b', text: 'white', icon: '✎' },
-                        'Sello Discográfico - Revisando': { bg: '#dea449', text: 'white', icon: '⏳' },
-                        'Distribuidora - Revisando': { bg: '#dea449', text: 'white', icon: '⏳' },
-                        'Sello Discográfico - Denegado': { bg: '#ef4444', text: 'white', icon: '✗' },
-                        'Distribuidora - Denegado': { bg: '#ef4444', text: 'white', icon: '✗' },
-                        'Sello Discográfico - Eliminado': { bg: '#6b7280', text: 'white', icon: '🗑' },
-                        'Sello Discográfico - En Espera': { bg: '#9ca3af', text: 'white', icon: '⏸' },
-                        'Distribuidora - En Espera': { bg: '#9ca3af', text: 'white', icon: '⏸' }
-                      };
-
-                      // Filas de lanzamientos
-                      cancionesMostrar.forEach((fila, index) => { 
-                        const lanzamientoData = {
-                          tituloAlbum: fila[headerMap["Título del álbum/sencillo/EP"]] || 'Sin título',
-                          artistaPrincipal: fila[headerMap["Artista"]] || 'Artista desconocido',
-                          fechaLanzamiento: fila[headerMap["Fecha de inicio de ventas"]],
-                          generoPrimario: fila[headerMap["Género primario"]] || '-',
-                          estadoContrato: fila[headerMap["Estado del Contrato"]] || '-',
-                          plataformas: fila[headerMap["Plataformas de Lanzamiento."]] || '-',
-                          upcEan: fila[headerMap["UPC/EAN"]] || '-',
-                          categoria: fila[headerMap["Categoría del Lanzamiento"]] || '-',
-                          selloDiscografico: fila[headerMap["Nombre del sello discográfico"]] || '-',
-                          imagenUrl: fila[headerMap["Archivo de la ilustración"]] || '',
-                          porcentajeFinal: fila[headerMap["Porcentaje final"]] || '-',
-                          entregado: fila[headerMap["Entregado"]] || '-',
-                          timestamp: fila[headerMap["Marca temporal"]]
-                        };
-                        
-                        const canciones = extractSongsFromRow(fila, headerMap);
-                        const tipo = canciones.length === 1 ? 'Sencillo' : (canciones.length <= 6 ? 'EP' : 'Álbum');
-                        
-                        // Determinar color del estado
-                        const estadoInfo = estadoColores[lanzamientoData.estadoContrato] || { bg: '#6b7280', text: 'white', icon: '?' };
-                        
-                        // Formatear fecha
-                        let fechaFormateada = '-';
-                        if (lanzamientoData.fechaLanzamiento) {
-                          try {
-                            fechaFormateada = new Date(lanzamientoData.fechaLanzamiento).toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric'
-                            });
-                          } catch (e) {
-                            fechaFormateada = lanzamientoData.fechaLanzamiento;
-                          }
-                        }
-                      ?>
-                      
-                      <!-- Tarjeta del lanzamiento -->
-                      <div style="
-                        background: white;
-                        border-radius: 16px;
-                        overflow: hidden;
-                        border: 1px solid #e5e7eb;
-                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-                        transition: all 0.3s ease;
-                        position: relative;
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                      ">
-                        
-                        <!-- Encabezado con imagen -->
-                        <div style="position: relative; height: 220px; overflow: hidden; cursor: pointer;" 
-                            onclick="toggleDetailsLanzamiento('details')">
-                            <img src="<?= lanzamientoData.imagenUrl ?>" 
-                                alt="<?= lanzamientoData.tituloAlbum ?>"
-                                style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease-in-out;"
-                                onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 3rem; opacity: 0.8;\'>🎵</div>'"
-                                onmouseover="this.style.transform='scale(1.05)'"
-                                onmouseout="this.style.transform='scale(1)'">
-                          
-                          <!-- Overlay de información -->
-                          <div style="
-                            position: absolute;
-                            bottom: 0;
-                            left: 0;
-                            right: 0;
-                            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.7) 50%, transparent 100%);
-                            padding: 20px 16px 16px;
-                            color: white;
-                            z-index: 100;
-                          ">
-                            <!-- Badge de tipo -->
-                            <div style="
-                              background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.15) 100%);
-                              backdrop-filter: blur(8px);
-                              color: white;
-                              padding: 6px 14px;
-                              border-radius: 20px;
-                              font-size: 0.75rem;
-                              font-weight: 700;
-                              display: inline-block;
-                              margin-bottom: 12px;
-                              border: 1px solid rgba(255,255,255,0.2);
-                              box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                              letter-spacing: 0.5px;
-                            ">
-                              <?= tipo ?>
-                            </div>
-                            
-                            <h3 style="
-                              margin: 0 0 6px 0;
-                              font-size: 1.3rem;
-                              font-weight: 800;
-                              line-height: 1.2;
-                              text-shadow: 0 2px 6px rgba(0,0,0,0.6);
-                            ">
-                              <?= lanzamientoData.tituloAlbum.length > 45 ? 
-                                  lanzamientoData.tituloAlbum.substring(0, 45) + '...' : 
-                                  lanzamientoData.tituloAlbum ?>
-                            </h3>
-                            
-                            <p style="
-                              margin: 0;
-                              font-size: 0.95rem;
-                              opacity: 0.95;
-                              display: flex;
-                              align-items: center;
-                              gap: 8px;
-                            ">
-                              <svg style="width: 16px; height: 16px; fill: white; opacity: 0.9;" viewBox="0 0 24 24">
-                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                              </svg>
-                              <span style="font-weight: 500;">
-                                <?= lanzamientoData.artistaPrincipal ?>
-                              </span>
-                            </p>
-                          </div>
-                          
-                          <!-- Badge de estado (posicionado arriba a la derecha) -->
-                          <div style="
-                            position: absolute;
-                            top: 12px;
-                            right: 12px;
-                            background: <?= estadoInfo.bg ?>;
-                            color: <?= estadoInfo.text ?>;
-                            padding: 6px 12px;
-                            border-radius: 12px;
-                            font-size: 0.7rem;
-                            font-weight: 700;
-                            display: flex;
-                            align-items: center;
-                            gap: 4px;
-                            box-shadow: 0 3px 10px rgba(0,0,0,0.25);
-                            backdrop-filter: blur(4px);
-                            border: 1px solid rgba(255,255,255,0.15);
-                            z-index: 10;
-                          ">
-                            <span style="font-size: 0.9rem; line-height: 1;"><?= estadoInfo.icon ?></span>
-                            <?= lanzamientoData.estadoContrato ?>
-                          </div>
-                        </div>
-                        <!-- Información principal -->
-                        <div style="padding: 20px;">
-                          <!-- Detalles rápidos -->
-                          <div style="
-                            display: grid;
-                            grid-template-columns: repeat(2, 1fr);
-                            gap: 16px;
-                            margin-bottom: 20px;
-                          ">
-                            <div>
-                              <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                                <svg style="width: 14px; height: 14px; fill: #6b7280;" viewBox="0 0 24 24">
-                                  <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-                                </svg>
-                                Título
-                              </div>
-                              <div style="font-size: 1.3rem; font-weight: 600; color: #1f2937;">
-                                <?= lanzamientoData.tituloAlbum.length > 45 ? 
-                                  lanzamientoData.tituloAlbum.substring(0, 45) + '...' : 
-                                  lanzamientoData.tituloAlbum ?>
-                              </div>
-                            </div>
-                            <div>
-                              <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                                <svg style="width: 14px; height: 14px; fill: #6b7280;" viewBox="0 0 24 24">
-                                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                                </svg>
-                                Estado del Lanzamiento
-                              </div>
-                              <div style="font-size: 0.7rem; font-weight: 600; color: #1f2937;">
-                                <?= lanzamientoData.estadoContrato ?>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                                <svg style="width: 14px; height: 14px; fill: #6b7280;" viewBox="0 0 24 24">
-                                  <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/>
-                                </svg>
-                                Fecha
-                              </div>
-                              <div style="font-size: 0.95rem; font-weight: 600; color: #1f2937;">
-                                <?= fechaFormateada ?>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                                <svg style="width: 14px; height: 14px; fill: #6b7280;" viewBox="0 0 24 24">
-                                  <path d="M4 6h16v2H4zm0 4h16v2H4zm0 4h16v2H4zm0 4h16v2H4z"/>
-                                </svg>
-                                Canciones
-                              </div>
-                              <div style="font-size: 0.95rem; font-weight: 600; color: #1f2937;">
-                                <?= canciones.length ?>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                                <svg style="width: 14px; height: 14px; fill: #6b7280;" viewBox="0 0 24 24">
-                                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                                </svg>
-                                Género
-                              </div>
-                              <div style="font-size: 0.95rem; font-weight: 600; color: #1f2937;">
-                                <?= lanzamientoData.generoPrimario ?>
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">
-                                <svg style="width: 14px; height: 14px; fill: #6b7280;" viewBox="0 0 24 24">
-                                  <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
-                                </svg>
-                                Regalías
-                              </div>
-                              <div style="font-size: 0.95rem; font-weight: 600; color: #1f2937;">
-                                <?= lanzamientoData.porcentajeFinal ?>%
-                              </div>
-                            </div>
-                          <!-- Badge de estado -->
-                          <div style="
-                            position: absolute;
-                            top: 16px;
-                            right: 16px;
-                            background: <?= estadoInfo.bg ?>;
-                            color: <?= estadoInfo.text ?>;
-                            padding: 8px 16px;
-                            border-radius: 12px;
-                            font-size: 0.8rem;
-                            font-weight: 600;
-                            display: flex;
-                            align-items: center;
-                            gap: 6px;
-                            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-                            backdrop-filter: blur(4px);
-                          ">
-                            <span style="font-size: 1rem;"><?= estadoInfo.icon ?></span>
-                            <?= lanzamientoData.estadoContrato.includes(' - ') ? 
-                                lanzamientoData.estadoContrato.split(' - ')[0] : 
-                                lanzamientoData.estadoContrato ?>
-                          </div>
-
-                          </div>
-                          
-                          <!-- Botón para ver más -->
-                          <div style="
-                            display: flex;
-                            overflow-y: auto;
-                            justify-content: space-between;
-                            align-items: center;
-                            border-top: 1px solid #e5e7eb;
-                            padding-top: 16px;
-                          ">
-                            <button onclick="toggleDetailsLanzamiento('details-')" style="
-                              background: transparent;
-                              color: #3b82f6;
-                              border: 2px solid #3b82f6;
-                              padding: 8px 20px;
-                              border-radius: 8px;
-                              font-size: 0.875rem;
-                              font-weight: 600;
-                              cursor: pointer;
-                              display: flex;
-                              align-items: center;
-                              gap: 8px;
-                              transition: all 0.2s;
-                            ">
-                              <svg style="width: 18px; height: 18px; fill: #3b82f6;" viewBox="0 0 24 24">
-                                <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
-                              </svg>
-                              <span id="toggle-text-">Ver detalles</span>
-                            </button>
-                              <span style="
-                                background: #10b981;
-                                color: white;
-                                padding: 6px 12px;
-                                border-radius: 12px;
-                                font-size: 0.75rem;
-                                font-weight: 600;
-                                display: flex;
-                                align-items: center;
-                                gap: 6px;
-                              ">
-                                <svg style="width: 14px; height: 14px; fill: white;" viewBox="0 0 24 24">
-                                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                                </svg>
-                                <?= lanzamientoData.entregado ?>
-                              </span>
-                          </div>
-                        </div>
-                        
-                        <!-- Panel de detalles expandible -->
-                        <div id="details-" style="
-                          max-height: 0;
-                          overflow: auto;
-                          transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-                          background: #f8fafc;
-                          border-top: 1px solid #e5e7eb;
-                        ">
-                          <div style="padding: 24px;">
-                            <!-- Información extendida -->
-                            <div style="
-                              display: grid;
-                              grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                              gap: 20px;
-                              margin-bottom: 24px;
-                            ">
-                              <div>
-                                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 6px; font-weight: 600;">Artista Principal</div>
-                                <div style="font-size: 1rem; font-weight: 500; color: #1f2937; padding: 8px 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
-                                  <?= lanzamientoData.artistaPrincipal ?>
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 6px; font-weight: 600;">Sello discográfico</div>
-                                <div style="font-size: 1rem; font-weight: 500; color: #1f2937; padding: 8px 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
-                                  <?= lanzamientoData.selloDiscografico ?>
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 6px; font-weight: 600;">Categoría</div>
-                                <div style="font-size: 1rem; font-weight: 500; color: #1f2937; padding: 8px 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
-                                  <?= lanzamientoData.categoria ?>
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 6px; font-weight: 600;">Plataformas</div>
-                                <div style="font-size: 1rem; font-weight: 500; color: #1f2937; padding: 8px 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
-                                  <?= lanzamientoData.plataformas ?>
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 6px; font-weight: 600;">UPC/EAN</div>
-                                <div style="font-size: 1rem; font-weight: 500; color: #1f2937; font-family: monospace; padding: 8px 12px; background: white; border-radius: 8px; border: 1px solid #e5e7eb;">
-                                  <?= lanzamientoData.upcEan ?>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <!-- Lista de canciones -->
-                            <? if (canciones.length > 0) { ?>
-                              <div style="margin-bottom: 24px;">
-                                <div style="
-                                  font-size: 1rem;
-                                  font-weight: 700;
-                                  color: #1f2937;
-                                  margin-bottom: 16px;
-                                  display: flex;
-                                  align-items: center;
-                                  gap: 10px;
-                                  padding-bottom: 8px;
-                                  border-bottom: 2px solid #e5e7eb;
-                                ">
-                                  <svg style="width: 20px; height: 20px; fill: #6b7280;" viewBox="0 0 24 24">
-                                    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                                  </svg>
-                                  Lista de canciones (<?= canciones.length ?>)
-                                </div>
-                                
-                                <div style="
-                                  background: white;
-                                  border-radius: 12px;
-                                  border: 1px solid #e5e7eb;
-                                  overflow: auto;
-                                ">
-                                  <? canciones.forEach((cancion, idx) => { 
-                                    // Verificar si el artista de esta canción es diferente al artista principal
-                                    const esArtistaDiferente = cancion.artista !== lanzamientoData.artistaPrincipal;
-                                  ?>
-                                    <div style="
-                                      padding: 16px;
-                                      border-bottom: <?= idx < canciones.length - 1 ? '1px solid #e5e7eb' : 'none' ?>;
-                                      display: flex;
-                                      align-items: center;
-                                      gap: 16px;
-                                      transition: background 0.2s;
-                                    " onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
-                                      <!-- Imagen de la canción (misma que el álbum) -->
-                                      <div style="
-                                        width: 50px;
-                                        height: 50px;
-                                        flex-shrink: 0;
-                                        border-radius: 8px;
-                                        overflow: auto;
-                                        position: relative;
-                                      ">
-                                        <? if (lanzamientoData.imagenUrl) { ?>
-                                          <img src="<?= lanzamientoData.imagenUrl ?>" 
-                                              alt="<?= lanzamientoData.tituloAlbum ?>"
-                                              style="width: 100%; height: 100%; object-fit: cover;"
-                                              onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=\'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 1.2rem;\'>🎵</div>'">
-                                        <? } else { ?>
-                                          <div style="
-                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                            width: 100%;
-                                            height: 100%;
-                                            display: flex;
-                                            align-items: center;
-                                            justify-content: center;
-                                            color: white;
-                                            font-weight: bold;
-                                            font-size: 1.2rem;
-                                          ">
-                                            🎵
-                                          </div>
-                                        <? } ?>
-                                        <!-- Número superpuesto -->
-                                        <div style="
-                                          position: absolute;
-                                          bottom: 2px;
-                                          right: 2px;
-                                          background: rgba(0,0,0,0.7);
-                                          color: white;
-                                          font-size: 0.7rem;
-                                          font-weight: 600;
-                                          padding: 2px 6px;
-                                          border-radius: 4px;
-                                        ">
-                                          <?= cancion.numero ?>
-                                        </div>
-                                      </div>
-                                      
-                                      <!-- Información de la canción -->
-                                      <div style="flex: 1; min-width: 0;">
-                                        <div style="font-size: 1rem; font-weight: 700; color: #1f2937; margin-bottom: 4px; white-space: nowrap; overflow: auto">
-                                          <?= cancion.titulo ?>
-                                        </div>
-                                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                          <div style="font-size: 0.875rem; color: #6b7280; display: flex; align-items: center; gap: 4px;">
-                                            <svg style="width: 14px; height: 14px; fill: #6b7280;" viewBox="0 0 24 24">
-                                              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                                            </svg>
-                                            <span>
-                                              <?= cancion.artista ?>
-                                              <? if (esArtistaDiferente) { ?>
-                                                <span style="color: #8b5cf6; font-size: 0.75rem; margin-left: 4px;">
-                                                  (ft.)
-                                                </span>
-                                              <? } ?>
-                                            </span>
-                                          </div>
-                                          
-                                          <? if (cancion.tieneLetras === 'Sí') { ?>
-                                            <div style="font-size: 0.75rem; color: #10b981; display: flex; align-items: center; gap: 4px; background: #d1fae5; padding: 2px 8px; border-radius: 12px;">
-                                              <svg style="width: 12px; height: 12px; fill: #10b981;" viewBox="0 0 24 24">
-                                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                                              </svg>
-                                              Con letras
-                                            </div>
-                                          <? } ?>
-                                        </div>
-                                      </div>
-                                      
-                                      <!-- ISRC -->
-                                      <? if (cancion.isrc && cancion.isrc !== '-') { ?>
-                                        <div style="
-                                          font-size: 0.75rem;
-                                          color: #9ca3af;
-                                          font-family: monospace;
-                                          background: #f9fafb;
-                                          padding: 6px 10px;
-                                          border-radius: 6px;
-                                          border: 1px solid #e5e7eb;
-                                          white-space: nowrap;
-                                        ">
-                                          <?= cancion.isrc ?>
-                                        </div>
-                                      <? } ?>
-                                    </div>
-                                  <? }); ?>
-                                </div>
-                              </div>
-                            <? } ?>
-                            
-                            <!-- Sección de edición -->
-                            <details style="
-                              background: linear-gradient(45deg, #8b5cf6, #06b6d4, white, #10b981);
-                              padding: 8px;
-                              border-radius: 12px;
-                              border: 2px solid transparent;
-                              margin-top: 20px;
-                              overflow: auto;
-                            ">
-                              <summary style="
-                                background: linear-gradient(45deg, #fbbf24, #3b82f6, #10b981);
-                                padding: 12px 16px;
-                                border-radius: 8px;
-                                color: white;
-                                font-weight: 600;
-                                font-size: 1rem;
-                                cursor: pointer;
-                                list-style: none;
-                                display: flex;
-                                align-items: center;
-                                gap: 10px;
-                              ">
-                                <svg style="width: 20px; height: 20px; fill: white;" viewBox="0 0 24 24">
-                                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                                </svg>
-                                Solicitar Cambios en este Lanzamiento
-                              </summary>
-                              
-                              <div style="
-                                background: rgba(108, 92, 231, 0.08);
-                                padding: 20px;
-                                border-radius: 12px;
-                                border-left: 4px solid #6c5ce7;
-                                margin: 16px 0;
-                              ">
-                                <p style="margin-bottom: 12px; color: #4b5563; font-size: 0.95rem;">
-                                  Utiliza este formulario para solicitar cambios en la información de "<strong><?= lanzamientoData.tituloAlbum ?></strong>".
-                                </p>
-                                <p>Si desea eliminar una canción seleccione: "Título del album/sencillo/EP", y en "Nuevo Valor Solicitado" escirba: <strong style="color: red">GSRecords-Delete</strong>. <small>Si desea revertir la acción, tiene 7 días hábiles para solicitar un cambio y que se restaure (sigue los mismos pasos que para eliminar), escribiendo: <strong style="color: green">GSRecords-ReLaunch</strong></small></p>
-                                <p style="color: #ef4444; font-size: 0.9rem; margin-bottom: 20px; font-weight: 500;">
-                                  <svg style="width: 16px; height: 16px; fill: #ef4444; vertical-align: middle; margin-right: 4px;" viewBox="0 0 24 24">
-                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                                  </svg>
-                                  Los campos con asterisco (*) son obligatorios para enviar el formulario.
-                                </p>
-                                
-                                <form class="change-request-form" data-lanzamiento="<?= lanzamientoData.upcEan ?>" 
-                                      onsubmit="event.preventDefault(); submitChangeRequestLanzamiento()">
-                                  <input type="hidden" id="crUserId-" value="<?= mostrarId ?>">
-                                  <input type="hidden" id="relatedId-" value="<?= lanzamientoData.upcEan ?>">
-                                  <input type="hidden" id="requestType-" value="music">
-                                  
-                                  <div style="margin-bottom: 20px;">
-                                    <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 6px; font-weight: 600;">
-                                      Lanzamiento a modificar:
-                                    </div>
-                                    <div style="
-                                      padding: 12px;
-                                      background: white;
-                                      border-radius: 8px;
-                                      border: 1px solid #e5e7eb;
-                                      font-weight: 500;
-                                      color: #1f2937;
-                                    ">
-                                      <div><strong><?= lanzamientoData.tituloAlbum ?></strong></div>
-                                      <div style="font-size: 0.9rem; color: #6b7280; margin-top: 4px;">
-                                        UPC: <?= lanzamientoData.upcEan ?>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <div id="changesContainer-" style="margin-bottom: 20px;">
-                                    <!-- Los cambios se añadirán aquí dinámicamente -->
-                                    <div class="change-item-form" data-change-id="1">
-                                      <div class="change-header">
-                                        <h4 style="margin: 0; color: #2d3748; font-size: 1rem;">Cambio 1</h4>
-                                        <button type="button" class="btn-remove-change" onclick="removeChangeLanzamiento(1, )" 
-                                                style="display: none; background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
-                                          <svg style="width: 12px; height: 12px; fill: white; vertical-align: middle;" viewBox="0 0 24 24">
-                                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                                          </svg>
-                                          Eliminar
-                                        </button>
-                                      </div>
-                                      
-                                      <div style="margin-bottom: 16px;">
-                                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
-                                          Campo a Modificar*:
-                                        </label>
-                                        <p style="margin: 0 0 8px 0; color: #6b7280; font-size: 0.85rem;">
-                                          Si no aparece el campo que desea modificar es porque es un dato privado. 
-                                          Póngase en contacto con legal@grouvex.com, indicando que desea modificar un campo privado.
-                                        </p>
-                                        <select id="fieldToModify1-" required 
-                                                onchange="updateCurrentValueLanzamiento(1, )" 
-                                                style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
-                                          <option value="">Seleccionar campo...</option>
-                                          <option value="Título del álbum/sencillo/EP">Título del álbum/sencillo/EP</option>
-                                          <option value="Artista">Artista principal</option>
-                                          <? if (canciones.length > 0) { 
-                                            for (let i = 1; i <= canciones.length; i++) { ?>
-                                              <option value="Título <?= i ?>">Título canción <?= i ?> (<?= canciones[i-1]?.titulo ?>)</option>
-                                              <option value="Artistas <?= i ?>">Artista canción <?= i ?> (<?= canciones[i-1]?.artista ?>)</option>
-                                            <? }
-                                          } ?>
-                                          <option value="Fecha de inicio de ventas">Fecha de lanzamiento</option>
-                                          <option value="Género primario">Género primario</option>
-                                          <option value="Género secundario">Género secundario</option>
-                                          <option value="Plataformas de Lanzamiento.">Plataformas</option>
-                                          <option value="Nombre del sello discográfico">Sello discográfico</option>
-                                        </select>
-                                      </div>
-                                      
-                                      <div style="margin-bottom: 16px;">
-                                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
-                                          Valor Actual*:
-                                        </label>
-                                        <input type="text" id="currentValue1-" readonly 
-                                              style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; background: #f7fafc; color: #718096;">
-                                      </div>
-                                      
-                                      <div style="margin-bottom: 16px;">
-                                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
-                                          Nuevo Valor Solicitado*:
-                                        </label>
-                                        <input type="text" id="requestedValue1-" required 
-                                              style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
-                                      </div>
-                                      
-                                      <div style="margin-bottom: 16px;">
-                                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
-                                          Justificación del Cambio:
-                                        </label>
-                                        <textarea id="justification1-" rows="3" 
-                                                  style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; resize: vertical;"
-                                                  placeholder="Explica por qué necesitas realizar este cambio..."></textarea>
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <button type="button" id="addChangeBtn-" onclick="addChangeLanzamiento()" 
-                                          style="background: #38a169; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; margin-bottom: 20px; display: flex; align-items: center; gap: 6px;">
-                                    <svg style="width: 16px; height: 16px; fill: white;" viewBox="0 0 24 24">
-                                      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                                    </svg>
-                                    Añadir otro cambio
-                                  </button>
-                                  
-                                  <div style="margin-top: 20px;">
-                                    <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 0.85rem;">
-                                      <svg style="width: 16px; height: 16px; fill: #6b7280; vertical-align: middle; margin-right: 4px;" viewBox="0 0 24 24">
-                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
-                                      </svg>
-                                      Cuando le dé al botón, espere unos segundos a que se le indique que se ha enviado su petición.
-                                    </p>
-                                    
-                                    <button type="submit" style="
-                                      background: linear-gradient(135deg, #6c5ce7 0%, #3498db 100%);
-                                      color: white;
-                                      border: none;
-                                      padding: 12px 24px;
-                                      border-radius: 8px;
-                                      font-weight: 600;
-                                      cursor: pointer;
-                                      display: flex;
-                                      align-items: center;
-                                      gap: 8px;
-                                      transition: transform 0.2s ease;
-                                    ">
-                                      <svg style="width: 18px; height: 18px; fill: white;" viewBox="0 0 24 24">
-                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                                      </svg>
-                                      Enviar Solicitud
-                                    </button>
-                                    
-                                    <p style="margin: 12px 0 0 0; color: #6b7280; font-size: 0.85rem;">
-                                      <svg style="width: 16px; height: 16px; fill: #6b7280; vertical-align: middle; margin-right: 4px;" viewBox="0 0 24 24">
-                                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-                                      </svg>
-                                      Se le informará del estado de su solicitud por correo electrónico.
-                                    </p>
-                                  </div>
-                                </form>
-                                
-                                <div id="requestResult-" style="display: none; margin-top: 20px; padding: 15px; border-radius: 8px;"></div>
-                              </div>
-                            </details>
-                            
-                            <!-- Botón para compactar -->
-                            <div style="text-align: center; margin-top: 20px;">
-                              <button onclick="toggleDetailsLanzamiento('details-')" style="
-                                background: #6b7280;
-                                color: white;
-                                border: none;
-                                padding: 8px 16px;
-                                border-radius: 8px;
-                                font-size: 0.875rem;
-                                cursor: pointer;
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 6px;
-                              ">
-                                <svg style="width: 16px; height: 16px; fill: white;" viewBox="0 0 24 24">
-                                  <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
-                                </svg>
-                                Compactar detalles
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <? }); ?>
-                    </div>
-
-                    <script>
-                    // Funciones JavaScript para Lanzamientos
-                    let changeCountersLanzamiento = {};
-                    let currentFieldsMapLanzamiento = {}; // Almacenar campos por formulario
-
-                    // Función para expandir/contraer detalles
-                    function toggleDetailsLanzamiento(id) {
-                      const element = document.getElementById(id);
-                      const toggleText = document.getElementById(`toggle-text-${id.split('-')[1]}`);
-                      
-                      if (element.style.maxHeight && element.style.maxHeight !== '0px') {
-                        element.style.maxHeight = '0';
-                        if (toggleText) toggleText.textContent = 'Ver detalles';
-                      } else {
-                        // Calcular altura del contenido
-                        element.style.maxHeight = element.scrollHeight + "px";
-                        if (toggleText) toggleText.textContent = 'Ocultar detalles';
-                        
-                        // Cargar campos editables cuando se expanda
-                        const index = id.split('-')[1];
-                        loadEditableFieldsLanzamiento(index);
-                      }
                     }
 
-                    // Función para cargar campos editables
-                    function loadEditableFieldsLanzamiento(index) {
-                      const userId = document.getElementById(`crUserId-${index}`).value;
-                      const requestType = document.getElementById(`requestType-${index}`).value;
-                      
-                      google.script.run
-                        .withSuccessHandler(function(fields) {
-                          currentFieldsMapLanzamiento[index] = fields;
-                          updateFieldDropdownsLanzamiento(fields, index);
-                          
-                          // Reiniciar contador
-                          if (!changeCountersLanzamiento[index]) changeCountersLanzamiento[index] = 1;
-                          
-                          // Remover cambios adicionales excepto el primero
-                          const changesContainer = document.getElementById(`changesContainer-${index}`);
-                          const additionalChanges = changesContainer.querySelectorAll('.change-item-form:not(:first-child)');
-                          additionalChanges.forEach(el => el.remove());
-                          
-                          // Ocultar botón de eliminar
-                          const firstRemoveBtn = changesContainer.querySelector('.change-item-form:first-child .btn-remove-change');
-                          if (firstRemoveBtn) {
-                            firstRemoveBtn.style.display = 'none';
-                          }
-                        })
-                        .withFailureHandler(function(error) {
-                          console.error('Error loading editable fields:', error);
-                        })
-                        .getEditableFields('artist', requestType);
-                    }
-
-                    // Actualizar dropdowns de campos
-                    function updateFieldDropdownsLanzamiento(fields, index) {
-                      const selects = document.querySelectorAll(`select[id^="fieldToModify"][id$="-${index}"]`);
-                      
-                      selects.forEach(select => {
-                        // Guardar valor seleccionado actual
-                        const currentValue = select.value;
-                        
-                        // Limpiar opciones excepto la primera
-                        while (select.options.length > 1) {
-                          select.remove(1);
-                        }
-                        
-                        // Añadir campos editables
-                        fields.forEach(field => {
-                          const option = document.createElement('option');
-                          option.value = field;
-                          option.textContent = field;
-                          select.appendChild(option);
-                        });
-                        
-                        // Restaurar valor seleccionado si existe
-                        if (currentValue && fields.includes(currentValue)) {
-                          select.value = currentValue;
-                        }
-                        
-                        // Actualizar valor actual si hay un campo seleccionado
-                        if (select.value) {
-                          const changeId = select.id.match(/fieldToModify(\d+)/)[1];
-                          updateCurrentValueLanzamiento(changeId, index);
-                        }
-                      });
-                    }
-
-                    // Función para manejar cambio de tipo de solicitud
-                    function toggleRelatedIdFieldLanzamiento(index) {
-                      const requestType = document.getElementById(`requestType-${index}`).value;
-                      const relatedIdGroup = document.getElementById(`relatedIdGroup-${index}`);
-                      const relatedIdInput = document.getElementById(`relatedId-${index}`);
-                      
-                      if (requestType === 'music') {
-                        relatedIdGroup.style.display = 'block';
-                        relatedIdInput.setAttribute('required', 'true');
-                      } else {
-                        relatedIdGroup.style.display = 'none';
-                        relatedIdInput.removeAttribute('required');
-                      }
-                      
-                      // Cargar campos apropiados
-                      loadEditableFieldsLanzamiento(index);
-                    }
-
-                    // Función para añadir cambio en un formulario específico
-                    function addChangeLanzamiento(index) {
-                      if (!changeCountersLanzamiento[index]) changeCountersLanzamiento[index] = 1;
-                      changeCountersLanzamiento[index]++;
-                      const newChangeId = changeCountersLanzamiento[index];
-                      
-                      const newChange = document.createElement('div');
-                      newChange.className = 'change-item-form';
-                      newChange.setAttribute('data-change-id', newChangeId);
-                      
-                      newChange.innerHTML = `
-                        <div class="change-header">
-                          <h4 style="margin: 0; color: #2d3748; font-size: 1rem;">Cambio ${newChangeId}</h4>
-                          <button type="button" class="btn-remove-change" onclick="removeChangeLanzamiento(${newChangeId}, ${index})" 
-                                  style="background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
-                            <svg style="width: 12px; height: 12px; fill: white; vertical-align: middle;" viewBox="0 0 24 24">
-                              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                            </svg>
-                            Eliminar
-                          </button>
-                        </div>
-                        
-                        <div style="margin-bottom: 16px;">
-                          <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
-                            Campo a Modificar*:
-                          </label>
-                          <select id="fieldToModify${newChangeId}-${index}" required 
-                                  onchange="updateCurrentValueLanzamiento(${newChangeId}, ${index})" 
-                                  style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
-                            <option value="">Seleccionar campo...</option>
-                          </select>
-                        </div>
-                        
-                        <div style="margin-bottom: 16px;">
-                          <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
-                            Valor Actual*:
-                          </label>
-                          <input type="text" id="currentValue${newChangeId}-${index}" readonly 
-                                style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; background: #f7fafc; color: #718096;">
-                        </div>
-                        
-                        <div style="margin-bottom: 16px;">
-                          <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
-                            Nuevo Valor Solicitado*:
-                          </label>
-                          <input type="text" id="requestedValue${newChangeId}-${index}" required 
-                                style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
-                        </div>
-                        
-                        <div style="margin-bottom: 16px;">
-                          <label style="display: block; margin-bottom: 6px; font-weight: 600; color: #2d3748; font-size: 0.875rem;">
-                            Justificación del Cambio:
-                          </label>
-                          <textarea id="justification${newChangeId}-${index}" rows="3" 
-                                    style="width: 100%; padding: 10px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; resize: vertical;"
-                                    placeholder="Explica por qué necesitas realizar este cambio..."></textarea>
-                        </div>
-                      `;
-                      
-                      // Poblar dropdown con campos disponibles
-                      if (currentFieldsMapLanzamiento[index]) {
-                        const select = newChange.querySelector(`#fieldToModify${newChangeId}-${index}`);
-                        currentFieldsMapLanzamiento[index].forEach(field => {
-                          const option = document.createElement('option');
-                          option.value = field;
-                          option.textContent = field;
-                          select.appendChild(option);
-                        });
-                      }
-                      
-                      document.getElementById(`changesContainer-${index}`).appendChild(newChange);
-                      
-                      // Mostrar botón de eliminar en el primer cambio si hay más de uno
-                      if (changeCountersLanzamiento[index] > 1) {
-                        const firstRemoveBtn = document.querySelector(`#changesContainer-${index} .change-item-form:first-child .btn-remove-change`);
-                        if (firstRemoveBtn) {
-                          firstRemoveBtn.style.display = 'inline-block';
-                        }
-                      }
-                    }
-
-                    // Función para eliminar cambio
-                    function removeChangeLanzamiento(changeId, index) {
-                      if (changeCountersLanzamiento[index] <= 1) return;
-                      
-                      const changeElement = document.querySelector(`#changesContainer-${index} [data-change-id="${changeId}"]`);
-                      if (changeElement) {
-                        changeElement.remove();
-                        changeCountersLanzamiento[index]--;
-                        
-                        // Renumerar los cambios restantes
-                        const changes = document.querySelectorAll(`#changesContainer-${index} .change-item-form`);
-                        changes.forEach((change, idx) => {
-                          const newId = idx + 1;
-                          const currentId = change.getAttribute('data-change-id');
-                          
-                          // Actualizar número visual
-                          change.querySelector('h4').textContent = `Cambio ${newId}`;
-                          
-                          // Actualizar IDs de los inputs
-                          change.querySelectorAll('[id]').forEach(input => {
-                            const oldId = input.id;
-                            const baseId = oldId.split('-')[0].replace(/\d+$/, '');
-                            const newIdAttr = `${baseId}${newId}-${index}`;
-                            input.id = newIdAttr;
-                            
-                            if (input.hasAttribute('onchange')) {
-                              input.setAttribute('onchange', input.getAttribute('onchange').replace(currentId, newId));
-                            }
-                            if (input.hasAttribute('onclick')) {
-                              input.setAttribute('onclick', input.getAttribute('onclick').replace(currentId, newId));
-                            }
-                          });
-                          
-                          change.setAttribute('data-change-id', newId);
-                        });
-                        
-                        // Ocultar botón de eliminar si solo queda uno
-                        if (changeCountersLanzamiento[index] <= 1) {
-                          const firstRemoveBtn = document.querySelector(`#changesContainer-${index} .change-item-form:first-child .btn-remove-change`);
-                          if (firstRemoveBtn) {
-                            firstRemoveBtn.style.display = 'none';
-                          }
-                        }
-                      }
-                    }
-
-                    // Función para actualizar valor actual
-                    function updateCurrentValueLanzamiento(changeId, index) {
-                      const fieldSelect = document.getElementById(`fieldToModify${changeId}-${index}`);
-                      const currentValueInput = document.getElementById(`currentValue${changeId}-${index}`);
-                      const field = fieldSelect.value;
-                      if (!field) {
-                        currentValueInput.value = '';
-                        return;
-                      }
-                      
-                      const userId = document.getElementById(`crUserId-${index}`).value;
-                      const requestType = document.getElementById(`requestType-${index}`).value;
-                      const relatedId = document.getElementById(`relatedId-${index}`).value;
-                      currentValueInput.value = "Cargando...";
-                      
-                      if (requestType === 'music' && relatedId) {
-                        // Para campos musicales (necesita UPC)
-                        google.script.run
-                          .withSuccessHandler(function(response) {
-                            if (response.success) {
-                              currentValueInput.value = response.value || "(Vacío)";
-                            } else {
-                              currentValueInput.value = "Error: " + response.error;
-                            }
-                          })
-                          .withFailureHandler(function(error) {
-                            currentValueInput.value = "Error al cargar valor";
-                            console.error('Error:', error);
-                          })
-                          .getSongFieldValue(userId, relatedId, field);
-                      }
-                    }
-
-                    // Función para enviar solicitud de cambios
-                    function submitChangeRequestLanzamiento(index) {
-                      const form = document.querySelector(`#changesContainer-${index}`).closest('form');
-                      const requestType = document.getElementById(`requestType-${index}`).value;
-                      const relatedId = document.getElementById(`relatedId-${index}`).value;
-                      
-                      // Validar que para solicitudes musicales haya un UPC
-                      if (requestType === 'music' && !relatedId) {
-                        showResultLanzamiento(index, 'error', 'Para cambios musicales, debes proporcionar el UPC.');
-                        return;
-                      }
-                      
-                      // Recopilar todos los cambios
-                      const changes = [];
-                      let hasErrors = false;
-                      
-                      for (let i = 1; i <= (changeCountersLanzamiento[index] || 1); i++) {
-                        const field = document.getElementById(`fieldToModify${i}-${index}`)?.value;
-                        const currentValue = document.getElementById(`currentValue${i}-${index}`)?.value;
-                        const requestedValue = document.getElementById(`requestedValue${i}-${index}`)?.value;
-                        const justification = document.getElementById(`justification${i}-${index}`)?.value || '';
-                        
-                        // Validaciones básicas
-                        if (!field || !requestedValue) {
-                          showResultLanzamiento(index, 'error', 'Todos los campos marcados con * son obligatorios.');
-                          hasErrors = true;
-                          break;
-                        }
-                        
-                        if (currentValue === requestedValue) {
-                          showResultLanzamiento(index, 'error', `El cambio ${i} debe tener un valor diferente al actual.`);
-                          hasErrors = true;
-                          break;
-                        }
-                        
-                        changes.push({
-                          field: field,
-                          currentValue: currentValue,
-                          requestedValue: requestedValue,
-                          justification: justification
-                        });
-                      }
-                      
-                      if (hasErrors) return;
-                      
-                      // Preparar datos para enviar
-                      const requestData = {
-                        userId: document.getElementById(`crUserId-${index}`).value,
-                        requestType: requestType,
-                        changes: changes,
-                        relatedId: relatedId || null
-                      };
-                      
-                      google.script.run
-                        .withSuccessHandler(function(response) {
-                          showResultLanzamiento(index, 'success', response.message);
-                          form.reset();
-                          
-                          // Reiniciar cambios
-                          changeCountersLanzamiento[index] = 1;
-                          const changesContainer = document.getElementById(`changesContainer-${index}`);
-                          const additionalChanges = changesContainer.querySelectorAll('.change-item-form:not(:first-child)');
-                          additionalChanges.forEach(el => el.remove());
-                          
-                          // Ocultar botón de eliminar
-                          const firstRemoveBtn = changesContainer.querySelector('.change-item-form:first-child .btn-remove-change');
-                          if (firstRemoveBtn) {
-                            firstRemoveBtn.style.display = 'none';
-                          }
-                        })
-                        .withFailureHandler(function(error) {
-                          showResultLanzamiento(index, 'error', 'Error: ' + error.message);
-                        })
-                        .processChangeRequest(requestData);
-                    }
-
-                    // Función para mostrar resultado
-                    function showResultLanzamiento(index, type, message) {
-                      const resultDiv = document.getElementById(`requestResult-${index}`);
-                      resultDiv.style.display = 'block';
-                      
-                      if (type === 'success') {
-                        resultDiv.style.background = '#e6f7ec';
-                        resultDiv.style.border = '1px solid #a3d9b1';
-                        resultDiv.style.color = '#0f5132';
-                        resultDiv.innerHTML = `
-                          <div style="display: flex; align-items: center; gap: 10px;">
-                            <svg style="width: 24px; height: 24px; fill: #0f5132;" viewBox="0 0 24 24">
-                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                            </svg>
-                            <div>
-                              <strong>${message}</strong>
-                            </div>
-                          </div>
-                        `;
-                        
-                        // Ocultar después de 5 segundos
-                        setTimeout(() => {
-                          resultDiv.style.display = 'none';
-                        }, 5000);
-                      } else {
-                        resultDiv.style.background = '#fde8e8';
-                        resultDiv.style.border = '1px solid #f5b7b7';
-                        resultDiv.style.color = '#721c24';
-                        resultDiv.innerHTML = `<p style="margin: 0;"><strong>${message}</strong></p>`;
-                      }
-                    }
-
-                    // Inicializar eventos al cargar
-                    document.addEventListener('DOMContentLoaded', function() {
-                      // Agregar efecto hover a las tarjetas
-                      const cards = document.querySelectorAll('[onclick*="toggleDetails"]');
-                      cards.forEach((card, index) => {
-                        card.addEventListener('mouseenter', function() {
-                          this.style.transform = 'translateY(-4px)';
-                          this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
-                          const img = this.querySelector('img');
-                          if (img) {
-                            img.style.transform = 'scale(1.05)';
-                          }
-                        });
-                        
-                        card.addEventListener('mouseleave', function() {
-                          this.style.transform = 'translateY(0)';
-                          this.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-                          const img = this.querySelector('img');
-                          if (img) {
-                            img.style.transform = 'scale(1)';
-                          }
-                        });
-                        
-                        // Inicializar contadores
-                        changeCountersLanzamiento[index] = 1;
-                      });
-                      
-                      // Event listener para cambios en UPC (solo para formularios musicales)
-                      document.querySelectorAll('input[id^="relatedId-"]').forEach(input => {
-                        input.addEventListener('change', function() {
-                          const index = this.id.split('-')[1];
-                          
-                          // Actualizar todos los campos actuales
-                          for (let i = 1; i <= (changeCountersLanzamiento[index] || 1); i++) {
-                            const fieldElement = document.getElementById(`fieldToModify${i}-${index}`);
-                            if (fieldElement && fieldElement.value) {
-                              updateCurrentValueLanzamiento(i, index);
-                            }
-                          }
-                        });
-                      });
-                    });
-                    </script>
-
-                    <style>
                     @media (max-width: 768px) {
                       .lanzamientos-grid {
                         grid-template-columns: 1fr;
@@ -10985,7 +10568,7 @@ function loadMemberProfilesSection() {
                       scroll-margin-top: 20px;
                     }
 
-                    /* Estilos para la sección de edición */
+                    /* Formulario de cambios */
                     .change-request-form .change-item-form {
                       background: rgba(255, 255, 255, 0.9);
                       color: black;
@@ -11004,7 +10587,55 @@ function loadMemberProfilesSection() {
                       padding-bottom: 10px;
                       border-bottom: 1px solid #e2e8f0;
                     }
-                    </style>
+
+                    /* Inputs, selects y textareas */
+                    .change-request-form input[type="text"],
+                    .change-request-form input[type="email"],
+                    .change-request-form select,
+                    .change-request-form textarea {
+                      width: 100%;
+                      padding: 10px;
+                      border: 2px solid #e2e8f0;
+                      border-radius: 6px;
+                      font-size: 0.9rem;
+                      box-sizing: border-box;
+                      font-family: inherit;
+                    }
+
+                    .change-request-form input[type="text"]:focus,
+                    .change-request-form select:focus,
+                    .change-request-form textarea:focus {
+                      outline: none;
+                      border-color: #6c5ce7;
+                      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+                    }
+
+                    .change-request-form input[readonly] {
+                      background: #f7fafc;
+                      color: #718096;
+                      cursor: not-allowed;
+                    }
+
+                    /* Botón eliminar */
+                    .btn-remove-change {
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 4px;
+                    }
+
+                    .btn-remove-change:hover {
+                      background: #dc2626 !important;
+                    }
+
+                    /* Ocultar el triángulo del <details> */
+                    .change-request-form details summary::-webkit-details-marker {
+                      display: none;
+                    }
+
+                    .change-request-form details summary {
+                      list-style: none;
+                    }
+                  </style>
                 </details>
               </div>
           </main>
