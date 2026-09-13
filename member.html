@@ -22,7 +22,7 @@
 <meta property="og:title" content="Panel de Grouvex Studios - Sistema Integral">
 <meta property="og:description" content="Plataforma de gestión musical para artistas y equipo de Grouvex Studios">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/Grouvex1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Grouvex Studios Logo">
@@ -34,7 +34,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Panel de Grouvex Studios">
 <meta name="twitter:description" content="Sistema de gestión musical profesional">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/Grouvex1.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png">
 <meta name="twitter:site" content="@grouvexstudios">
 <meta name="twitter:creator" content="@grouvexstudios">
 
@@ -47,7 +47,7 @@
 
 <!-- MICROSOFT/EDGE SPECIFIC -->
 <meta name="msapplication-TileColor" content="#2c3e50">
-<meta name="msapplication-TileImage" content="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/GROUVEX.png">
+<meta name="msapplication-TileImage" content="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png">
 <meta name="msapplication-config" content="none">
 <meta name="msapplication-tap-highlight" content="no">
 
@@ -67,10 +67,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="dns-prefetch" href="https://raw.githubusercontent.com">
-<link rel="preload" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/GROUVEX.png" as="image">
+<link rel="preload" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png" as="image">
 
 <!-- ICONS MULTIPLES PLATAFORMAS -->
-<link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/GROUVEX.png">
+<link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/favicon-16x16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/apple-touch-icon.png">
@@ -3435,7 +3435,7 @@
                         isVerifiedTeam = Array.isArray(data.insignias) && data.insignias.some(insignia => 
                             insigniasVerificadas.includes(insignia.name)
                         );
-                  }).withFailureHandler(function(error) {}).getArtistData(targetId);
+                  }).withFailureHandler(function(error) {}).getArtistData(mostrarId);
                   const userAvatar = document.getElementById('user-avatar');
                   const userAvatarTIGS = document.getElementById('user-avatarTIGS');
                   if (user.photoURL) {
@@ -3446,8 +3446,8 @@
                         userAvatar.style.display = 'block';
                   } else {
                         console.log('📸 No hay imagen de perfil');
-                        userAvatar.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/GROUVEX.png';
-                        userAvatarTIGS.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/GROUVEX.png';
+                        userAvatar.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png';
+                        userAvatarTIGS.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png';
                         userAvatar.style.display = 'block';
                         userAvatarTIGS.style.display = 'block';
                   }
@@ -3553,7 +3553,7 @@
                   console.log(isStaff);
                   document.getElementById('crUserId').value = gs_id;
                   document.getElementById('gs-user-id').value = gs_fireID;
-                  document.getElementById(`gsrecordsUserId`).value = mostrarId;
+                  document.getElementById(`gsrecordsUserId`).value = mostrarId || urlTargetId || gs_id || gs_fireID || '';
                   // Check if user is staff or verified team
                   try {
                         // Update UI
@@ -16327,7 +16327,7 @@ async function ejecutarImpresion(idx) {
           <!-- Sección izquierda: Logo -->
           <div class="footer-left">
             <a href="https://grouvex.github.io">
-              <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/Grouvex1.png" 
+              <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Banner.png" 
                   alt="Logo Grouvex Studios" 
                   class="footer-logo" 
                   loading="lazy">
@@ -16427,7 +16427,7 @@ async function ejecutarImpresion(idx) {
       <details class="calendar-section" open>
         <summary><h2><i class="fas fa-calendar-alt"></i> Calendario Oficial de Grouvex Studios</h2></summary>
         <div class="calendar-header">
-          <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/img/Grouvex1.png" 
+          <img src="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Banner.png" 
               alt="Logo Grouvex" 
               class="calendar-logo">
           <a href="https://grouvex.github.io/calendario.html" target="_blank" class="calendar-link">
