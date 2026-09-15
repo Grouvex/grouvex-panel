@@ -1,18 +1,77 @@
-<!-- BLOQUE DE CARGA -->
-<div id="loading" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 60px 20px; background: #0f172a; border-radius: 16px; margin: 20px auto; max-width: 1200px; color: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-  <div style="border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #a855f7; border-right: 4px solid #06b6d4; border-radius: 50%; width: 50px; height: 50px; animation: spin 0.8s linear infinite; margin: 0 auto 20px auto;"></div>
-  <p style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Cargando catálogo musical...</p>
-  <style>
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
-</div>
 <script src="/google-script-simulator.js"></script>
+<!-- CARGA DE FONT AWESOME -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<!-- ESTILOS GLOBALES RESPONSIVOS -->
+<style>
+  /* Animación de Carga */
+  @keyframes spin { 
+    0% { transform: rotate(0deg); } 
+    100% { transform: rotate(360deg); } 
+  }
+
+  /* Ajustes de renderizado para iframe responsivo */
+  .embed-wrapper iframe {
+    width: 100% !important;
+    border-radius: 12px;
+    border: 0;
+  }
+
+  /* Scrollbar personalizado */
+  .custom-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+  .custom-scroll::-webkit-scrollbar-track {
+    background: #0f172a;
+    border-radius: 10px;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: #38bdf8;
+    border-radius: 10px;
+  }
+
+  /* Media queries para ajustes finos en móvil */
+  @media (max-width: 600px) {
+    .artist-summary-title {
+      font-size: 16px !important;
+    }
+    .artist-summary-badge {
+      font-size: 11px !important;
+      padding: 4px 8px !important;
+    }
+    .platform-btn {
+      width: 100% !important;
+      justify-content: center !important;
+      box-sizing: border-box !important;
+    }
+    .track-meta-box {
+      font-size: 12px !important;
+      padding: 4px 8px !important;
+    }
+  }
+</style>
+
+<!-- BLOQUE DE CARGA -->
+<div id="loading" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 40px 15px; background: #0f172a; border-radius: 16px; margin: 10px auto; max-width: 1200px; color: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); box-sizing: border-box;">
+  <div style="border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #a855f7; border-right: 4px solid #06b6d4; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; margin: 0 auto 15px auto;"></div>
+  <p style="color: #ffffff; font-size: 16px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Cargando catálogo musical...</p>
+</div>
+
+<!-- BARRA DE BÚSQUEDA GENERAL -->
+<div id="search-bar-container" style="display: none; max-width: 1200px; margin: 10px auto 20px auto; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 0 10px; box-sizing: border-box;">
+  <div style="position: relative; width: 100%;">
+    <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 16px;">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </span>
+    <input type="text" id="global-search-input" placeholder="Buscar por Artista, Álbum o Canción..." style="width: 100%; padding: 14px 16px 14px 45px; background-color: #0f172a; border: 2px solid #3b82f6; border-radius: 12px; color: #ffffff; font-size: 15px; font-weight: 600; outline: none; box-sizing: border-box; box-shadow: 0 6px 20px rgba(0,0,0,0.3); transition: all 0.3s;" onkeyup="filterCatalog()">
+  </div>
+</div>
+
 <!-- CONTENEDOR PRINCIPAL DE ARTISTAS -->
-<div id="catalog-container" style="display: none; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 10px;"></div>
+<div id="catalog-container" style="display: none; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 0 10px; box-sizing: border-box;"></div>
 
 <!-- BLOQUE DE SCRIPT -->
 <script>
-
   document.addEventListener("DOMContentLoaded", function() {
     google.script.run
       .withSuccessHandler(renderCatalog)
@@ -23,32 +82,43 @@
   function handleError(error) {
     var loadingDiv = document.getElementById("loading");
     if (loadingDiv) {
-      loadingDiv.innerHTML = '<p style="color: #ff6b6b; font-weight: bold; font-size: 18px;">⚠️ Error al cargar el catálogo: ' + error.message + '</p>';
+      loadingDiv.innerHTML = '<p style="color: #ff6b6b; font-weight: bold; font-size: 16px;">⚠️ Error al cargar el catálogo: ' + error.message + '</p>';
     }
   }
 
-  // Convierte URLs o etiquetas incompletas a IFrames funcionales
+  function getPlatformIcon(platform) {
+    var icons = {
+      "Spotify": "fa-brands fa-spotify",
+      "YouTube": "fa-brands fa-youtube",
+      "Apple Music": "fa-brands fa-apple",
+      "Amazon Music": "fa-brands fa-amazon",
+      "Deezer": "fa-brands fa-deezer",
+      "Tidal": "fa-solid fa-compact-disc",
+      "Instagram": "fa-brands fa-instagram",
+      "TikTok": "fa-brands fa-tiktok",
+      "SoundCloud": "fa-brands fa-soundcloud"
+    };
+    return icons[platform] || "fa-solid fa-link";
+  }
+
   function formatEmbedContent(embedData) {
     if (!embedData) return '';
     var str = String(embedData).trim();
     
-    // Si ya contiene una etiqueta <iframe> la devolvemos tal cual
     if (str.toLowerCase().includes("<iframe")) {
       return str;
     }
 
-    // Si es una URL, generamos la etiqueta <iframe> correspondiente
     if (str.startsWith("http://") || str.startsWith("https://")) {
       var srcUrl = str;
       
-      // Adaptación de URLs estándar de YouTube a formato Embed si es necesario
       if (srcUrl.includes("youtube.com/watch?v=")) {
         srcUrl = srcUrl.replace("watch?v=", "embed/");
       } else if (srcUrl.includes("youtu.be/")) {
         srcUrl = srcUrl.replace("youtu.be/", "youtube.com/embed/");
       }
 
-      return '<iframe src="' + escapeHtml(srcUrl) + '" width="100%" height="152" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px; border: 0;"></iframe>';
+      return '<iframe src="' + escapeHtml(srcUrl) + '" height="180" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>';
     }
 
     return str;
@@ -57,6 +127,7 @@
   function renderCatalog(response) {
     var loadingDiv = document.getElementById("loading");
     var container = document.getElementById("catalog-container");
+    var searchBar = document.getElementById("search-bar-container");
 
     if (response.error || !response.songsData || response.songsData.length === 0) {
       loadingDiv.innerHTML = '<p style="color: #ffffff; font-size: 16px;">No se encontraron lanzamientos disponibles.</p>';
@@ -120,77 +191,97 @@
 
     Object.keys(artistsMap).forEach(function(artista) {
       var details = document.createElement("details");
-      details.style.cssText = "background-color: #0f172a; border: 2px solid #3b82f6; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); overflow: hidden;";
+      details.className = "artist-details";
+      details.dataset.artistName = artista.toLowerCase();
+      details.style.cssText = "background-color: #0f172a; border: 2px solid #3b82f6; border-radius: 14px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); overflow: hidden;";
 
       var summary = document.createElement("summary");
-      summary.style.cssText = "font-weight: 800; font-size: 20px; padding: 20px 25px; background: #1e293b; cursor: pointer; color: #ffffff; outline: none; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between;";
-      summary.innerHTML = '<span style="color:#ffffff;">🎤 ' + escapeHtml(artista) + '</span><span style="font-size: 14px; background: #2563eb; padding: 6px 14px; border-radius: 20px; color: #ffffff; font-weight:700;">' + artistsMap[artista].length + ' Lanzamientos</span>';
+      summary.style.cssText = "font-weight: 800; font-size: 18px; padding: 16px 20px; background: #1e293b; cursor: pointer; color: #ffffff; outline: none; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; gap: 10px;";
+      summary.innerHTML = '<span class="artist-summary-title" style="color:#ffffff; word-break: break-word;"><i class="fa-solid fa-microphone-lines" style="margin-right:8px; color:#38bdf8;"></i>' + escapeHtml(artista) + '</span><span class="artist-summary-badge" style="font-size: 13px; background: #2563eb; padding: 4px 12px; border-radius: 20px; color: #ffffff; font-weight:700; white-space: nowrap;">' + artistsMap[artista].length + ' Lanzamientos</span>';
       details.appendChild(summary);
 
       var artistContent = document.createElement("div");
-      artistContent.style.cssText = "padding: 25px; background-color: #0f172a;";
+      artistContent.style.cssText = "padding: 15px; background-color: #0f172a;";
 
       artistsMap[artista].forEach(function(item) {
         var song = item.data;
         var allowed = item.allowed;
 
         var releaseCard = document.createElement("div");
-        releaseCard.style.cssText = "border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 30px; background: #182234;";
-
-        // --- INFORMACIÓN DEL ÁLBUM ---
+        releaseCard.className = "release-card";
+        
         var albumTitle = song["Título del álbum/sencillo/EP"] || "Lanzamiento sin título";
-        var htmlAlbum = '<div style="border-bottom: 2px solid #38bdf8; padding-bottom: 12px; margin-bottom: 20px;">' +
-                          '<h3 style="margin:0; color:#ffffff; font-size:24px; font-weight:800;">💿 ' + escapeHtml(albumTitle) + '</h3>' +
+        var trackNames = [];
+        for (var t = 1; t <= 15; t++) {
+          if (song["Título " + t]) trackNames.push(song["Título " + t]);
+        }
+        releaseCard.dataset.searchKeywords = (artista + " " + albumTitle + " " + trackNames.join(" ")).toLowerCase();
+
+        releaseCard.style.cssText = "border: 1px solid #334155; border-radius: 12px; padding: 15px; margin-bottom: 20px; background: #182234; box-sizing: border-box;";
+
+        // --- INFORMACIÓN DEL ÁLBUM (GRID RESPONSIVO) ---
+        var htmlAlbum = '<div style="border-bottom: 2px solid #38bdf8; padding-bottom: 10px; margin-bottom: 15px;">' +
+                          '<h3 style="margin:0; color:#ffffff; font-size:20px; font-weight:800; word-break: break-word;"><i class="fa-solid fa-compact-disc" style="margin-right:8px; color:#c084fc;"></i>' + escapeHtml(albumTitle) + '</h3>' +
                         '</div>';
         
-        htmlAlbum += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 20px;">';
+        htmlAlbum += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 15px;">';
         
         allowed.forEach(function(key) {
           var isTrackField = /^(Título|Artistas|Compositores|¿Contiene letras\?|Letristas|ISRC|Idioma|Preview Clip|Cover)\s\d+$/.test(key);
           var isPlatform = embedKeys.includes(key) || linkKeys.includes(key);
 
           if (!isTrackField && !isPlatform && song[key] !== undefined && song[key] !== "") {
-            htmlAlbum += '<div style="background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155;">' +
-                          '<strong style="color: #fde047; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">' + escapeHtml(key) + '</strong>' +
-                          '<span style="color: #ffffff; font-size: 15px; font-weight: 600;">' + escapeHtml(song[key]) + '</span>' +
+            htmlAlbum += '<div style="background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155; word-break: break-word;">' +
+                          '<strong style="color: #fde047; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">' + escapeHtml(key) + '</strong>' +
+                          '<span style="color: #ffffff; font-size: 14px; font-weight: 600;">' + escapeHtml(song[key]) + '</span>' +
                          '</div>';
           }
         });
         htmlAlbum += '</div>';
 
-        // --- PLATAFORMAS (BOTONES Y EMBEDS CON IFRAMES) ---
+        // --- PLATAFORMAS (BOTONES ICONOS, HR Y UN SOLO IFRAME VISIBLE) ---
         var embedsHtml = '';
         var linksHtml = '';
 
-        // Botones Directos
         linkKeys.forEach(function(key) {
           if (allowed.includes(key) && song[key]) {
-            linksHtml += '<a href="' + escapeHtml(song[key]) + '" target="_blank" style="display:inline-flex; align-items:center; background: #2563eb; color:#ffffff; padding: 10px 18px; margin: 4px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; border: 1px solid #60a5fa;">' + escapeHtml(key) + ' <span style="margin-left:5px;">↗</span></a>';
+            var iconClass = getPlatformIcon(key);
+            linksHtml += '<a href="' + escapeHtml(song[key]) + '" target="_blank" class="platform-btn" style="display:inline-flex; align-items:center; gap:8px; background: #2563eb; color:#ffffff; padding: 8px 14px; margin: 3px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; border: 1px solid #60a5fa; box-shadow: 0 4px 10px rgba(37,99,235,0.3);">' +
+                            '<i class="' + iconClass + '" style="font-size:15px;"></i> ' + escapeHtml(key) + ' <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px; margin-left:2px;"></i>' +
+                         '</a>';
           }
         });
 
-        // Carrusel de Embeds usando iFrames
         embedKeys.forEach(function(key) {
           if (allowed.includes(key) && song[key]) {
             var iframeContent = formatEmbedContent(song[key]);
-            embedsHtml += '<div style="flex: 0 0 auto; width: 340px; background: #0f172a; padding: 14px; border-radius: 12px; border: 1px solid #38bdf8; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">' +
-                            '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">' +
-                              '<span style="width:10px; height:10px; background-color:#38bdf8; border-radius:50%; display:inline-block;"></span>' +
-                              '<strong style="font-size: 14px; color: #ffffff; text-transform: uppercase; font-weight:700;">' + escapeHtml(key) + '</strong>' +
+            embedsHtml += '<div style="flex: 0 0 100%; width: 100%; min-width: 100%; scroll-snap-align: start; box-sizing: border-box; background: #0f172a; padding: 12px; border-radius: 12px; border: 1px solid #38bdf8;">' +
+                            '<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">' +
+                              '<i class="' + getPlatformIcon(key.replace(" Embed", "")) + '" style="color:#38bdf8; font-size:16px;"></i>' +
+                              '<strong style="font-size: 13px; color: #ffffff; text-transform: uppercase; font-weight:700;">' + escapeHtml(key) + '</strong>' +
                             '</div>' +
-                            '<div style="border-radius:8px; overflow:hidden; background:#000;">' + iframeContent + '</div>' +
+                            '<div class="embed-wrapper" style="border-radius:8px; overflow:hidden; background:#000;">' + iframeContent + '</div>' +
                           '</div>';
           }
         });
 
         if (linksHtml || embedsHtml) {
-          htmlAlbum += '<div style="margin-top: 25px; background: #0b1120; padding: 20px; border-radius: 12px; border: 1px solid #1e293b;">';
-          htmlAlbum += '<h4 style="margin:0 0 15px 0; color:#38bdf8; font-size:17px; font-weight:800; text-transform:uppercase;">🎧 Reproductores y Enlaces</h4>';
+          htmlAlbum += '<div style="margin-top: 20px; background: #0b1120; padding: 15px; border-radius: 12px; border: 1px solid #1e293b; box-sizing: border-box;">';
+          htmlAlbum += '<h4 style="margin:0 0 12px 0; color:#38bdf8; font-size:15px; font-weight:800; text-transform:uppercase;"><i class="fa-solid fa-headphones" style="margin-right:8px;"></i>Plataformas y Reproductores</h4>';
+          
           if (linksHtml) {
-            htmlAlbum += '<div style="margin-bottom: 15px; display:flex; flex-wrap:wrap; gap:6px;">' + linksHtml + '</div>';
+            htmlAlbum += '<div style="margin-bottom: 10px; display:flex; flex-wrap:wrap; gap:4px;">' + linksHtml + '</div>';
           }
+
+          if (linksHtml && embedsHtml) {
+            htmlAlbum += '<hr style="border: 0; height: 1px; background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.8), rgba(56, 189, 248, 0.1)); margin: 15px 0;">';
+          }
+
           if (embedsHtml) {
-            htmlAlbum += '<div style="display: flex; overflow-x: auto; gap: 20px; padding: 10px 5px 15px 5px; scrollbar-width: thin; scrollbar-color: #38bdf8 #0f172a;">' + embedsHtml + '</div>';
+            htmlAlbum += '<div style="position:relative; width: 100%; overflow: hidden;">' +
+                           '<div class="custom-scroll" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; width: 100%; gap: 0px; padding-bottom: 10px; box-sizing: border-box;">' + embedsHtml + '</div>' +
+                           '<p style="text-align:right; font-size:11px; color:#94a3b8; margin:4px 0 0 0;"><i class="fa-solid fa-arrows-left-right" style="margin-right:4px;"></i> Desliza para ver otros reproductores</p>' +
+                         '</div>';
           }
           htmlAlbum += '</div>';
         }
@@ -199,9 +290,9 @@
 
         // --- CANCIONES DEL ÁLBUM (1 a 15) ---
         var tracksContainer = document.createElement("div");
-        tracksContainer.style.cssText = "margin-top: 20px; background: #0b1120; border-radius: 12px; padding: 20px; border: 1px solid #1e293b;";
+        tracksContainer.style.cssText = "margin-top: 15px; background: #0b1120; border-radius: 12px; padding: 15px; border: 1px solid #1e293b; box-sizing: border-box;";
         
-        var tracksHtml = '<h4 style="margin-top:0; color:#c084fc; font-size:17px; font-weight:800; border-bottom:1px solid #334155; padding-bottom:10px; margin-bottom:15px; text-transform:uppercase;">🎵 Lista de Canciones</h4>';
+        var tracksHtml = '<h4 style="margin-top:0; color:#c084fc; font-size:15px; font-weight:800; border-bottom:1px solid #334155; padding-bottom:8px; margin-bottom:12px; text-transform:uppercase;"><i class="fa-solid fa-music" style="margin-right:8px;"></i>Lista de Canciones</h4>';
         var hasTracks = false;
 
         for (var t = 1; t <= 15; t++) {
@@ -209,9 +300,9 @@
           
           if (song[trackTitleKey]) {
             hasTracks = true;
-            tracksHtml += '<div style="margin-bottom: 12px; padding: 14px 16px; background: #182234; border-left: 5px solid #a855f7; border-radius: 0 8px 8px 0;">';
-            tracksHtml += '<div style="display:flex; align-items:center;"><strong style="font-size:17px; color:#ffffff;">' + t + '. ' + escapeHtml(song[trackTitleKey]) + '</strong></div>';
-            tracksHtml += '<div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 14px;">';
+            tracksHtml += '<div style="margin-bottom: 10px; padding: 10px 12px; background: #182234; border-left: 4px solid #a855f7; border-radius: 0 8px 8px 0; box-sizing: border-box;">';
+            tracksHtml += '<div style="display:flex; align-items:center;"><strong style="font-size:15px; color:#ffffff; word-break: break-word;">' + t + '. ' + escapeHtml(song[trackTitleKey]) + '</strong></div>';
+            tracksHtml += '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; font-size: 13px;">';
 
             var trackProperties = [
               "Artistas", "Compositores", "¿Contiene letras?", "Letristas", "ISRC", "Idioma", "Preview Clip", "Cover"
@@ -220,7 +311,7 @@
             trackProperties.forEach(function(prop) {
               var fullKey = prop + " " + t;
               if (allowed.includes(fullKey) && song[fullKey] !== undefined && song[fullKey] !== "") {
-                tracksHtml += '<div style="background: #0f172a; padding: 6px 12px; border-radius: 6px; border: 1px solid #334155;">' +
+                tracksHtml += '<div class="track-meta-box" style="background: #0f172a; padding: 5px 10px; border-radius: 6px; border: 1px solid #334155; word-break: break-word;">' +
                                 '<span style="color:#fde047; font-weight:700;">' + escapeHtml(prop) + ':</span> ' +
                                 '<span style="color:#ffffff; font-weight:500;">' + escapeHtml(song[fullKey]) + '</span>' +
                               '</div>';
@@ -244,7 +335,39 @@
     });
 
     loadingDiv.style.display = "none";
+    searchBar.style.display = "block";
     container.style.display = "block";
+  }
+
+  function filterCatalog() {
+    var query = document.getElementById("global-search-input").value.toLowerCase().trim();
+    var artistBlocks = document.querySelectorAll(".artist-details");
+
+    artistBlocks.forEach(function(details) {
+      var artistName = details.dataset.artistName;
+      var releases = details.querySelectorAll(".release-card");
+      var hasVisibleRelease = false;
+
+      releases.forEach(function(card) {
+        var keywords = card.dataset.searchKeywords;
+        
+        if (query === "" || keywords.includes(query)) {
+          card.style.display = "block";
+          hasVisibleRelease = true;
+        } else {
+          card.style.display = "none";
+        }
+      });
+
+      if (hasVisibleRelease) {
+        details.style.display = "block";
+        if (query !== "") {
+          details.open = true;
+        }
+      } else {
+        details.style.display = "none";
+      }
+    });
   }
 
   function escapeHtml(text) {
