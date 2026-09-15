@@ -1,0 +1,259 @@
+<!-- BLOQUE DE CARGA -->
+<div id="loading" style="font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; text-align: center; padding: 60px 20px; background: #0f172a; border-radius: 16px; margin: 20px auto; max-width: 1200px; color: #ffffff; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+  <div style="border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #a855f7; border-right: 4px solid #06b6d4; border-radius: 50%; width: 50px; height: 50px; animation: spin 0.8s linear infinite; margin: 0 auto 20px auto;"></div>
+  <p style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 0; letter-spacing: 0.5px;">Cargando catálogo musical...</p>
+  <style>
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</div>
+<script src="/google-script-simulator.js"></script>
+<!-- CONTENEDOR PRINCIPAL DE ARTISTAS -->
+<div id="catalog-container" style="display: none; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 10px;"></div>
+
+<!-- BLOQUE DE SCRIPT -->
+<script>
+
+  document.addEventListener("DOMContentLoaded", function() {
+    google.script.run
+      .withSuccessHandler(renderCatalog)
+      .withFailureHandler(handleError)
+      .getAllSongs();
+  });
+
+  function handleError(error) {
+    var loadingDiv = document.getElementById("loading");
+    if (loadingDiv) {
+      loadingDiv.innerHTML = '<p style="color: #ff6b6b; font-weight: bold; font-size: 18px;">⚠️ Error al cargar el catálogo: ' + error.message + '</p>';
+    }
+  }
+
+  // Convierte URLs o etiquetas incompletas a IFrames funcionales
+  function formatEmbedContent(embedData) {
+    if (!embedData) return '';
+    var str = String(embedData).trim();
+    
+    // Si ya contiene una etiqueta <iframe> la devolvemos tal cual
+    if (str.toLowerCase().includes("<iframe")) {
+      return str;
+    }
+
+    // Si es una URL, generamos la etiqueta <iframe> correspondiente
+    if (str.startsWith("http://") || str.startsWith("https://")) {
+      var srcUrl = str;
+      
+      // Adaptación de URLs estándar de YouTube a formato Embed si es necesario
+      if (srcUrl.includes("youtube.com/watch?v=")) {
+        srcUrl = srcUrl.replace("watch?v=", "embed/");
+      } else if (srcUrl.includes("youtu.be/")) {
+        srcUrl = srcUrl.replace("youtu.be/", "youtube.com/embed/");
+      }
+
+      return '<iframe src="' + escapeHtml(srcUrl) + '" width="100%" height="152" frameborder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px; border: 0;"></iframe>';
+    }
+
+    return str;
+  }
+
+  function renderCatalog(response) {
+    var loadingDiv = document.getElementById("loading");
+    var container = document.getElementById("catalog-container");
+
+    if (response.error || !response.songsData || response.songsData.length === 0) {
+      loadingDiv.innerHTML = '<p style="color: #ffffff; font-size: 16px;">No se encontraron lanzamientos disponibles.</p>';
+      return;
+    }
+
+    var forbiddenFields = [
+      "Grouvex Studios UserID", 
+      "Marca temporal", 
+      "Estado del Contrato", 
+      "Razón", 
+      "¿Se Puede Modificar el Lanzamiento?"
+    ];
+
+    var defaultFields = [
+      "Artista", "Título del álbum/sencillo/EP", "Idioma del álbum", "Versión del Lanzamiento", "Cover?", 
+      "Álbum Recopilatorio", "Otros Artistas Álbum", "Compositores del álbum", "Letristas del álbum", 
+      "Información para colaboradores", "Género primario", "Género secundario", "Derechos de autor de la composición", 
+      "Derechos de autor de grabación de sonido", "Nombre del sello discográfico", "Lanzamiento original", 
+      "Fecha de pedido anticipado", "Fecha de inicio de ventas", "Agregar una hora", "Elegir zona horaria | Agregar una hora", 
+      "Entrar en vivo | Agregar una hora", "Explicit Content", "Plataformas de Lanzamiento", "Spotify", "Spotify Embed", 
+      "YouTube", "YouTube Embed", "Apple Music", "Apple Music Embed", "Amazon Music", "Amazon Music Embed", 
+      "Deezer", "Deezer Embed", "Tidal", "Instagram", "TikTok", "SoundCloud", "Territorios donde:", 
+      "Territorios:", "Likes", "Categoría del Lanzamiento"
+    ];
+
+    for (var i = 1; i <= 15; i++) {
+      defaultFields.push("Título " + i, "Artistas " + i, "Compositores " + i, "¿Contiene letras? " + i, "Letristas " + i, "Idioma " + i, "Preview Clip " + i, "Cover " + i);
+    }
+
+    var embedKeys = ["Spotify Embed", "YouTube Embed", "Apple Music Embed", "Amazon Music Embed", "Deezer Embed"];
+    var linkKeys = ["Spotify", "YouTube", "Apple Music", "Amazon Music", "Deezer", "Tidal", "Instagram", "TikTok", "SoundCloud"];
+
+    var artistsMap = {};
+
+    response.songsData.forEach(function(song) {
+      var privacidadVal = (song["Mostrar Privacidad"] || song["Privacidad"] || "").toString().trim();
+
+      if (privacidadVal.toLowerCase() === "privado") return;
+
+      var allowedFields = [];
+      if (privacidadVal.toLowerCase() === "público" || privacidadVal.toLowerCase() === "publico" || privacidadVal === "") {
+        allowedFields = defaultFields;
+      } else {
+        allowedFields = privacidadVal.split(",").map(function(s) { return s.trim(); });
+      }
+
+      allowedFields = allowedFields.filter(function(field) {
+        return !forbiddenFields.includes(field);
+      });
+
+      var artistaName = song["Artista"] || "Artista Desconocido";
+
+      if (!artistsMap[artistaName]) {
+        artistsMap[artistaName] = [];
+      }
+      artistsMap[artistaName].push({ data: song, allowed: allowedFields });
+    });
+
+    container.innerHTML = "";
+
+    Object.keys(artistsMap).forEach(function(artista) {
+      var details = document.createElement("details");
+      details.style.cssText = "background-color: #0f172a; border: 2px solid #3b82f6; border-radius: 16px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); overflow: hidden;";
+
+      var summary = document.createElement("summary");
+      summary.style.cssText = "font-weight: 800; font-size: 20px; padding: 20px 25px; background: #1e293b; cursor: pointer; color: #ffffff; outline: none; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between;";
+      summary.innerHTML = '<span style="color:#ffffff;">🎤 ' + escapeHtml(artista) + '</span><span style="font-size: 14px; background: #2563eb; padding: 6px 14px; border-radius: 20px; color: #ffffff; font-weight:700;">' + artistsMap[artista].length + ' Lanzamientos</span>';
+      details.appendChild(summary);
+
+      var artistContent = document.createElement("div");
+      artistContent.style.cssText = "padding: 25px; background-color: #0f172a;";
+
+      artistsMap[artista].forEach(function(item) {
+        var song = item.data;
+        var allowed = item.allowed;
+
+        var releaseCard = document.createElement("div");
+        releaseCard.style.cssText = "border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 30px; background: #182234;";
+
+        // --- INFORMACIÓN DEL ÁLBUM ---
+        var albumTitle = song["Título del álbum/sencillo/EP"] || "Lanzamiento sin título";
+        var htmlAlbum = '<div style="border-bottom: 2px solid #38bdf8; padding-bottom: 12px; margin-bottom: 20px;">' +
+                          '<h3 style="margin:0; color:#ffffff; font-size:24px; font-weight:800;">💿 ' + escapeHtml(albumTitle) + '</h3>' +
+                        '</div>';
+        
+        htmlAlbum += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-bottom: 20px;">';
+        
+        allowed.forEach(function(key) {
+          var isTrackField = /^(Título|Artistas|Compositores|¿Contiene letras\?|Letristas|ISRC|Idioma|Preview Clip|Cover)\s\d+$/.test(key);
+          var isPlatform = embedKeys.includes(key) || linkKeys.includes(key);
+
+          if (!isTrackField && !isPlatform && song[key] !== undefined && song[key] !== "") {
+            htmlAlbum += '<div style="background: #0f172a; padding: 12px; border-radius: 8px; border: 1px solid #334155;">' +
+                          '<strong style="color: #fde047; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">' + escapeHtml(key) + '</strong>' +
+                          '<span style="color: #ffffff; font-size: 15px; font-weight: 600;">' + escapeHtml(song[key]) + '</span>' +
+                         '</div>';
+          }
+        });
+        htmlAlbum += '</div>';
+
+        // --- PLATAFORMAS (BOTONES Y EMBEDS CON IFRAMES) ---
+        var embedsHtml = '';
+        var linksHtml = '';
+
+        // Botones Directos
+        linkKeys.forEach(function(key) {
+          if (allowed.includes(key) && song[key]) {
+            linksHtml += '<a href="' + escapeHtml(song[key]) + '" target="_blank" style="display:inline-flex; align-items:center; background: #2563eb; color:#ffffff; padding: 10px 18px; margin: 4px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 700; border: 1px solid #60a5fa;">' + escapeHtml(key) + ' <span style="margin-left:5px;">↗</span></a>';
+          }
+        });
+
+        // Carrusel de Embeds usando iFrames
+        embedKeys.forEach(function(key) {
+          if (allowed.includes(key) && song[key]) {
+            var iframeContent = formatEmbedContent(song[key]);
+            embedsHtml += '<div style="flex: 0 0 auto; width: 340px; background: #0f172a; padding: 14px; border-radius: 12px; border: 1px solid #38bdf8; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">' +
+                            '<div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">' +
+                              '<span style="width:10px; height:10px; background-color:#38bdf8; border-radius:50%; display:inline-block;"></span>' +
+                              '<strong style="font-size: 14px; color: #ffffff; text-transform: uppercase; font-weight:700;">' + escapeHtml(key) + '</strong>' +
+                            '</div>' +
+                            '<div style="border-radius:8px; overflow:hidden; background:#000;">' + iframeContent + '</div>' +
+                          '</div>';
+          }
+        });
+
+        if (linksHtml || embedsHtml) {
+          htmlAlbum += '<div style="margin-top: 25px; background: #0b1120; padding: 20px; border-radius: 12px; border: 1px solid #1e293b;">';
+          htmlAlbum += '<h4 style="margin:0 0 15px 0; color:#38bdf8; font-size:17px; font-weight:800; text-transform:uppercase;">🎧 Reproductores y Enlaces</h4>';
+          if (linksHtml) {
+            htmlAlbum += '<div style="margin-bottom: 15px; display:flex; flex-wrap:wrap; gap:6px;">' + linksHtml + '</div>';
+          }
+          if (embedsHtml) {
+            htmlAlbum += '<div style="display: flex; overflow-x: auto; gap: 20px; padding: 10px 5px 15px 5px; scrollbar-width: thin; scrollbar-color: #38bdf8 #0f172a;">' + embedsHtml + '</div>';
+          }
+          htmlAlbum += '</div>';
+        }
+
+        releaseCard.innerHTML = htmlAlbum;
+
+        // --- CANCIONES DEL ÁLBUM (1 a 15) ---
+        var tracksContainer = document.createElement("div");
+        tracksContainer.style.cssText = "margin-top: 20px; background: #0b1120; border-radius: 12px; padding: 20px; border: 1px solid #1e293b;";
+        
+        var tracksHtml = '<h4 style="margin-top:0; color:#c084fc; font-size:17px; font-weight:800; border-bottom:1px solid #334155; padding-bottom:10px; margin-bottom:15px; text-transform:uppercase;">🎵 Lista de Canciones</h4>';
+        var hasTracks = false;
+
+        for (var t = 1; t <= 15; t++) {
+          var trackTitleKey = "Título " + t;
+          
+          if (song[trackTitleKey]) {
+            hasTracks = true;
+            tracksHtml += '<div style="margin-bottom: 12px; padding: 14px 16px; background: #182234; border-left: 5px solid #a855f7; border-radius: 0 8px 8px 0;">';
+            tracksHtml += '<div style="display:flex; align-items:center;"><strong style="font-size:17px; color:#ffffff;">' + t + '. ' + escapeHtml(song[trackTitleKey]) + '</strong></div>';
+            tracksHtml += '<div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 14px;">';
+
+            var trackProperties = [
+              "Artistas", "Compositores", "¿Contiene letras?", "Letristas", "ISRC", "Idioma", "Preview Clip", "Cover"
+            ];
+
+            trackProperties.forEach(function(prop) {
+              var fullKey = prop + " " + t;
+              if (allowed.includes(fullKey) && song[fullKey] !== undefined && song[fullKey] !== "") {
+                tracksHtml += '<div style="background: #0f172a; padding: 6px 12px; border-radius: 6px; border: 1px solid #334155;">' +
+                                '<span style="color:#fde047; font-weight:700;">' + escapeHtml(prop) + ':</span> ' +
+                                '<span style="color:#ffffff; font-weight:500;">' + escapeHtml(song[fullKey]) + '</span>' +
+                              '</div>';
+              }
+            });
+
+            tracksHtml += '</div></div>';
+          }
+        }
+
+        if (hasTracks) {
+          tracksContainer.innerHTML = tracksHtml;
+          releaseCard.appendChild(tracksContainer);
+        }
+
+        artistContent.appendChild(releaseCard);
+      });
+
+      details.appendChild(artistContent);
+      container.appendChild(details);
+    });
+
+    loadingDiv.style.display = "none";
+    container.style.display = "block";
+  }
+
+  function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+</script>
