@@ -6,11 +6,8 @@
   <title>🔐 Gestión de Categorías - Grouvex Studios</title>
   <link rel="icon" href="https://raw.githubusercontent.com/Grouvex/grouvex.github.io/main/img/GROUVEX.png">
   
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  
-  <!-- Shim de google.script.run -->
   <script src="/google-script-simulator.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,7 +26,7 @@
       background: white;
       border-radius: 20px;
       padding: 45px 35px;
-      max-width: 700px;
+      max-width: 760px;
       width: 100%;
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
       animation: slideUp 0.5s ease;
@@ -191,6 +188,105 @@
       margin: 10px 0; font-size: 12px; color: #975a16;
     }
     
+    /* ============================================
+       PANEL DE OPERACIONES
+       ============================================ */
+    .operaciones-panel {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 15px;
+      margin: 15px 0;
+    }
+    .operaciones-panel h4 {
+      margin: 0 0 12px 0;
+      color: #2d3748;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .operaciones-panel h4 .count {
+      background: #667eea;
+      color: white;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    
+    .operacion-item {
+      display: grid;
+      grid-template-columns: 1fr 140px 40px;
+      gap: 8px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      transition: all 0.3s;
+    }
+    .operacion-item.ok { background: #f0fff4; border-color: #c6f6d5; }
+    .operacion-item.error { background: #fff5f5; border-color: #fed7d7; }
+    .operacion-item.pending { background: #fffbeb; border-color: #fef3c7; }
+    
+    .operacion-item select,
+    .operacion-item .cat-display {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e0;
+      border-radius: 6px;
+      font-size: 14px;
+      background: white;
+      color: #2d3748;
+    }
+    .operacion-item .cat-display {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .operacion-item .btn-remove-op {
+      background: #e53e3e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 8px;
+      transition: background 0.2s;
+    }
+    .operacion-item .btn-remove-op:hover { background: #c53030; }
+    
+    .operacion-status {
+      grid-column: 1 / -1;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-top: 4px;
+    }
+    .operacion-status.ok { color: #276749; background: #c6f6d5; }
+    .operacion-status.error { color: #c53030; background: #fed7d7; }
+    .operacion-status.pending { color: #975a16; background: #fef3c7; }
+    .operacion-status.info { color: #2c5282; background: #bee3f8; }
+    
+    .btn-add-op {
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    .btn-add-op:hover { background: #5a67d8; }
+    .btn-add-op:disabled { background: #cbd5e0; cursor: not-allowed; }
+    
     .acciones-rapidas {
       display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap;
     }
@@ -203,10 +299,8 @@
       border: none; text-align: center;
       text-decoration: none; display: inline-block;
     }
-    .btn-accion-principal { background: #667eea; color: white; }
-    .btn-accion-principal:hover { background: #5a67d8; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
-    .btn-accion-principal.add { background: #48bb78; }
-    .btn-accion-principal.add:hover { background: #38a169; box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3); }
+    .btn-accion-principal { background: #48bb78; color: white; }
+    .btn-accion-principal:hover { background: #38a169; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3); }
     .btn-accion-principal.remove { background: #e53e3e; }
     .btn-accion-principal.remove:hover { background: #c53030; box-shadow: 0 10px 20px rgba(229, 62, 62, 0.3); }
     
@@ -231,6 +325,7 @@
       .acciones-rapidas { flex-direction: column; }
       .btn-accion-principal,
       .btn-accion-secundario { min-width: 100%; }
+      .operacion-item { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
@@ -274,24 +369,34 @@
 
     <!-- AUTENTICADO -->
     <div id="authenticatedSection" class="hidden">
-      <div class="categoria-selector-wrapper">
-        <div class="form-group">
-          <label>📁 Selecciona la Categoría</label>
-          <select id="categoriaSelector">
-            <option value="">-- Cargando categorías... --</option>
-          </select>
-          <div class="legend">
-            <small><span>✅</span> Estás registrado en esta categoría</small><br>
-            <small><span>🌐</span> <strong>Público</strong> - Puedes agregarte o eliminarte</small><br>
-            <small><span>🔒</span> <strong>Privado</strong> - Solo puedes eliminarte</small><br>
-            <small><span>🛡️</span> <strong>Protegido</strong> - No puedes modificar</small>
+
+      <!-- PANEL DE OPERACIONES -->
+      <div class="operaciones-panel">
+        <h4>
+          📋 Operaciones a realizar
+          <span class="count" id="operacionesCount">0</span>
+        </h4>
+        <div id="operacionesList"></div>
+        <div class="form-group" style="margin-top:10px;">
+          <label>Añadir nueva operación</label>
+          <div style="display:flex;gap:8px;">
+            <select id="nuevaCategoriaSelect" style="flex:1;">
+              <option value="">-- Seleccionar categoría --</option>
+            </select>
+            <select id="nuevaAccionSelect" style="width:120px;">
+              <option value="auto">🔄 Auto</option>
+              <option value="add">➕ Add</option>
+              <option value="remove">➖ Remove</option>
+            </select>
+            <button id="btnAddOperacion" class="btn-add-op" style="width:auto;padding:10px 16px;">➕</button>
           </div>
         </div>
+      </div>
 
-        <div class="acciones-rapidas">
-          <button id="btnAccionPrincipal" class="btn-accion-principal add" type="button">➕ Agregarme</button>
-          <button id="btnAccionSecundario" class="btn-accion-secundario hidden" type="button">🚫 Quitarme de todas</button>
-        </div>
+      <!-- BOTONES DE ACCIÓN -->
+      <div class="acciones-rapidas">
+        <button id="btnAccionPrincipal" class="btn-accion-principal" type="button">✅ Ejecutar operaciones</button>
+        <button id="btnAccionSecundario" class="btn-accion-secundario hidden" type="button">🚫 Quitarme de todas</button>
       </div>
 
       <div id="misCategoriasContainer" style="display:none;" class="mis-categorias">
@@ -303,8 +408,7 @@
         <div class="info-text">
           <strong>📨 Mensaje:</strong> <span id="infoMensaje">Gestión de categorías</span><br><br>
           <span style="font-size: 13px; color: #4a5568;">
-            Inicia sesión con Google para verificar tu identidad.
-            Podrás ver en qué categorías estás registrado y gestionar tu pertenencia.
+            Añade operaciones (categoría + acción) y pulsa "Ejecutar" para aplicarlas todas en una sola petición.
           </span>
         </div>
       </div>
@@ -336,7 +440,7 @@
 
   <script>
     // ============================================
-    // CONFIGURACIÓN FIREBASE
+    // FIREBASE
     // ============================================
     const firebaseConfig = {
       apiKey: "AIzaSyAgoQ_Px3hHVrevUsyct_FBeXWMDKXpPSw",
@@ -358,13 +462,6 @@
         let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
         while (base64.length % 4) base64 += '=';
         return decodeURIComponent(escape(atob(base64)));
-      } catch { return str; }
-    };
-
-    const encodeBase64WebSafe = (str) => {
-      try {
-        const base64 = btoa(unescape(encodeURIComponent(str)));
-        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
       } catch { return str; }
     };
 
@@ -391,20 +488,26 @@
       return partes.join('').trim() || '0s';
     };
 
-    // ✅ Elimina TODOS los emojis (principio, medio y final) y normaliza espacios
     const limpiarCategoria = (cat) => String(cat)
       .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F02F}\u{FE0F}\u{200D}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}]/gu, '')
       .replace(/\s+/g, ' ')
       .trim();
 
-    // ✅ Normaliza para comparaciones (minúsculas + sin emojis)
     const normalizar = (s) => limpiarCategoria(s).toLowerCase();
+
+    const parseCategorias = (raw) => {
+      if (!raw) return [];
+      return String(raw)
+        .split(',')
+        .map(c => limpiarCategoria(decodeURIComponent(c)))
+        .filter(Boolean);
+    };
 
     // ============================================
     // ESTADO GLOBAL
     // ============================================
     const state = {
-      categoriaInicial: '',
+      categoriasRecibidas: [],
       accionPorDefecto: 'add',
       timestamp: '',
       emailsArray: [],
@@ -413,6 +516,8 @@
       cacheCategorias: new Map(),
       esMultiEmail: false,
       autorizado: false,
+      operaciones: [], // [{id, categoria, accion}]  accion: 'auto'|'add'|'remove'
+      todasCategorias: {},
       baseUrl: window.location.origin + window.location.pathname.replace(/\/$/, '')
     };
 
@@ -431,22 +536,18 @@
 
       if (!rawCategoria || !rawEmails || !rawAccion || !rawId) {
         return mostrarError('🔑 Parámetros requeridos',
-          'Faltan parámetros obligatorios. El enlace debe incluir: categoria, emails, accion e id. ' +
-          'Los campos emails e id deben estar codificados con encodeURIComponent.');
+          'Faltan parámetros obligatorios. El enlace debe incluir: categoria, emails, accion e id.');
       }
-
       if (!esParametroValido(rawEmails) || !esParametroValido(rawId)) {
         return mostrarError('🔒 Formato de enlace inválido',
-          'Los parámetros "emails" e "id" no tienen un formato válido. ' +
-          'Por seguridad, el acceso ha sido bloqueado. Solicita un nuevo enlace al sistema.');
+          'Los parámetros "emails" e "id" no tienen un formato válido.');
       }
-
       if (!['add', 'remove'].includes(rawAccion)) {
         return mostrarError('❌ Acción inválida',
           `La acción "${rawAccion}" no es válida. Debe ser: add o remove.`);
       }
 
-      state.categoriaInicial = decodeURIComponent(rawCategoria).trim();
+      state.categoriasRecibidas = parseCategorias(rawCategoria);
       state.accionPorDefecto = rawAccion;
       state.timestamp = decodeBase64WebSafe(decodeURIComponent(rawId));
 
@@ -462,22 +563,23 @@
 
       if (!state.timestamp) return mostrarError('🔑 ID requerido', 'No se ha proporcionado un ID válido.');
       const timestampNum = parseInt(state.timestamp);
-      if (isNaN(timestampNum) || timestampNum <= 0) return mostrarError('❌ ID inválido', `"${state.timestamp}" no es un ID válido.`);
+      if (isNaN(timestampNum) || timestampNum <= 0) return mostrarError('❌ ID inválido', `"${state.timestamp}" no es válido.`);
 
       const diferencia = Math.floor(Date.now() / 1000) - timestampNum;
-      if (diferencia < 0) return mostrarError('⏰ ID inválido', `El ID no es válido, está configurado para funcionar en ${formatearDiferencia(Math.abs(diferencia))}.`);
-      if (diferencia > 3600) return mostrarError('⏰ ID expirado', `El ID expiró. Han pasado ${formatearDiferencia(diferencia)} desde su generación. El ID tiene una vida útil de 1 hora.`);
-      if (state.emailsArray.length === 0) return mostrarError('❌ Email requerido', 'Debes proporcionar al menos un email válido con @.');
+      if (diferencia < 0) return mostrarError('⏰ ID inválido', `Funcionará en ${formatearDiferencia(Math.abs(diferencia))}.`);
+      if (diferencia > 3600) return mostrarError('⏰ ID expirado', `Expiró hace ${formatearDiferencia(diferencia)}. Vida útil: 1 hora.`);
+      if (state.emailsArray.length === 0) return mostrarError('❌ Email requerido', 'Debes proporcionar al menos un email válido.');
+      if (state.categoriasRecibidas.length === 0) return mostrarError('❌ Categoría requerida', 'Debes proporcionar al menos una categoría.');
 
       initUI(auth);
     });
 
     // ============================================
-    // MOSTRAR ERROR
+    // MOSTRAR ERROR FATAL
     // ============================================
     function mostrarError(titulo, detalle) {
       const esTimestamp = titulo.includes('ID');
-      const esBloqueo = titulo.includes('Formato') || titulo.includes('bloqueado') || titulo.includes('Parámetros');
+      const esBloqueo = titulo.includes('Formato') || titulo.includes('Parámetros');
       const icono = titulo.includes('expirado') ? '⏰' : esBloqueo ? '🔒' : '❌';
       const colorBorde = esTimestamp ? '#ed8936' : esBloqueo ? '#e53e3e' : '#f56565';
       const bgColor = esTimestamp ? '#fffbeb' : '#fff5f5';
@@ -509,9 +611,12 @@
         passwordLoginInput: $('passwordLoginInput'), loginErrorMessage: $('loginErrorMessage'),
         authenticatedSection: $('authenticatedSection'), emailInput: $('emailInput'),
         errorMessage: $('errorMessage'), successMessage: $('successMessage'),
-        signOutBtn: $('signOutBtn'), categoriaSelector: $('categoriaSelector'),
+        signOutBtn: $('signOutBtn'),
         misCategoriasContainer: $('misCategoriasContainer'), misCategoriasList: $('misCategoriasList'),
-        btnAccionPrincipal: $('btnAccionPrincipal'), btnAccionSecundario: $('btnAccionSecundario')
+        btnAccionPrincipal: $('btnAccionPrincipal'), btnAccionSecundario: $('btnAccionSecundario'),
+        operacionesList: $('operacionesList'), operacionesCount: $('operacionesCount'),
+        nuevaCategoriaSelect: $('nuevaCategoriaSelect'), nuevaAccionSelect: $('nuevaAccionSelect'),
+        btnAddOperacion: $('btnAddOperacion')
       };
 
       // ---- Helpers UI ----
@@ -523,21 +628,6 @@
         else el.classList.remove('show');
       };
 
-      const setBotonPrincipal = (texto, clase, handler) => {
-        dom.btnAccionPrincipal.textContent = texto;
-        dom.btnAccionPrincipal.className = 'btn-accion-principal ' + clase;
-        dom.btnAccionPrincipal.onclick = handler || null;
-        dom.btnAccionPrincipal.disabled = !handler;
-      };
-
-      const setBotonSecundario = (texto, clase, handler, oculto) => {
-        dom.btnAccionSecundario.textContent = texto;
-        dom.btnAccionSecundario.className = 'btn-accion-secundario ' + clase;
-        dom.btnAccionSecundario.onclick = handler || null;
-        dom.btnAccionSecundario.disabled = !handler;
-        dom.btnAccionSecundario.classList.toggle('hidden', oculto);
-      };
-
       const setBotonesBloqueados = (bloqueado) => {
         [dom.btnAccionPrincipal, dom.btnAccionSecundario].forEach(btn => {
           btn.classList.toggle('bloqueado', bloqueado);
@@ -546,94 +636,7 @@
       };
 
       // ==========================================
-      // EJECUTAR ACCIÓN EN EL BACKEND (GSA)
-      // Firma de setMailbox: setMailbox(categoria, email, accion)
-      // ==========================================
-      function ejecutarAccion(categorias, accion) {
-        // categorias: array de strings (nombres limpios sin emojis)
-        // accion: 'add' o 'remove'
-        const email = state.currentUser?.email;
-        if (!email) return Promise.reject('No hay usuario autenticado.');
-
-        // Convertir cada categoría en una llamada a setMailbox(categoria, email, accion)
-        const promesas = categorias.map(cat => new Promise((resolve, reject) => {
-          google.script.run
-            .withSuccessHandler((resultado) => {
-              if (typeof resultado === 'string' && resultado.startsWith('❌')) {
-                reject(resultado.replace(/^❌\s*/, ''));
-              } else {
-                resolve(resultado);
-              }
-            })
-            .withFailureHandler((err) => {
-              reject(err && err.message ? err.message : 'Error desconocido del servidor.');
-            })
-            .setMailbox(cat, email, accion);
-        }));
-
-        return Promise.all(promesas);
-      }
-
-      // ==========================================
-      // HANDLERS DE BOTONES
-      // ==========================================
-      const accionAdd = () => {
-        const cat = limpiarCategoria(dom.categoriaSelector.value);
-        if (!cat) return;
-        setBotonesBloqueados(true);
-        setMensaje('success', '⏳ Procesando...');
-        ejecutarAccion([cat], 'add')
-          .then(() => {
-            setMensaje('success', `✅ Te has agregado a "${cat}".`);
-            state.cacheCategorias.clear();
-            cargarCategorias(state.currentUser.email);
-          })
-          .catch((err) => {
-            setMensaje('error', '❌ ' + err);
-            actualizarBotonAccion();
-          });
-      };
-
-      const accionRemove = () => {
-        const cat = limpiarCategoria(dom.categoriaSelector.value);
-        if (!cat) return;
-        setBotonesBloqueados(true);
-        setMensaje('success', '⏳ Procesando...');
-        ejecutarAccion([cat], 'remove')
-          .then(() => {
-            setMensaje('success', `✅ Te has eliminado de "${cat}".`);
-            state.cacheCategorias.clear();
-            cargarCategorias(state.currentUser.email);
-          })
-          .catch((err) => {
-            setMensaje('error', '❌ ' + err);
-            actualizarBotonAccion();
-          });
-      };
-
-      const accionRemoveAll = () => {
-        const eliminables = state.misCategorias.filter(cat => {
-          const norm = normalizar(cat);
-          const opt = [...dom.categoriaSelector.options].find(o => normalizar(o.value) === norm);
-          return !opt || opt.dataset.estado !== 'Protegido';
-        });
-        if (eliminables.length === 0) return;
-        setBotonesBloqueados(true);
-        setMensaje('success', `⏳ Procesando ${eliminables.length} categoría(s)...`);
-        ejecutarAccion(eliminables, 'remove')
-          .then(() => {
-            setMensaje('success', `✅ Te has eliminado de ${eliminables.length} categoría(s).`);
-            state.cacheCategorias.clear();
-            cargarCategorias(state.currentUser.email);
-          })
-          .catch((err) => {
-            setMensaje('error', '❌ ' + err);
-            actualizarBotonAccion();
-          });
-      };
-
-      // ==========================================
-      // OBTENER CATEGORÍAS DE UN EMAIL (CON CACHÉ)
+      // OBTENER CATEGORÍAS DE UN EMAIL
       // ==========================================
       function obtenerCategoriasDeEmail(email) {
         return new Promise((resolve, reject) => {
@@ -658,68 +661,321 @@
       }
 
       // ==========================================
-      // RENDERIZAR TODAS LAS CATEGORÍAS EN EL SELECT
+      // BUSCAR DATOS DE UNA CATEGORÍA
       // ==========================================
-      function renderizarCategorias(resultado, conEstado) {
-        state.todasLasCategorias = resultado;
-        const categorias = Object.keys(resultado);
-        const set = conEstado ? new Set(state.misCategorias.map(normalizar)) : new Set();
+      function buscarCategoria(nombre) {
+        const norm = normalizar(nombre);
+        for (const [cat, data] of Object.entries(state.todasCategorias)) {
+          if (normalizar(cat) === norm) {
+            return {
+              nombreOriginal: cat,
+              estado: data.estado || 'Público',
+              emails: data.emails || '',
+              estoy: state.misCategorias.some(c => normalizar(c) === norm)
+            };
+          }
+        }
+        return null;
+      }
 
-        dom.categoriaSelector.innerHTML = categorias.length === 0
-          ? '<option value="">-- Sin categorías --</option>'
-          : '<option value="">-- Seleccionar categoría --</option>';
+      // ==========================================
+      // VALIDAR UNA OPERACIÓN LOCALMENTE
+      // ==========================================
+      function validarOperacion(op) {
+        // op: {categoria, accion}
+        const cat = limpiarCategoria(op.categoria);
+        if (!cat) return { ok: false, motivo: 'Categoría vacía', accionEfectiva: null };
 
-        categorias.forEach((cat) => {
-          const data = resultado[cat] || {};
-          const estado = data.estado || 'Público';
-          const count = data.emails ? data.emails.split(',').filter(e => e.trim()).length : 0;
-          const icono = estado === 'Privado' ? '🔒' : estado === 'Protegido' ? '🛡️' : '🌐';
-          const estoy = conEstado && set.has(normalizar(cat));
+        const info = buscarCategoria(cat);
+        if (!info) return { ok: false, motivo: `La categoría "${cat}" no existe`, accionEfectiva: null };
 
-          const option = document.createElement('option');
-          option.value = cat;
-          option.textContent = `${estoy ? '✅ ' : ''}${icono} ${cat} (${count} emails)`;
-          option.className = estoy ? 'estoy' : 'no-estoy';
-          option.dataset.estado = estado;
-          option.dataset.estoy = estoy;
-          dom.categoriaSelector.appendChild(option);
-        });
+        const { estado, estoy } = info;
 
-        // Preseleccionar la categoría recibida por parámetro (comparación normalizada)
-        if (state.categoriaInicial) {
-          const norm = normalizar(state.categoriaInicial);
-          const opt = [...dom.categoriaSelector.options].find(o => normalizar(o.value) === norm);
-          if (opt) dom.categoriaSelector.value = opt.value;
+        // Resolver acción auto
+        let accionEfectiva = op.accion;
+        if (accionEfectiva === 'auto') {
+          if (estoy) accionEfectiva = 'remove';
+          else if (estado === 'Público') accionEfectiva = 'add';
+          else accionEfectiva = null; // Privado sin estar, o Protegido sin estar
         }
 
-        if (conEstado) actualizarMisCategoriasUI(state.misCategorias);
+        if (!accionEfectiva) {
+          if (estado === 'Privado' && !estoy) {
+            return { ok: false, motivo: `"${cat}" es PRIVADA y no estás dentro (no puedes agregarte)`, accionEfectiva: null };
+          }
+          if (estado === 'Protegido') {
+            return { ok: false, motivo: `"${cat}" está PROTEGIDA`, accionEfectiva: null };
+          }
+          return { ok: false, motivo: `No se puede determinar acción para "${cat}"`, accionEfectiva: null };
+        }
+
+        if (accionEfectiva === 'add') {
+          if (estado === 'Protegido') return { ok: false, motivo: `"${cat}" está PROTEGIDA`, accionEfectiva };
+          if (estado === 'Privado')   return { ok: false, motivo: `"${cat}" es PRIVADA, no puedes agregarte`, accionEfectiva };
+          if (estoy)                  return { ok: false, motivo: `Ya estás registrado en "${cat}"`, accionEfectiva };
+          return { ok: true, motivo: `Se agregará a "${cat}"`, accionEfectiva };
+        }
+
+        if (accionEfectiva === 'remove') {
+          if (estado === 'Protegido') return { ok: false, motivo: `"${cat}" está PROTEGIDA, no puedes eliminarte`, accionEfectiva };
+          if (!estoy)                 return { ok: false, motivo: `No estás registrado en "${cat}"`, accionEfectiva };
+          return { ok: true, motivo: `Se eliminará de "${cat}"`, accionEfectiva };
+        }
+
+        return { ok: false, motivo: 'Acción desconocida', accionEfectiva: null };
+      }
+
+      // ==========================================
+      // RENDERIZAR LISTA DE OPERACIONES
+      // ==========================================
+      function renderizarOperaciones() {
+        dom.operacionesCount.textContent = state.operaciones.length;
+        dom.operacionesList.innerHTML = '';
+
+        if (state.operaciones.length === 0) {
+          dom.operacionesList.innerHTML = '<div style="color:#a0aec0;text-align:center;padding:10px;">Sin operaciones. Añade una abajo.</div>';
+          return;
+        }
+
+        state.operaciones.forEach((op) => {
+          const item = document.createElement('div');
+          item.className = 'operacion-item';
+
+          const validacion = validarOperacion(op);
+
+          if (validacion.ok) item.classList.add('ok');
+          else if (!op.categoria) item.classList.add('pending');
+          else item.classList.add('error');
+
+          // Categoría (select con todas las categorías)
+          const catSelect = document.createElement('select');
+          catSelect.innerHTML = '<option value="">-- Categoría --</option>';
+          Object.keys(state.todasCategorias).forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            const info = buscarCategoria(cat);
+            const icono = info?.estado === 'Privado' ? '🔒' : info?.estado === 'Protegido' ? '🛡️' : '🌐';
+            opt.textContent = `${icono} ${cat}`;
+            if (normalizar(cat) === normalizar(op.categoria)) opt.selected = true;
+            catSelect.appendChild(opt);
+          });
+          catSelect.onchange = () => {
+            op.categoria = catSelect.value;
+            renderizarOperaciones();
+          };
+
+          // Acción
+          const accSelect = document.createElement('select');
+          ['auto', 'add', 'remove'].forEach(acc => {
+            const opt = document.createElement('option');
+            opt.value = acc;
+            opt.textContent = acc === 'auto' ? '🔄 Auto' : acc === 'add' ? '➕ Add' : '➖ Remove';
+            if (op.accion === acc) opt.selected = true;
+            accSelect.appendChild(opt);
+          });
+          accSelect.onchange = () => {
+            op.accion = accSelect.value;
+            renderizarOperaciones();
+          };
+
+          // Botón eliminar
+          const btnDel = document.createElement('button');
+          btnDel.className = 'btn-remove-op';
+          btnDel.textContent = '✕';
+          btnDel.title = 'Quitar operación';
+          btnDel.onclick = () => {
+            state.operaciones = state.operaciones.filter(o => o.id !== op.id);
+            renderizarOperaciones();
+          };
+
+          // Estado
+          const status = document.createElement('div');
+          status.className = 'operacion-status ' + (validacion.ok ? 'ok' : 'error');
+          status.textContent = validacion.ok ? '✅ ' + validacion.motivo : '❌ ' + validacion.motivo;
+
+          item.appendChild(catSelect);
+          item.appendChild(accSelect);
+          item.appendChild(btnDel);
+          item.appendChild(status);
+          dom.operacionesList.appendChild(item);
+        });
+
         actualizarBotonAccion();
       }
+
+      // ==========================================
+      // AÑADIR OPERACIÓN
+      // ==========================================
+      function agregarOperacion(categoria, accion) {
+        // Evitar duplicados de la misma categoría
+        const norm = normalizar(categoria);
+        if (state.operaciones.some(op => normalizar(op.categoria) === norm)) {
+          // Si ya existe, actualizar la acción
+          const existing = state.operaciones.find(op => normalizar(op.categoria) === norm);
+          if (existing) existing.accion = accion;
+        } else {
+          state.operaciones.push({
+            id: 'op_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+            categoria,
+            accion
+          });
+        }
+        renderizarOperaciones();
+      }
+
+      // ==========================================
+      // RENDERIZAR SELECT DE NUEVA OPERACIÓN
+      // ==========================================
+      function renderizarNuevaCategoriaSelect() {
+        dom.nuevaCategoriaSelect.innerHTML = '<option value="">-- Seleccionar categoría --</option>';
+        Object.keys(state.todasCategorias).forEach(cat => {
+          const info = buscarCategoria(cat);
+          const icono = info?.estado === 'Privado' ? '🔒' : info?.estado === 'Protegido' ? '🛡️' : '🌐';
+          const estoy = info?.estoy ? '✅ ' : '';
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = `${estoy}${icono} ${cat}`;
+          dom.nuevaCategoriaSelect.appendChild(opt);
+        });
+      }
+
+      // ==========================================
+      // EJECUTAR OPERACIONES (1 sola llamada)
+      // ==========================================
+      function ejecutarOperaciones(operaciones) {
+        const email = state.currentUser?.email;
+        if (!email) return Promise.reject('No hay usuario autenticado.');
+        if (!operaciones || operaciones.length === 0) return Promise.resolve();
+
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler((resultado) => {
+              if (typeof resultado === 'string' && resultado.startsWith('❌')) {
+                reject(resultado.replace(/^❌\s*/, ''));
+              } else {
+                resolve(resultado);
+              }
+            })
+            .withFailureHandler((err) => {
+              reject(err && err.message ? err.message : 'Error desconocido del servidor.');
+            })
+            .setMailbox(operaciones, email);
+        });
+      }
+
+      // ==========================================
+      // HANDLER: BOTÓN PRINCIPAL
+      // ==========================================
+      const accionPrincipal = () => {
+        // Validar TODAS las operaciones antes de enviar
+        const validaciones = state.operaciones.map(op => validarOperacion(op));
+        const invalidas = validaciones.filter(v => !v.ok);
+
+        if (state.operaciones.length === 0) {
+          setMensaje('error', '❌ Añade al menos una operación.');
+          return;
+        }
+        if (invalidas.length > 0) {
+          setMensaje('error', `❌ ${invalidas.length} operación(es) no válida(s). Corrígelas antes de enviar.`);
+          return;
+        }
+
+        // Construir array final: {categoria, accion}
+        const operacionesFinales = state.operaciones.map((op) => {
+          const v = validarOperacion(op);
+          const info = buscarCategoria(op.categoria);
+          return {
+            categoria: info?.nombreOriginal || limpiarCategoria(op.categoria),
+            accion: v.accionEfectiva
+          };
+        });
+
+        setBotonesBloqueados(true);
+        setMensaje('success', `⏳ Procesando ${operacionesFinales.length} operación(es)...`);
+
+        ejecutarOperaciones(operacionesFinales)
+          .then(() => {
+            setMensaje('success', `✅ ${operacionesFinales.length} operación(es) aplicada(s) correctamente.`);
+            state.operaciones = [];
+            state.cacheCategorias.clear();
+            renderizarOperaciones();
+            cargarCategorias(state.currentUser.email);
+          })
+          .catch((err) => {
+            setMensaje('error', '❌ ' + err);
+            actualizarBotonAccion();
+          });
+      };
+
+      // ==========================================
+      // HANDLER: "QUITARME DE TODAS"
+      // ==========================================
+      const accionRemoveAll = () => {
+        const eliminables = state.misCategorias.filter(cat => {
+          const info = buscarCategoria(cat);
+          return info && info.estado !== 'Protegido';
+        });
+        if (eliminables.length === 0) return;
+
+        const operaciones = eliminables.map(cat => {
+          const info = buscarCategoria(cat);
+          return { categoria: info?.nombreOriginal || cat, accion: 'remove' };
+        });
+
+        setBotonesBloqueados(true);
+        setMensaje('success', `⏳ Procesando ${operaciones.length} categoría(s)...`);
+
+        ejecutarOperaciones(operaciones)
+          .then(() => {
+            setMensaje('success', `✅ Te has eliminado de ${operaciones.length} categoría(s).`);
+            state.operaciones = [];
+            state.cacheCategorias.clear();
+            renderizarOperaciones();
+            cargarCategorias(state.currentUser.email);
+          })
+          .catch((err) => {
+            setMensaje('error', '❌ ' + err);
+            actualizarBotonAccion();
+          });
+      };
 
       // ==========================================
       // CARGAR CATEGORÍAS
       // ==========================================
       function cargarCategorias(email) {
         if (!email) return cargarCategoriasSinEstado();
-        dom.categoriaSelector.innerHTML = '<option value="">⏳ Cargando categorías...</option>';
-
         google.script.run
           .withSuccessHandler((resultado) => {
             if (typeof resultado !== 'object' || resultado === null) return;
+            state.todasCategorias = resultado;
             obtenerCategoriasDeEmail(email)
-              .then((cats) => { state.misCategorias = cats; renderizarCategorias(resultado, true); })
+              .then((cats) => {
+                state.misCategorias = cats;
+                actualizarMisCategoriasUI(cats);
+                renderizarNuevaCategoriaSelect();
+                renderizarOperaciones();
+                actualizarBotonAccion();
+              })
               .catch(() => cargarCategoriasSinEstado());
           })
-          .withFailureHandler(() => { dom.categoriaSelector.innerHTML = '<option value="">-- Error al cargar --</option>'; })
+          .withFailureHandler(() => {
+            setMensaje('error', '❌ Error al cargar las categorías.');
+          })
           .getMailbox();
       }
 
       function cargarCategoriasSinEstado() {
         google.script.run
           .withSuccessHandler((resultado) => {
-            if (typeof resultado === 'object' && resultado !== null) renderizarCategorias(resultado, false);
+            if (typeof resultado !== 'object' || resultado === null) return;
+            state.todasCategorias = resultado;
+            renderizarNuevaCategoriaSelect();
+            renderizarOperaciones();
+            actualizarBotonAccion();
           })
-          .withFailureHandler(() => { dom.categoriaSelector.innerHTML = '<option value="">-- Error al cargar --</option>'; })
+          .withFailureHandler(() => {
+            setMensaje('error', '❌ Error al cargar las categorías.');
+          })
           .getMailbox();
       }
 
@@ -732,94 +988,55 @@
         dom.misCategoriasList.innerHTML = categorias.length > 0
           ? categorias.map(cat => `<span class="categoria-tag"><span class="icon">📁</span> ${cat}</span>`).join('')
           : '<span class="empty-msg">No estás registrado en ninguna categoría.</span>';
-        actualizarBotonAccion();
       }
 
       // ==========================================
-      // ACTUALIZAR BOTÓN PRINCIPAL Y SECUNDARIO
+      // ACTUALIZAR BOTÓN PRINCIPAL
       // ==========================================
       function actualizarBotonAccion() {
         if (!state.autorizado) {
           setBotonesBloqueados(true);
-          setBotonPrincipal('🔒 No autorizado', 'add bloqueado', null);
-          setBotonSecundario('', '', null, true);
-          setMensaje('error', null); setMensaje('success', null);
+          dom.btnAccionPrincipal.textContent = '🔒 No autorizado';
+          dom.btnAccionPrincipal.className = 'btn-accion-principal bloqueado';
+          dom.btnAccionSecundario.classList.add('hidden');
           return;
         }
 
-        const email = state.currentUser?.email || '';
-        const categoria = dom.categoriaSelector.value;
+        const n = state.operaciones.length;
+        const validaciones = state.operaciones.map(validarOperacion);
+        const invalidas = validaciones.filter(v => !v.ok).length;
 
-        if (!email || !categoria) {
-          setBotonesBloqueados(true);
-          setBotonPrincipal('⏳ Selecciona una categoría', 'add bloqueado', null);
-          setBotonSecundario('', '', null, true);
-          setMensaje('error', null); setMensaje('success', null);
-          return;
-        }
-
-        const option = [...dom.categoriaSelector.options].find(o => o.value === categoria);
-        const estoy = option?.dataset.estoy === 'true';
-        const estado = option?.dataset.estado || 'Público';
-        const catLimpia = limpiarCategoria(categoria);
-
-        setBotonesBloqueados(false);
-
-        // Determinar acciones posibles
-        const puedeAdd = !estoy && estado === 'Público';
-        const puedeRemove = estoy && estado !== 'Protegido';
-
-        // Priorizar la acción por defecto si es posible
-        let accionFinal;
-        if (state.accionPorDefecto === 'add' && puedeAdd) accionFinal = 'add';
-        else if (state.accionPorDefecto === 'remove' && puedeRemove) accionFinal = 'remove';
-        else if (puedeRemove) accionFinal = 'remove';
-        else if (puedeAdd) accionFinal = 'add';
-        else accionFinal = null;
-
-        if (accionFinal === 'add') {
-          setBotonPrincipal(`➕ Agregarme a "${catLimpia}"`, 'add', accionAdd);
-          setMensaje('success', `✅ Puedes agregarte a "${catLimpia}".`);
-        } else if (accionFinal === 'remove') {
-          setBotonPrincipal(`➖ Eliminarme de "${catLimpia}"`, 'remove', accionRemove);
-          setMensaje('success', `✅ Puedes eliminarte de "${catLimpia}".`);
+        if (n === 0) {
+          dom.btnAccionPrincipal.textContent = '✅ Ejecutar operaciones';
+          dom.btnAccionPrincipal.className = 'btn-accion-principal bloqueado';
+          dom.btnAccionPrincipal.onclick = null;
+          dom.btnAccionPrincipal.disabled = true;
+        } else if (invalidas > 0) {
+          dom.btnAccionPrincipal.textContent = `⚠️ Corrige ${invalidas} operación(es)`;
+          dom.btnAccionPrincipal.className = 'btn-accion-principal bloqueado';
+          dom.btnAccionPrincipal.onclick = null;
+          dom.btnAccionPrincipal.disabled = true;
         } else {
-          if (estado === 'Protegido') {
-            setBotonPrincipal('🛡️ Categoría Protegida', 'bloqueado', null);
-            setMensaje('error', `🛡️ La categoría "${catLimpia}" está PROTEGIDA. No puedes modificarla.`);
-          } else if (estoy) {
-            setBotonPrincipal('⏳ Ya estás aquí', 'bloqueado', null);
-            setMensaje('success', `✅ Ya estás registrado en "${catLimpia}".`);
-          } else if (estado === 'Privado') {
-            setBotonPrincipal('🔒 Categoría Privada', 'bloqueado', null);
-            setMensaje('error', `🔒 La categoría "${catLimpia}" es PRIVADA. No puedes agregarte, solo eliminarte.`);
-          } else {
-            setBotonPrincipal('❌ No disponible', 'bloqueado', null);
-            setMensaje('error', `❌ No puedes realizar ninguna acción en "${catLimpia}".`);
-          }
+          dom.btnAccionPrincipal.textContent = `✅ Ejecutar ${n} operación(es)`;
+          dom.btnAccionPrincipal.className = 'btn-accion-principal';
+          dom.btnAccionPrincipal.onclick = accionPrincipal;
+          dom.btnAccionPrincipal.disabled = false;
         }
 
-        // ====== BOTÓN SECUNDARIO: "Quitarme de todas" ======
-        if (state.misCategorias.length === 0) {
-          setBotonSecundario('', '', null, true);
-          return;
-        }
-
+        // Botón "Quitarme de todas"
         const eliminables = state.misCategorias.filter(cat => {
-          const norm = normalizar(cat);
-          const opt = [...dom.categoriaSelector.options].find(o => normalizar(o.value) === norm);
-          return !opt || opt.dataset.estado !== 'Protegido';
+          const info = buscarCategoria(cat);
+          return info && info.estado !== 'Protegido';
         });
 
         if (eliminables.length === 0) {
-          setBotonSecundario('🛡️ Solo protegidas', 'bloqueado', null, false);
+          dom.btnAccionSecundario.classList.add('hidden');
         } else {
-          setBotonSecundario(
-            `🚫 Quitarme de todas (${eliminables.length})`,
-            '',
-            accionRemoveAll,
-            false
-          );
+          dom.btnAccionSecundario.textContent = `🚫 Quitarme de todas (${eliminables.length})`;
+          dom.btnAccionSecundario.className = 'btn-accion-secundario';
+          dom.btnAccionSecundario.onclick = accionRemoveAll;
+          dom.btnAccionSecundario.disabled = false;
+          dom.btnAccionSecundario.classList.remove('hidden');
         }
       }
 
@@ -841,9 +1058,8 @@
           dom.loginErrorMessage.classList.remove('show');
           setMensaje('error', null); setMensaje('success', null);
           dom.misCategoriasContainer.style.display = 'none';
-          setBotonesBloqueados(true);
-          setBotonPrincipal('🔒 Inicia sesión', 'add bloqueado', null);
-          setBotonSecundario('', '', null, true);
+          state.operaciones = [];
+          renderizarOperaciones();
           cargarCategoriasSinEstado();
           return;
         }
@@ -864,6 +1080,18 @@
           dom.emailInput.classList.add('success');
           dom.emailInput.classList.remove('error');
           state.cacheCategorias.delete(emailLower);
+
+          // Añadir operaciones iniciales desde parámetros (si aún no hay)
+          if (state.operaciones.length === 0 && state.categoriasRecibidas.length > 0) {
+            state.categoriasRecibidas.forEach(cat => {
+              state.operaciones.push({
+                id: 'op_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                categoria: cat,
+                accion: state.accionPorDefecto // 'add' o 'remove'
+              });
+            });
+          }
+
           cargarCategorias(email);
         } else {
           state.autorizado = false;
@@ -872,8 +1100,9 @@
           dom.emailInput.classList.remove('success');
           dom.misCategoriasContainer.style.display = 'none';
           setBotonesBloqueados(true);
-          setBotonPrincipal('🔒 No autorizado', 'add bloqueado', null);
-          setBotonSecundario('', '', null, true);
+          dom.btnAccionPrincipal.textContent = '🔒 No autorizado';
+          dom.btnAccionPrincipal.className = 'btn-accion-principal bloqueado';
+          dom.btnAccionSecundario.classList.add('hidden');
           cargarCategoriasSinEstado();
         }
       }
@@ -881,7 +1110,18 @@
       // ==========================================
       // EVENTOS
       // ==========================================
-      dom.categoriaSelector.addEventListener('change', actualizarBotonAccion);
+      dom.btnAddOperacion.addEventListener('click', () => {
+        const cat = dom.nuevaCategoriaSelect.value;
+        const acc = dom.nuevaAccionSelect.value;
+        if (!cat) {
+          setMensaje('error', '❌ Selecciona una categoría.');
+          return;
+        }
+        setMensaje('error', null);
+        agregarOperacion(cat, acc);
+        dom.nuevaCategoriaSelect.value = '';
+        dom.nuevaAccionSelect.value = 'auto';
+      });
 
       dom.googleSignInBtn.addEventListener('click', () => {
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -944,6 +1184,8 @@
           dom.passwordLoginInput.value = '';
           state.misCategorias = [];
           state.cacheCategorias.clear();
+          state.operaciones = [];
+          renderizarOperaciones();
         });
       });
 
@@ -953,9 +1195,11 @@
       // INICIALIZACIÓN
       // ==========================================
       cargarCategoriasSinEstado();
+      renderizarOperaciones();
       setBotonesBloqueados(true);
-      setBotonPrincipal('🔒 Inicia sesión', 'add bloqueado', null);
-      setBotonSecundario('', '', null, true);
+      dom.btnAccionPrincipal.textContent = '🔒 Inicia sesión';
+      dom.btnAccionPrincipal.className = 'btn-accion-principal bloqueado';
+      dom.btnAccionSecundario.classList.add('hidden');
     }
   </script>
 </body>
