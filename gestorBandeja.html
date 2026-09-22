@@ -155,18 +155,6 @@
     .divider::after { margin-left: 10px; }
     .divider span { color: #a0aec0; font-size: 14px; }
     
-    .categoria-selector-wrapper {
-      background: #f7fafc; padding: 15px;
-      border-radius: 10px; margin: 10px 0;
-    }
-    .categoria-selector-wrapper .legend {
-      font-size: 12px; color: #718096; margin-top: 5px;
-    }
-    .categoria-selector-wrapper .legend span {
-      display: inline-block; padding: 2px 8px;
-      border-radius: 4px; background: #d4edda; margin-right: 4px;
-    }
-    
     .mis-categorias {
       background: #f0fff4; border: 1px solid #c6f6d5;
       border-radius: 8px; padding: 12px 15px; margin: 10px 0;
@@ -197,6 +185,12 @@
       border-radius: 12px;
       padding: 15px;
       margin: 15px 0;
+      position: relative;
+      transition: opacity 0.3s;
+    }
+    .operaciones-panel.loading {
+      opacity: 0.5;
+      pointer-events: none;
     }
     .operaciones-panel h4 {
       margin: 0 0 12px 0;
@@ -214,6 +208,31 @@
       font-size: 12px;
     }
     
+    .loading-overlay {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 20px;
+      background: #fffbeb;
+      border: 2px dashed #f6c23e;
+      border-radius: 10px;
+      color: #975a16;
+      font-weight: 600;
+      font-size: 14px;
+      margin: 10px 0;
+    }
+    .loading-overlay .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid #f6c23e;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
     .operacion-item {
       display: grid;
       grid-template-columns: 1fr 140px 40px;
@@ -229,8 +248,7 @@
     .operacion-item.error { background: #fff5f5; border-color: #fed7d7; }
     .operacion-item.pending { background: #fffbeb; border-color: #fef3c7; }
     
-    .operacion-item select,
-    .operacion-item .cat-display {
+    .operacion-item select {
       width: 100%;
       padding: 8px 10px;
       border: 1px solid #cbd5e0;
@@ -238,14 +256,6 @@
       font-size: 14px;
       background: white;
       color: #2d3748;
-    }
-    .operacion-item .cat-display {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
     .operacion-item .btn-remove-op {
       background: #e53e3e;
@@ -270,7 +280,6 @@
     .operacion-status.ok { color: #276749; background: #c6f6d5; }
     .operacion-status.error { color: #c53030; background: #fed7d7; }
     .operacion-status.pending { color: #975a16; background: #fef3c7; }
-    .operacion-status.info { color: #2c5282; background: #bee3f8; }
     
     .btn-add-op {
       background: #667eea;
@@ -286,6 +295,41 @@
     }
     .btn-add-op:hover { background: #5a67d8; }
     .btn-add-op:disabled { background: #cbd5e0; cursor: not-allowed; }
+    
+    /* ============================================
+       SELECT DE NUEVA OPERACIÓN
+       ============================================ */
+    #nuevaCategoriaSelect option:disabled {
+      color: #a0aec0 !important;
+      font-style: italic;
+      background: #f7fafc;
+    }
+    #nuevaCategoriaSelect option.ya-anadida {
+      color: #a0aec0 !important;
+      text-decoration: line-through;
+    }
+    
+    /* Chips de operaciones ya añadidas */
+    .chips-añadidas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .chip-añadida {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 12px;
+      background: #edf2f7;
+      color: #4a5568;
+      border: 1px solid #cbd5e0;
+    }
+    .chip-añadida.add { background: #c6f6d5; color: #276749; border-color: #9ae6b4; }
+    .chip-añadida.remove { background: #fed7d7; color: #9b2c2c; border-color: #feb2b2; }
+    .chip-añadida.auto { background: #fef3c7; color: #975a16; border-color: #f6e05e; }
     
     .acciones-rapidas {
       display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap;
@@ -370,32 +414,42 @@
     <!-- AUTENTICADO -->
     <div id="authenticatedSection" class="hidden">
 
+      <!-- OVERLAY DE CARGA -->
+      <div id="loadingOverlay" class="loading-overlay">
+        <span class="spinner"></span>
+        <span id="loadingText">Cargando categorías y tu pertenencia...</span>
+      </div>
+
       <!-- PANEL DE OPERACIONES -->
-      <div class="operaciones-panel">
+      <div id="operacionesPanel" class="operaciones-panel loading">
         <h4>
           📋 Operaciones a realizar
           <span class="count" id="operacionesCount">0</span>
         </h4>
         <div id="operacionesList"></div>
+
+        <!-- Chips de categorías ya añadidas -->
+        <div id="chipsAnadidas" class="chips-añadidas"></div>
+
         <div class="form-group" style="margin-top:10px;">
           <label>Añadir nueva operación</label>
           <div style="display:flex;gap:8px;">
-            <select id="nuevaCategoriaSelect" style="flex:1;">
-              <option value="">-- Seleccionar categoría --</option>
+            <select id="nuevaCategoriaSelect" style="flex:1;" disabled>
+              <option value="">-- Cargando categorías... --</option>
             </select>
-            <select id="nuevaAccionSelect" style="width:120px;">
+            <select id="nuevaAccionSelect" style="width:120px;" disabled>
               <option value="auto">🔄 Auto</option>
               <option value="add">➕ Add</option>
               <option value="remove">➖ Remove</option>
             </select>
-            <button id="btnAddOperacion" class="btn-add-op" style="width:auto;padding:10px 16px;">➕</button>
+            <button id="btnAddOperacion" class="btn-add-op" style="width:auto;padding:10px 16px;" disabled>➕</button>
           </div>
         </div>
       </div>
 
       <!-- BOTONES DE ACCIÓN -->
       <div class="acciones-rapidas">
-        <button id="btnAccionPrincipal" class="btn-accion-principal" type="button">✅ Ejecutar operaciones</button>
+        <button id="btnAccionPrincipal" class="btn-accion-principal bloqueado" type="button" disabled>⏳ Cargando...</button>
         <button id="btnAccionSecundario" class="btn-accion-secundario hidden" type="button">🚫 Quitarme de todas</button>
       </div>
 
@@ -516,8 +570,9 @@
       cacheCategorias: new Map(),
       esMultiEmail: false,
       autorizado: false,
-      operaciones: [], // [{id, categoria, accion}]  accion: 'auto'|'add'|'remove'
+      operaciones: [],
       todasCategorias: {},
+      datosCargados: false,
       baseUrl: window.location.origin + window.location.pathname.replace(/\/$/, '')
     };
 
@@ -615,8 +670,11 @@
         misCategoriasContainer: $('misCategoriasContainer'), misCategoriasList: $('misCategoriasList'),
         btnAccionPrincipal: $('btnAccionPrincipal'), btnAccionSecundario: $('btnAccionSecundario'),
         operacionesList: $('operacionesList'), operacionesCount: $('operacionesCount'),
+        operacionesPanel: $('operacionesPanel'),
         nuevaCategoriaSelect: $('nuevaCategoriaSelect'), nuevaAccionSelect: $('nuevaAccionSelect'),
-        btnAddOperacion: $('btnAddOperacion')
+        btnAddOperacion: $('btnAddOperacion'),
+        loadingOverlay: $('loadingOverlay'), loadingText: $('loadingText'),
+        chipsAnadidas: $('chipsAnadidas')
       };
 
       // ---- Helpers UI ----
@@ -628,11 +686,23 @@
         else el.classList.remove('show');
       };
 
-      const setBotonesBloqueados = (bloqueado) => {
+      const setUIBloqueada = (bloqueado, textoCarga) => {
+        dom.operacionesPanel.classList.toggle('loading', bloqueado);
+        dom.nuevaCategoriaSelect.disabled = bloqueado;
+        dom.nuevaAccionSelect.disabled = bloqueado;
+        dom.btnAddOperacion.disabled = bloqueado;
+
         [dom.btnAccionPrincipal, dom.btnAccionSecundario].forEach(btn => {
           btn.classList.toggle('bloqueado', bloqueado);
           if (bloqueado) { btn.onclick = null; btn.disabled = true; }
         });
+
+        if (bloqueado) {
+          dom.loadingOverlay.classList.remove('hidden');
+          if (textoCarga) dom.loadingText.textContent = textoCarga;
+        } else {
+          dom.loadingOverlay.classList.add('hidden');
+        }
       };
 
       // ==========================================
@@ -682,7 +752,6 @@
       // VALIDAR UNA OPERACIÓN LOCALMENTE
       // ==========================================
       function validarOperacion(op) {
-        // op: {categoria, accion}
         const cat = limpiarCategoria(op.categoria);
         if (!cat) return { ok: false, motivo: 'Categoría vacía', accionEfectiva: null };
 
@@ -691,12 +760,11 @@
 
         const { estado, estoy } = info;
 
-        // Resolver acción auto
         let accionEfectiva = op.accion;
         if (accionEfectiva === 'auto') {
           if (estoy) accionEfectiva = 'remove';
           else if (estado === 'Público') accionEfectiva = 'add';
-          else accionEfectiva = null; // Privado sin estar, o Protegido sin estar
+          else accionEfectiva = null;
         }
 
         if (!accionEfectiva) {
@@ -734,6 +802,8 @@
 
         if (state.operaciones.length === 0) {
           dom.operacionesList.innerHTML = '<div style="color:#a0aec0;text-align:center;padding:10px;">Sin operaciones. Añade una abajo.</div>';
+          renderizarChips();
+          renderizarNuevaCategoriaSelect();
           return;
         }
 
@@ -747,7 +817,7 @@
           else if (!op.categoria) item.classList.add('pending');
           else item.classList.add('error');
 
-          // Categoría (select con todas las categorías)
+          // Categoría
           const catSelect = document.createElement('select');
           catSelect.innerHTML = '<option value="">-- Categoría --</option>';
           Object.keys(state.todasCategorias).forEach(cat => {
@@ -755,12 +825,24 @@
             opt.value = cat;
             const info = buscarCategoria(cat);
             const icono = info?.estado === 'Privado' ? '🔒' : info?.estado === 'Protegido' ? '🛡️' : '🌐';
-            opt.textContent = `${icono} ${cat}`;
+            const yo = info?.estoy ? '✅ ' : '';
+            opt.textContent = `${yo}${icono} ${cat}`;
             if (normalizar(cat) === normalizar(op.categoria)) opt.selected = true;
             catSelect.appendChild(opt);
           });
+          catSelect.disabled = !state.datosCargados;
           catSelect.onchange = () => {
-            op.categoria = catSelect.value;
+            const nuevaCat = catSelect.value;
+            // Evitar duplicados
+            const normNueva = normalizar(nuevaCat);
+            const yaExiste = state.operaciones.some(o => o.id !== op.id && normalizar(o.categoria) === normNueva);
+            if (yaExiste) {
+              setMensaje('error', `❌ "${nuevaCat}" ya está en la lista.`);
+              catSelect.value = op.categoria;
+              return;
+            }
+            op.categoria = nuevaCat;
+            setMensaje('error', null);
             renderizarOperaciones();
           };
 
@@ -773,6 +855,7 @@
             if (op.accion === acc) opt.selected = true;
             accSelect.appendChild(opt);
           });
+          accSelect.disabled = !state.datosCargados;
           accSelect.onchange = () => {
             op.accion = accSelect.value;
             renderizarOperaciones();
@@ -783,6 +866,7 @@
           btnDel.className = 'btn-remove-op';
           btnDel.textContent = '✕';
           btnDel.title = 'Quitar operación';
+          btnDel.disabled = !state.datosCargados;
           btnDel.onclick = () => {
             state.operaciones = state.operaciones.filter(o => o.id !== op.id);
             renderizarOperaciones();
@@ -791,7 +875,12 @@
           // Estado
           const status = document.createElement('div');
           status.className = 'operacion-status ' + (validacion.ok ? 'ok' : 'error');
-          status.textContent = validacion.ok ? '✅ ' + validacion.motivo : '❌ ' + validacion.motivo;
+          if (!state.datosCargados) {
+            status.className = 'operacion-status pending';
+            status.textContent = '⏳ Cargando datos...';
+          } else {
+            status.textContent = validacion.ok ? '✅ ' + validacion.motivo : '❌ ' + validacion.motivo;
+          }
 
           item.appendChild(catSelect);
           item.appendChild(accSelect);
@@ -800,47 +889,65 @@
           dom.operacionesList.appendChild(item);
         });
 
+        renderizarChips();
+        renderizarNuevaCategoriaSelect();
         actualizarBotonAccion();
       }
 
       // ==========================================
-      // AÑADIR OPERACIÓN
+      // RENDERIZAR CHIPS DE OPERACIONES YA AÑADIDAS
       // ==========================================
-      function agregarOperacion(categoria, accion) {
-        // Evitar duplicados de la misma categoría
-        const norm = normalizar(categoria);
-        if (state.operaciones.some(op => normalizar(op.categoria) === norm)) {
-          // Si ya existe, actualizar la acción
-          const existing = state.operaciones.find(op => normalizar(op.categoria) === norm);
-          if (existing) existing.accion = accion;
-        } else {
-          state.operaciones.push({
-            id: 'op_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-            categoria,
-            accion
-          });
-        }
-        renderizarOperaciones();
-      }
+      function renderizarChips() {
+        dom.chipsAnadidas.innerHTML = '';
+        if (state.operaciones.length === 0) return;
 
-      // ==========================================
-      // RENDERIZAR SELECT DE NUEVA OPERACIÓN
-      // ==========================================
-      function renderizarNuevaCategoriaSelect() {
-        dom.nuevaCategoriaSelect.innerHTML = '<option value="">-- Seleccionar categoría --</option>';
-        Object.keys(state.todasCategorias).forEach(cat => {
-          const info = buscarCategoria(cat);
-          const icono = info?.estado === 'Privado' ? '🔒' : info?.estado === 'Protegido' ? '🛡️' : '🌐';
-          const estoy = info?.estoy ? '✅ ' : '';
-          const opt = document.createElement('option');
-          opt.value = cat;
-          opt.textContent = `${estoy}${icono} ${cat}`;
-          dom.nuevaCategoriaSelect.appendChild(opt);
+        state.operaciones.forEach(op => {
+          const chip = document.createElement('span');
+          const accClass = op.accion === 'add' ? 'add' : op.accion === 'remove' ? 'remove' : 'auto';
+          chip.className = 'chip-añadida ' + accClass;
+          const icono = op.accion === 'add' ? '➕' : op.accion === 'remove' ? '➖' : '🔄';
+          chip.textContent = `${icono} ${limpiarCategoria(op.categoria)}`;
+          dom.chipsAnadidas.appendChild(chip);
         });
       }
 
       // ==========================================
-      // EJECUTAR OPERACIONES (1 sola llamada)
+      // RENDERIZAR SELECT DE NUEVA OPERACIÓN
+      // (deshabilitando las ya añadidas)
+      // ==========================================
+      function renderizarNuevaCategoriaSelect() {
+        dom.nuevaCategoriaSelect.innerHTML = '<option value="">-- Seleccionar categoría --</option>';
+
+        // Normalizar las categorías ya añadidas
+        const yaAñadidas = new Set(state.operaciones.map(op => normalizar(op.categoria)));
+
+        Object.keys(state.todasCategorias).forEach(cat => {
+          const norm = normalizar(cat);
+          const info = buscarCategoria(cat);
+          const icono = info?.estado === 'Privado' ? '🔒' : info?.estado === 'Protegido' ? '🛡️' : '🌐';
+          const estoy = info?.estoy ? '✅ ' : '';
+          const yaAnadida = yaAñadidas.has(norm);
+
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = yaAnadida
+            ? `${icono} ${cat} (ya añadida)`
+            : `${estoy}${icono} ${cat}`;
+          if (yaAnadida) {
+            opt.disabled = true;
+            opt.className = 'ya-anadida';
+          }
+          dom.nuevaCategoriaSelect.appendChild(opt);
+        });
+
+        // Si todas las categorías están añadidas, deshabilitar el botón de añadir
+        const total = Object.keys(state.todasCategorias).length;
+        const añadidas = state.operaciones.length;
+        dom.btnAddOperacion.disabled = !state.datosCargados || (total > 0 && añadidas >= total);
+      }
+
+      // ==========================================
+      // EJECUTAR OPERACIONES
       // ==========================================
       function ejecutarOperaciones(operaciones) {
         const email = state.currentUser?.email;
@@ -867,7 +974,8 @@
       // HANDLER: BOTÓN PRINCIPAL
       // ==========================================
       const accionPrincipal = () => {
-        // Validar TODAS las operaciones antes de enviar
+        if (!state.datosCargados) return;
+
         const validaciones = state.operaciones.map(op => validarOperacion(op));
         const invalidas = validaciones.filter(v => !v.ok);
 
@@ -880,7 +988,6 @@
           return;
         }
 
-        // Construir array final: {categoria, accion}
         const operacionesFinales = state.operaciones.map((op) => {
           const v = validarOperacion(op);
           const info = buscarCategoria(op.categoria);
@@ -890,7 +997,7 @@
           };
         });
 
-        setBotonesBloqueados(true);
+        setUIBloqueada(true, `Ejecutando ${operacionesFinales.length} operación(es)...`);
         setMensaje('success', `⏳ Procesando ${operacionesFinales.length} operación(es)...`);
 
         ejecutarOperaciones(operacionesFinales)
@@ -898,11 +1005,13 @@
             setMensaje('success', `✅ ${operacionesFinales.length} operación(es) aplicada(s) correctamente.`);
             state.operaciones = [];
             state.cacheCategorias.clear();
+            state.datosCargados = false;
             renderizarOperaciones();
             cargarCategorias(state.currentUser.email);
           })
           .catch((err) => {
             setMensaje('error', '❌ ' + err);
+            setUIBloqueada(false);
             actualizarBotonAccion();
           });
       };
@@ -911,6 +1020,8 @@
       // HANDLER: "QUITARME DE TODAS"
       // ==========================================
       const accionRemoveAll = () => {
+        if (!state.datosCargados) return;
+
         const eliminables = state.misCategorias.filter(cat => {
           const info = buscarCategoria(cat);
           return info && info.estado !== 'Protegido';
@@ -922,7 +1033,7 @@
           return { categoria: info?.nombreOriginal || cat, accion: 'remove' };
         });
 
-        setBotonesBloqueados(true);
+        setUIBloqueada(true, `Eliminando de ${operaciones.length} categoría(s)...`);
         setMensaje('success', `⏳ Procesando ${operaciones.length} categoría(s)...`);
 
         ejecutarOperaciones(operaciones)
@@ -930,11 +1041,13 @@
             setMensaje('success', `✅ Te has eliminado de ${operaciones.length} categoría(s).`);
             state.operaciones = [];
             state.cacheCategorias.clear();
+            state.datosCargados = false;
             renderizarOperaciones();
             cargarCategorias(state.currentUser.email);
           })
           .catch((err) => {
             setMensaje('error', '❌ ' + err);
+            setUIBloqueada(false);
             actualizarBotonAccion();
           });
       };
@@ -943,38 +1056,76 @@
       // CARGAR CATEGORÍAS
       // ==========================================
       function cargarCategorias(email) {
+        state.datosCargados = false;
+        setUIBloqueada(true, 'Cargando categorías y tu pertenencia...');
+
         if (!email) return cargarCategoriasSinEstado();
-        google.script.run
-          .withSuccessHandler((resultado) => {
-            if (typeof resultado !== 'object' || resultado === null) return;
-            state.todasCategorias = resultado;
-            obtenerCategoriasDeEmail(email)
-              .then((cats) => {
-                state.misCategorias = cats;
-                actualizarMisCategoriasUI(cats);
-                renderizarNuevaCategoriaSelect();
-                renderizarOperaciones();
-                actualizarBotonAccion();
-              })
-              .catch(() => cargarCategoriasSinEstado());
+
+        Promise.all([
+          new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(resolve)
+              .withFailureHandler(reject)
+              .getMailbox();
+          }),
+          obtenerCategoriasDeEmail(email)
+        ])
+          .then(([resultadoGlobal, misCats]) => {
+            if (typeof resultadoGlobal !== 'object' || resultadoGlobal === null) {
+              throw new Error('Respuesta inválida del servidor.');
+            }
+
+            state.todasCategorias = resultadoGlobal;
+            state.misCategorias = misCats;
+
+            if (state.operaciones.length === 0 && state.categoriasRecibidas.length > 0) {
+              const existentes = new Set();
+              state.categoriasRecibidas.forEach(cat => {
+                const norm = normalizar(cat);
+                if (!existentes.has(norm)) {
+                  existentes.add(norm);
+                  state.operaciones.push({
+                    id: 'op_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+                    categoria: cat,
+                    accion: state.accionPorDefecto
+                  });
+                }
+              });
+            }
+
+            actualizarMisCategoriasUI(misCats);
+            renderizarOperaciones();
+
+            state.datosCargados = true;
+            setUIBloqueada(false);
+            actualizarBotonAccion();
           })
-          .withFailureHandler(() => {
+          .catch(() => {
             setMensaje('error', '❌ Error al cargar las categorías.');
-          })
-          .getMailbox();
+            setUIBloqueada(false);
+          });
       }
 
       function cargarCategoriasSinEstado() {
+        state.datosCargados = false;
+        setUIBloqueada(true, 'Cargando categorías...');
+
         google.script.run
           .withSuccessHandler((resultado) => {
-            if (typeof resultado !== 'object' || resultado === null) return;
+            if (typeof resultado !== 'object' || resultado === null) {
+              setUIBloqueada(false);
+              return;
+            }
             state.todasCategorias = resultado;
-            renderizarNuevaCategoriaSelect();
+            state.misCategorias = [];
             renderizarOperaciones();
+            state.datosCargados = true;
+            setUIBloqueada(false);
             actualizarBotonAccion();
           })
           .withFailureHandler(() => {
             setMensaje('error', '❌ Error al cargar las categorías.');
+            setUIBloqueada(false);
           })
           .getMailbox();
       }
@@ -994,10 +1145,20 @@
       // ACTUALIZAR BOTÓN PRINCIPAL
       // ==========================================
       function actualizarBotonAccion() {
+        if (!state.datosCargados) {
+          dom.btnAccionPrincipal.textContent = '⏳ Cargando...';
+          dom.btnAccionPrincipal.className = 'btn-accion-principal bloqueado';
+          dom.btnAccionPrincipal.onclick = null;
+          dom.btnAccionPrincipal.disabled = true;
+          dom.btnAccionSecundario.classList.add('hidden');
+          return;
+        }
+
         if (!state.autorizado) {
-          setBotonesBloqueados(true);
           dom.btnAccionPrincipal.textContent = '🔒 No autorizado';
           dom.btnAccionPrincipal.className = 'btn-accion-principal bloqueado';
+          dom.btnAccionPrincipal.onclick = null;
+          dom.btnAccionPrincipal.disabled = true;
           dom.btnAccionSecundario.classList.add('hidden');
           return;
         }
@@ -1023,7 +1184,6 @@
           dom.btnAccionPrincipal.disabled = false;
         }
 
-        // Botón "Quitarme de todas"
         const eliminables = state.misCategorias.filter(cat => {
           const info = buscarCategoria(cat);
           return info && info.estado !== 'Protegido';
@@ -1048,6 +1208,7 @@
 
         if (!user) {
           state.autorizado = false;
+          state.datosCargados = false;
           dom.authStatusText.innerHTML = '🔓 No autenticado <span class="status-badge unauthenticated">Sin sesión</span>';
           dom.authStatus.style.background = '#fff5f5';
           dom.authStatus.style.border = '1px solid #fed7d7';
@@ -1059,8 +1220,10 @@
           setMensaje('error', null); setMensaje('success', null);
           dom.misCategoriasContainer.style.display = 'none';
           state.operaciones = [];
+          state.misCategorias = [];
+          state.todasCategorias = {};
           renderizarOperaciones();
-          cargarCategoriasSinEstado();
+          setUIBloqueada(true, 'Inicia sesión para continuar');
           return;
         }
 
@@ -1080,26 +1243,15 @@
           dom.emailInput.classList.add('success');
           dom.emailInput.classList.remove('error');
           state.cacheCategorias.delete(emailLower);
-
-          // Añadir operaciones iniciales desde parámetros (si aún no hay)
-          if (state.operaciones.length === 0 && state.categoriasRecibidas.length > 0) {
-            state.categoriasRecibidas.forEach(cat => {
-              state.operaciones.push({
-                id: 'op_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-                categoria: cat,
-                accion: state.accionPorDefecto // 'add' o 'remove'
-              });
-            });
-          }
-
           cargarCategorias(email);
         } else {
           state.autorizado = false;
+          state.datosCargados = false;
           setMensaje('error', '❌ Tu email no está en la lista de destinatarios autorizados.');
           dom.emailInput.classList.add('error');
           dom.emailInput.classList.remove('success');
           dom.misCategoriasContainer.style.display = 'none';
-          setBotonesBloqueados(true);
+          setUIBloqueada(true, 'No autorizado');
           dom.btnAccionPrincipal.textContent = '🔒 No autorizado';
           dom.btnAccionPrincipal.className = 'btn-accion-principal bloqueado';
           dom.btnAccionSecundario.classList.add('hidden');
@@ -1111,17 +1263,34 @@
       // EVENTOS
       // ==========================================
       dom.btnAddOperacion.addEventListener('click', () => {
+        if (!state.datosCargados) return;
         const cat = dom.nuevaCategoriaSelect.value;
         const acc = dom.nuevaAccionSelect.value;
         if (!cat) {
           setMensaje('error', '❌ Selecciona una categoría.');
           return;
         }
+        // Doble comprobación: que no esté ya
+        const norm = normalizar(cat);
+        if (state.operaciones.some(op => normalizar(op.categoria) === norm)) {
+          setMensaje('error', `❌ "${cat}" ya está en la lista de operaciones.`);
+          return;
+        }
         setMensaje('error', null);
         agregarOperacion(cat, acc);
         dom.nuevaCategoriaSelect.value = '';
         dom.nuevaAccionSelect.value = 'auto';
+        // Re-renderiza (y deshabilita la opción recién añadida)
+        renderizarOperaciones();
       });
+
+      function agregarOperacion(categoria, accion) {
+        state.operaciones.push({
+          id: 'op_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+          categoria,
+          accion
+        });
+      }
 
       dom.googleSignInBtn.addEventListener('click', () => {
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -1185,6 +1354,7 @@
           state.misCategorias = [];
           state.cacheCategorias.clear();
           state.operaciones = [];
+          state.todasCategorias = {};
           renderizarOperaciones();
         });
       });
@@ -1194,12 +1364,8 @@
       // ==========================================
       // INICIALIZACIÓN
       // ==========================================
-      cargarCategoriasSinEstado();
+      setUIBloqueada(true, 'Inicia sesión para continuar');
       renderizarOperaciones();
-      setBotonesBloqueados(true);
-      dom.btnAccionPrincipal.textContent = '🔒 Inicia sesión';
-      dom.btnAccionPrincipal.className = 'btn-accion-principal bloqueado';
-      dom.btnAccionSecundario.classList.add('hidden');
     }
   </script>
 </body>
