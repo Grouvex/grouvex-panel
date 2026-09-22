@@ -329,7 +329,6 @@
     }
     .chip-añadida.add { background: #c6f6d5; color: #276749; border-color: #9ae6b4; }
     .chip-añadida.remove { background: #fed7d7; color: #9b2c2c; border-color: #feb2b2; }
-    .chip-añadida.auto { background: #fef3c7; color: #975a16; border-color: #f6e05e; }
     
     .acciones-rapidas {
       display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap;
@@ -900,12 +899,26 @@
       function renderizarChips() {
         dom.chipsAnadidas.innerHTML = '';
         if (state.operaciones.length === 0) return;
-
+      
         state.operaciones.forEach(op => {
           const chip = document.createElement('span');
-          const accClass = op.accion === 'add' ? 'add' : op.accion === 'remove' ? 'remove' : 'auto';
+      
+          // Resolver la acción efectiva (auto -> add/remove)
+          const validacion = validarOperacion(op);
+          let accionEfectiva = validacion.accionEfectiva;
+      
+          // Si aún no se puede determinar (datos no cargados o categoría inválida),
+          // mostramos un chip neutro sin color de add/remove
+          if (!accionEfectiva) {
+            chip.className = 'chip-añadida';
+            chip.textContent = `⏳ ${limpiarCategoria(op.categoria)}`;
+            dom.chipsAnadidas.appendChild(chip);
+            return;
+          }
+      
+          const accClass = accionEfectiva === 'add' ? 'add' : 'remove';
+          const icono = accionEfectiva === 'add' ? '➕' : '➖';
           chip.className = 'chip-añadida ' + accClass;
-          const icono = op.accion === 'add' ? '➕' : op.accion === 'remove' ? '➖' : '🔄';
           chip.textContent = `${icono} ${limpiarCategoria(op.categoria)}`;
           dom.chipsAnadidas.appendChild(chip);
         });
