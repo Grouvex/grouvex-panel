@@ -352,19 +352,32 @@
     // ============================================
     // UTILIDADES
     // ============================================
+    // Decodifica Base64 URL-safe (con o sin padding, como el que genera GSA)
     const decodeBase64WebSafe = (str) => {
       if (!str) return '';
       try {
-        const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+        let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4) base64 += '=';
         return decodeURIComponent(escape(atob(base64)));
       } catch { return str; }
     };
 
-    const esEncodeURIComponentValido = (str) => {
-      if (!str) return false;
+    // Codifica a Base64 URL-safe SIN padding (igual que Utilities.base64EncodeWebSafe)
+    const encodeBase64WebSafe = (str) => {
       try {
-        return encodeURIComponent(decodeURIComponent(str)) === str;
-      } catch { return false; }
+        const base64 = btoa(unescape(encodeURIComponent(str)));
+        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      } catch { return str; }
+    };
+
+    // Acepta parámetros que sean Base64 URL-safe (con o sin padding) o texto URL-encoded
+    const esParametroValido = (str) => {
+      if (!str) return false;
+      // Base64 URL-safe: A-Z, a-z, 0-9, -, _ (con o sin padding =)
+      const base64Regex = /^[A-Za-z0-9_-]+={0,2}$/;
+      if (base64Regex.test(str)) return true;
+      // Fallback: si viene URL-encoded pero decodificable
+      try { decodeURIComponent(str); return true; } catch { return false; }
     };
 
     const getURLParams = () => Object.fromEntries(new URLSearchParams(window.location.search));
@@ -420,9 +433,10 @@
           'Los campos emails e id deben estar codificados con encodeURIComponent.');
       }
 
-      if (!esEncodeURIComponentValido(rawEmails) || !esEncodeURIComponentValido(rawId)) {
+      // Acepta Base64 URL-safe (con o sin padding), tal como genera GSA
+      if (!esParametroValido(rawEmails) || !esParametroValido(rawId)) {
         return mostrarError('🔒 Formato de enlace inválido',
-          'Los parámetros "emails" e "id" deben estar correctamente codificados con encodeURIComponent. ' +
+          'Los parámetros "emails" e "id" no tienen un formato válido. ' +
           'Por seguridad, el acceso ha sido bloqueado. Solicita un nuevo enlace al sistema.');
       }
 
@@ -431,8 +445,11 @@
           `La acción "${rawAccion}" no es válida. Debe ser: add o remove.`);
       }
 
-      state.categoriaInicial = rawCategoria.trim();
+      // categoria viene en texto plano (GSA solo aplica encodeURIComponent)
+      state.categoriaInicial = decodeURIComponent(rawCategoria).trim();
       state.accionPorDefecto = rawAccion;
+
+      // emails e id vienen en Base64 URL-safe (GSA aplica base64EncodeWebSafe + encodeURIComponent)
       state.timestamp = decodeBase64WebSafe(decodeURIComponent(rawId));
 
       const decodedEmail = decodeBase64WebSafe(decodeURIComponent(rawEmails));
@@ -523,8 +540,14 @@
         dom.btnAccionSecundario.classList.toggle('hidden', oculto);
       };
 
-      const buildURL = (cat, accion, extra) =>
-        `${state.baseUrl}?categoria=${encodeURIComponent(cat)}&emails=${encodeURIComponent(state.currentUser.email)}&accion=${accion}&id=${encodeURIComponent(state.timestamp)}${extra || ''}`;
+      // Construye la URL con el MISMO formato que el GSA:
+      // categoria (texto plano con encodeURIComponent), emails (base64WebSafe + encodeURIComponent),
+      // accion (texto plano), id (timestamp actual en base64WebSafe + encodeURIComponent)
+      const buildURL = (cat, accion, extra) => {
+        const emailsB64 = encodeBase64WebSafe(state.currentUser.email);
+        const idB64 = encodeBase64WebSafe(String(Math.floor(Date.now() / 1000)));
+        return `${state.baseUrl}?categoria=${encodeURIComponent(cat)}&emails=${encodeURIComponent(emailsB64)}&accion=${accion}&id=${encodeURIComponent(idB64)}${extra || ''}`;
+      };
 
       const setBotonesBloqueados = (bloqueado) => {
         [dom.btnAccionPrincipal, dom.btnAccionSecundario].forEach(btn => {
