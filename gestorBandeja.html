@@ -276,10 +276,8 @@
     <div id="authenticatedSection" class="hidden">
       <div class="categoria-selector-wrapper">
         <div class="form-group">
-          <label>📁 Selecciona la Categoría</label>
-          <select id="categoriaSelector">
-            <option value="">-- Cargando categorías... --</option>
-          </select>
+          <label>📁 Categoría</label>
+          <input type="text" id="categoriaInput" readonly>
           <div class="legend">
             <small><span>✅</span> Estás registrado en esta categoría</small><br>
             <small><span>🌐</span> <strong>Público</strong> - Puedes agregarte o eliminarte</small><br>
@@ -390,6 +388,7 @@
     // ============================================
     const state = {
       categoriaInicial: '',
+      accionInicial: '',
       timestamp: '',
       emailsArray: [],
       currentUser: null,
@@ -408,25 +407,39 @@
       const auth = firebase.auth();
       const params = getURLParams();
 
-      const rawCategoria = params.categoria || params.category || params.param1 || '';
-      const rawEmail = params.email || params.mail || params.param2 || '';
-      const rawTimestamp = params.id || params.timestamp || params.time || params.param4 || '';
+      // Parámetros obligatorios
+      const rawCategoria = params.categoria || '';
+      const rawEmails    = params.emails || params.email || '';
+      const rawAccion    = params.accion || '';
+      const rawId        = params.id || '';
 
-      if (!rawCategoria || !rawEmail || !rawTimestamp) {
+      // Todos obligatorios
+      if (!rawCategoria || !rawEmails || !rawAccion || !rawId) {
         return mostrarError('🔑 Parámetros requeridos',
-          'Faltan parámetros obligatorios. El enlace debe incluir categoría, email e ID correctamente codificados con encodeURIComponent.');
+          'Faltan parámetros obligatorios. El enlace debe incluir: categoria, emails, accion e id. ' +
+          'Los campos emails e id deben estar codificados con encodeURIComponent.');
       }
 
-      const valido = [rawCategoria, rawEmail, rawTimestamp].every(esEncodeURIComponentValido);
-      if (!valido) {
+      // Solo emails e id deben estar codificados con encodeURIComponent
+      if (!esEncodeURIComponentValido(rawEmails) || !esEncodeURIComponentValido(rawId)) {
         return mostrarError('🔒 Formato de enlace inválido',
-          'Los parámetros del enlace no están correctamente codificados con encodeURIComponent. Por seguridad, el acceso ha sido bloqueado. Solicita un nuevo enlace al sistema.');
+          'Los parámetros "emails" e "id" deben estar correctamente codificados con encodeURIComponent. ' +
+          'Por seguridad, el acceso ha sido bloqueado. Solicita un nuevo enlace al sistema.');
       }
 
-      state.categoriaInicial = decodeBase64WebSafe(decodeURIComponent(rawCategoria));
-      state.timestamp = decodeBase64WebSafe(decodeURIComponent(rawTimestamp));
+      // Acción válida
+      const accionesValidas = ['add', 'remove', 'remove-all'];
+      if (!accionesValidas.includes(rawAccion)) {
+        return mostrarError('❌ Acción inválida',
+          `La acción "${rawAccion}" no es válida. Debe ser: add, remove o remove-all.`);
+      }
 
-      const decodedEmail = decodeBase64WebSafe(decodeURIComponent(rawEmail));
+      // Decodificar
+      state.categoriaInicial = rawCategoria.trim();
+      state.accionInicial = rawAccion;
+      state.timestamp = decodeBase64WebSafe(decodeURIComponent(rawId));
+
+      const decodedEmail = decodeBase64WebSafe(decodeURIComponent(rawEmails));
       if (decodedEmail) {
         state.emailsArray = decodedEmail.includes(',')
           ? decodedEmail.split(',').map(e => e.trim()).filter(e => e.includes('@'))
@@ -434,10 +447,10 @@
       }
       state.esMultiEmail = state.emailsArray.length > 1;
 
-      document.getElementById('subtitle').textContent = state.esMultiEmail
-        ? 'Selecciona la categoría y acción a realizar'
-        : 'Gestiona tu pertenencia a las categorías';
+      document.getElementById('subtitle').textContent =
+        state.esMultiEmail ? 'Selecciona la categoría y acción a realizar' : 'Gestiona tu pertenencia a las categorías';
 
+      // Validar timestamp
       if (!state.timestamp) return mostrarError('🔑 ID requerido', 'No se ha proporcionado un ID válido.');
       const timestampNum = parseInt(state.timestamp);
       if (isNaN(timestampNum) || timestampNum <= 0) return mostrarError('❌ ID inválido', `"${state.timestamp}" no es un ID válido.`);
@@ -455,7 +468,7 @@
     // ============================================
     function mostrarError(titulo, detalle) {
       const esTimestamp = titulo.includes('ID');
-      const esBloqueo = titulo.includes('Formato') || titulo.includes('bloqueado');
+      const esBloqueo = titulo.includes('Formato') || titulo.includes('bloqueado') || titulo.includes('Parámetros');
       const icono = titulo.includes('expirado') ? '⏰' : esBloqueo ? '🔒' : '❌';
       const colorBorde = esTimestamp ? '#ed8936' : esBloqueo ? '#e53e3e' : '#f56565';
       const bgColor = esTimestamp ? '#fffbeb' : '#fff5f5';
@@ -479,7 +492,6 @@
     // INIT UI
     // ============================================
     function initUI(auth) {
-      // ---- Referencias DOM (una sola vez) ----
       const $ = (id) => document.getElementById(id);
       const dom = {
         authStatus: $('authStatus'), authStatusText: $('authStatusText'),
@@ -488,13 +500,16 @@
         passwordLoginInput: $('passwordLoginInput'), loginErrorMessage: $('loginErrorMessage'),
         authenticatedSection: $('authenticatedSection'), emailInput: $('emailInput'),
         errorMessage: $('errorMessage'), successMessage: $('successMessage'),
-        signOutBtn: $('signOutBtn'), categoriaSelector: $('categoriaSelector'),
+        signOutBtn: $('signOutBtn'), categoriaInput: $('categoriaInput'),
         misCategoriasContainer: $('misCategoriasContainer'), misCategoriasList: $('misCategoriasList'),
         btnAccionPrincipal: $('btnAccionPrincipal'), btnAccionSecundario: $('btnAccionSecundario')
       };
 
+      // Mostrar la categoría recibida en el input readonly
+      dom.categoriaInput.value = state.categoriaInicial;
+
       // ---- Helpers UI ----
-      const setMensaje = (msg, tipo, texto) => {
+      const setMensaje = (tipo, texto) => {
         const el = tipo === 'error' ? dom.errorMessage : dom.successMessage;
         const otro = tipo === 'error' ? dom.successMessage : dom.errorMessage;
         otro.classList.remove('show');
@@ -518,7 +533,7 @@
       };
 
       const buildURL = (cat, accion, extra) =>
-        `${state.baseUrl}?categoria=${encodeURIComponent(cat)}&email=${encodeURIComponent(state.currentUser.email)}&accion=${accion}&id=${encodeURIComponent(state.timestamp)}&verified=true${extra || ''}`;
+        `${state.baseUrl}?categoria=${encodeURIComponent(cat)}&emails=${encodeURIComponent(state.currentUser.email)}&accion=${accion}&id=${encodeURIComponent(state.timestamp)}${extra || ''}`;
 
       const setBotonesBloqueados = (bloqueado) => {
         [dom.btnAccionPrincipal, dom.btnAccionSecundario].forEach(btn => {
@@ -553,37 +568,24 @@
       }
 
       // ==========================================
-      // RENDERIZAR CATEGORÍAS (unificado)
+      // RENDERIZAR CATEGORÍA RECIBIDA
       // ==========================================
-      function renderizarCategorias(resultado, conEstado) {
+      function renderizarCategoria(resultado, conEstado) {
         state.todasLasCategorias = resultado;
-        const categorias = Object.keys(resultado);
-        const set = conEstado ? new Set(state.misCategorias.map(c => c.toLowerCase().trim())) : new Set();
+        const catRecibida = state.categoriaInicial;
 
-        dom.categoriaSelector.innerHTML = categorias.length === 0
-          ? '<option value="">-- Sin categorías --</option>'
-          : '<option value="">-- Seleccionar categoría --</option>';
+        // Actualizar input readonly con la categoría recibida
+        dom.categoriaInput.value = catRecibida;
 
-        categorias.forEach((cat) => {
-          const data = resultado[cat] || {};
-          const estado = data.estado || 'Público';
-          const count = data.emails ? data.emails.split(',').filter(e => e.trim()).length : 0;
-          const icono = estado === 'Privado' ? '🔒' : estado === 'Protegido' ? '🛡️' : '🌐';
-          const estoy = conEstado && set.has(cat.toLowerCase().trim());
+        // Buscar los datos de esa categoría
+        const data = resultado[catRecibida] || {};
+        const estado = data.estado || 'Público';
 
-          const option = document.createElement('option');
-          option.value = cat;
-          option.textContent = `${estoy ? '✅ ' : ''}${icono} ${cat} (${count} emails)`;
-          option.className = estoy ? 'estoy' : 'no-estoy';
-          option.dataset.estado = estado;
-          option.dataset.estoy = estoy;
-          dom.categoriaSelector.appendChild(option);
-        });
-
-        if (state.categoriaInicial) {
-          const opt = [...dom.categoriaSelector.options].find(o => o.value === state.categoriaInicial);
-          if (opt) dom.categoriaSelector.value = state.categoriaInicial;
-        }
+        // Guardar estado de la categoría para el botón
+        dom.categoriaInput.dataset.estado = estado;
+        dom.categoriaInput.dataset.estoy = conEstado
+          ? state.misCategorias.some(c => c.toLowerCase().trim() === catRecibida.toLowerCase().trim())
+          : false;
 
         if (conEstado) actualizarMisCategoriasUI(state.misCategorias);
         actualizarBotonAccion();
@@ -594,25 +596,24 @@
       // ==========================================
       function cargarCategorias(email) {
         if (!email) return cargarCategoriasSinEstado();
-        dom.categoriaSelector.innerHTML = '<option value="">⏳ Cargando categorías...</option>';
 
         google.script.run
           .withSuccessHandler((resultado) => {
             if (typeof resultado !== 'object' || resultado === null) return;
             obtenerCategoriasDeEmail(email)
-              .then((cats) => { state.misCategorias = cats; renderizarCategorias(resultado, true); })
+              .then((cats) => { state.misCategorias = cats; renderizarCategoria(resultado, true); })
               .catch(() => cargarCategoriasSinEstado());
           })
-          .withFailureHandler(() => { dom.categoriaSelector.innerHTML = '<option value="">-- Error al cargar --</option>'; })
+          .withFailureHandler(() => { setMensaje('error', '❌ Error al cargar las categorías.'); })
           .getMailbox();
       }
 
       function cargarCategoriasSinEstado() {
         google.script.run
           .withSuccessHandler((resultado) => {
-            if (typeof resultado === 'object' && resultado !== null) renderizarCategorias(resultado, false);
+            if (typeof resultado === 'object' && resultado !== null) renderizarCategoria(resultado, false);
           })
-          .withFailureHandler(() => { dom.categoriaSelector.innerHTML = '<option value="">-- Error al cargar --</option>'; })
+          .withFailureHandler(() => { setMensaje('error', '❌ Error al cargar las categorías.'); })
           .getMailbox();
       }
 
@@ -632,64 +633,93 @@
       // ACTUALIZAR BOTÓN PRINCIPAL Y SECUNDARIO
       // ==========================================
       function actualizarBotonAccion() {
-        // Sin autorización
         if (!state.autorizado) {
           setBotonesBloqueados(true);
           setBotonPrincipal('🔒 No autorizado', 'add bloqueado');
           setBotonSecundario('', '', null, true);
-          setMensaje('', 'error'); setMensaje('', 'success');
+          setMensaje('error', null); setMensaje('success', null);
           return;
         }
 
         const email = state.currentUser?.email || '';
-        const categoria = dom.categoriaSelector.value;
+        const categoria = state.categoriaInicial;
 
         if (!email || !categoria) {
           setBotonesBloqueados(true);
-          setBotonPrincipal('⏳ Selecciona una categoría', 'add bloqueado');
+          setBotonPrincipal('⏳ Cargando...', 'add bloqueado');
           setBotonSecundario('', '', null, true);
-          setMensaje('', 'error'); setMensaje('', 'success');
           return;
         }
 
-        const option = dom.categoriaSelector.querySelector(`option[value="${CSS.escape(categoria)}"]`);
-        const estoy = option?.dataset.estoy === 'true';
-        const estado = option?.dataset.estado || 'Público';
+        const estado = dom.categoriaInput.dataset.estado || 'Público';
+        const estoy = dom.categoriaInput.dataset.estoy === 'true';
         const catLimpia = limpiarCategoria(categoria);
 
         setBotonesBloqueados(false);
 
-        // ====== BOTÓN PRINCIPAL ======
-        if (estoy) {
-          if (estado === 'Protegido') {
+        // ====== BOTÓN PRINCIPAL (según acción recibida) ======
+        if (state.accionInicial === 'add') {
+          if (estoy) {
+            setBotonPrincipal('⏳ Ya estás aquí', 'add bloqueado');
+            setMensaje('success', `✅ Ya estás registrado en "${categoria}".`);
+          } else if (estado === 'Protegido') {
             setBotonPrincipal('🛡️ Categoría Protegida', 'bloqueado');
-            setMensaje('error', null, `🛡️ La categoría "${categoria}" está PROTEGIDA. No puedes modificarla.`);
-          } else {
-            setBotonPrincipal(`➖ Eliminarme de "${catLimpia}"`, 'remove', buildURL(catLimpia, 'remove'));
-            setMensaje('success', null, `✅ Puedes eliminarte de "${categoria}".`);
-          }
-        } else {
-          if (estado === 'Protegido') {
-            setBotonPrincipal('🛡️ Categoría Protegida', 'bloqueado');
-            setMensaje('error', null, `🛡️ La categoría "${categoria}" está PROTEGIDA. No puedes agregarte.`);
+            setMensaje('error', `🛡️ La categoría "${categoria}" está PROTEGIDA. No puedes agregarte.`);
           } else if (estado === 'Privado') {
             setBotonPrincipal('🔒 Categoría Privada', 'bloqueado');
-            setMensaje('error', null, `🔒 La categoría "${categoria}" es PRIVADA. No puedes agregarte, solo eliminarte.`);
+            setMensaje('error', `🔒 La categoría "${categoria}" es PRIVADA. No puedes agregarte, solo eliminarte.`);
           } else {
             setBotonPrincipal(`➕ Agregarme a "${catLimpia}"`, 'add', buildURL(catLimpia, 'add'));
-            setMensaje('success', null, `✅ Puedes agregarte a "${categoria}".`);
+            setMensaje('success', `✅ Puedes agregarte a "${categoria}".`);
+          }
+        } else if (state.accionInicial === 'remove') {
+          if (estado === 'Protegido') {
+            setBotonPrincipal('🛡️ Categoría Protegida', 'bloqueado');
+            setMensaje('error', `🛡️ La categoría "${categoria}" está PROTEGIDA. No puedes eliminarte.`);
+          } else if (estoy) {
+            setBotonPrincipal(`➖ Eliminarme de "${catLimpia}"`, 'remove', buildURL(catLimpia, 'remove'));
+            setMensaje('success', `✅ Puedes eliminarte de "${categoria}".`);
+          } else {
+            setBotonPrincipal('❌ No estás aquí', 'bloqueado');
+            setMensaje('error', `❌ No estás registrado en "${categoria}".`);
+          }
+        } else if (state.accionInicial === 'remove-all') {
+          if (state.misCategorias.length === 0) {
+            setBotonPrincipal('⛔ Sin categorías', 'bloqueado');
+            setMensaje('error', '❌ No estás registrado en ninguna categoría.');
+          } else {
+            const eliminables = state.misCategorias.filter(cat => {
+              const opt = document.querySelector(`option[value="${CSS.escape(cat)}"]`);
+              return !opt || opt.dataset.estado !== 'Protegido';
+            });
+            const catsLimpias = eliminables.map(limpiarCategoria).join(',');
+
+            if (eliminables.length === 0) {
+              setBotonPrincipal('🛡️ Solo protegidas', 'bloqueado');
+              setMensaje('error', '🛡️ Todas tus categorías están PROTEGIDAS. No puedes eliminarte de ninguna.');
+            } else {
+              setBotonPrincipal(`🚫 Quitarme de todas (${eliminables.length})`, 'remove',
+                buildURL(catsLimpias, 'remove', '&remove-all=true'));
+              setMensaje('success', `✅ Te quitarás de ${eliminables.length} categoría(s).`);
+            }
           }
         }
 
-        // ====== BOTÓN SECUNDARIO ======
+        // ====== BOTÓN SECUNDARIO: "Quitarme de todas" ======
+        // Solo aparece si el usuario está en alguna categoría Y la acción no es remove-all
+        if (state.accionInicial === 'remove-all') {
+          setBotonSecundario('', '', null, true);
+          return;
+        }
+
         if (state.misCategorias.length === 0) {
           setBotonSecundario('', '', null, true);
           return;
         }
 
-        const eliminables = state.misCategorias.filter((cat) => {
-          const opt = dom.categoriaSelector.querySelector(`option[value="${CSS.escape(cat)}"]`);
-          return opt && opt.dataset.estado !== 'Protegido';
+        const eliminables = state.misCategorias.filter(cat => {
+          const opt = document.querySelector(`option[value="${CSS.escape(cat)}"]`);
+          return !opt || opt.dataset.estado !== 'Protegido';
         });
 
         if (eliminables.length === 0) {
@@ -721,7 +751,7 @@
           dom.emailInput.value = '';
           dom.emailInput.classList.remove('success', 'error');
           dom.loginErrorMessage.classList.remove('show');
-          setMensaje('', 'error'); setMensaje('', 'success');
+          setMensaje('error', null); setMensaje('success', null);
           dom.misCategoriasContainer.style.display = 'none';
           setBotonesBloqueados(true);
           setBotonPrincipal('🔒 Inicia sesión', 'add bloqueado');
@@ -749,7 +779,7 @@
           cargarCategorias(email);
         } else {
           state.autorizado = false;
-          setMensaje('error', null, '❌ Tu email no está en la lista de destinatarios autorizados.');
+          setMensaje('error', '❌ Tu email no está en la lista de destinatarios autorizados.');
           dom.emailInput.classList.add('error');
           dom.emailInput.classList.remove('success');
           dom.misCategoriasContainer.style.display = 'none';
@@ -763,8 +793,6 @@
       // ==========================================
       // EVENTOS
       // ==========================================
-      dom.categoriaSelector.addEventListener('change', actualizarBotonAccion);
-
       dom.googleSignInBtn.addEventListener('click', () => {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
