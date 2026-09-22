@@ -10,7 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   
-  <!-- Shim de google.script.run (ya cargado globalmente en otro script) -->
+  <!-- Shim de google.script.run -->
   <script src="/google-script-simulator.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -121,18 +121,6 @@
     .btn-signout { background: #e53e3e; color: white; }
     .btn-signout:hover { background: #c53030; transform: translateY(-2px); }
     
-    .btn-verificar {
-      background: #667eea; color: white;
-      display: inline-block; padding: 12px 30px;
-      border-radius: 50px; font-weight: 600;
-      transition: all 0.3s; border: none;
-      cursor: pointer; font-size: 15px;
-      width: 100%; text-align: center;
-      text-decoration: none;
-    }
-    .btn-verificar:hover { background: #5a67d8; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
-    .btn-verificar.disabled { opacity: 0.6; cursor: not-allowed; transform: none; pointer-events: none; }
-    
     .btn-group {
       display: flex; gap: 12px; justify-content: center;
       margin-top: 15px; flex-wrap: wrap;
@@ -182,22 +170,6 @@
       border-radius: 4px; background: #d4edda; margin-right: 4px;
     }
     
-    .accion-selector { margin: 10px 0; display: flex; gap: 8px; flex-wrap: wrap; }
-    .accion-selector .btn-accion {
-      padding: 8px 20px; border: 2px solid #e2e8f0;
-      border-radius: 8px; background: white;
-      cursor: pointer; transition: all 0.3s;
-      font-weight: 600; margin: 4px; flex: 1; min-width: 120px;
-    }
-    .accion-selector .btn-accion:hover { border-color: #667eea; transform: translateY(-1px); }
-    .accion-selector .btn-accion.selected { border-color: #667eea; background: #667eea; color: white; }
-    .accion-selector .btn-accion.add { color: #28a745; }
-    .accion-selector .btn-accion.add.selected { background: #28a745; color: white; border-color: #28a745; }
-    .accion-selector .btn-accion.remove { color: #dc3545; }
-    .accion-selector .btn-accion.remove.selected { background: #dc3545; color: white; border-color: #dc3545; }
-    .accion-selector .btn-accion.remove-all { color: #e67e22; }
-    .accion-selector .btn-accion.remove-all.selected { background: #e67e22; color: white; border-color: #e67e22; }
-    
     .mis-categorias {
       background: #f0fff4; border: 1px solid #c6f6d5;
       border-radius: 8px; padding: 12px 15px; margin: 10px 0;
@@ -219,11 +191,46 @@
       margin: 10px 0; font-size: 12px; color: #975a16;
     }
     
+    .acciones-rapidas {
+      display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap;
+    }
+    .btn-accion-principal,
+    .btn-accion-secundario {
+      flex: 1; min-width: 140px;
+      padding: 12px 20px; border-radius: 50px;
+      font-weight: 600; font-size: 14px;
+      cursor: pointer; transition: all 0.3s;
+      border: none; text-align: center;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-accion-principal { background: #667eea; color: white; }
+    .btn-accion-principal:hover { background: #5a67d8; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
+    .btn-accion-principal.add { background: #48bb78; }
+    .btn-accion-principal.add:hover { background: #38a169; box-shadow: 0 10px 20px rgba(72, 187, 120, 0.3); }
+    .btn-accion-principal.remove { background: #e53e3e; }
+    .btn-accion-principal.remove:hover { background: #c53030; box-shadow: 0 10px 20px rgba(229, 62, 62, 0.3); }
+    
+    .btn-accion-secundario { background: #e67e22; color: white; }
+    .btn-accion-secundario:hover { background: #d35400; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(230, 126, 34, 0.3); }
+    
+    .btn-accion-principal.bloqueado,
+    .btn-accion-secundario.bloqueado {
+      background: #cbd5e0 !important;
+      color: #718096 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+      opacity: 0.7;
+    }
+    
     @media (max-width: 480px) {
       .card { padding: 30px 20px; }
       .header .icon { font-size: 45px; }
       .header h1 { font-size: 20px; }
-      .accion-selector .btn-accion { min-width: 100%; }
+      .acciones-rapidas { flex-direction: column; }
+      .btn-accion-principal,
+      .btn-accion-secundario { min-width: 100%; }
     }
   </style>
 </head>
@@ -280,11 +287,10 @@
             <small><span>🛡️</span> <strong>Protegido</strong> - No puedes modificar</small>
           </div>
         </div>
-        
-        <div class="accion-selector">
-          <button class="btn-accion add" data-accion="add" onclick="seleccionarAccion('add')">➕ Agregarme</button>
-          <button class="btn-accion remove" data-accion="remove" onclick="seleccionarAccion('remove')">➖ Eliminarme</button>
-          <button class="btn-accion remove-all" data-accion="remove-all" onclick="seleccionarAccion('remove-all')">🚫 Quitarme de todas</button>
+
+        <div class="acciones-rapidas">
+          <a id="btnAccionPrincipal" class="btn-accion-principal add" href="#">➕ Agregarme</a>
+          <a id="btnAccionSecundario" class="btn-accion-secundario hidden" href="#">🚫 Quitarme de todas</a>
         </div>
       </div>
 
@@ -318,10 +324,6 @@
       <div id="errorMessage" class="error-message"></div>
       <div id="successMessage" class="success-message"></div>
 
-      <div id="verifyLinkContainer">
-        <a id="verifyLink" class="btn-verificar disabled" href="#">⏳ Selecciona una categoría</a>
-      </div>
-
       <div class="divider"><span>o</span></div>
       <button id="signOutBtn" class="btn btn-signout">🚪 Cambiar de cuenta</button>
     </div>
@@ -350,123 +352,101 @@
     // ============================================
     // UTILIDADES
     // ============================================
-    function decodeBase64WebSafe(str) {
+    const decodeBase64WebSafe = (str) => {
       if (!str) return '';
       try {
         const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-        const decoded = atob(base64);
-        return decodeURIComponent(escape(decoded));
-      } catch (e) {
-        return str;
-      }
-    }
-    
-    function getURLParams() {
-      const params = new URLSearchParams(window.location.search);
-      const result = {};
-      for (const [key, value] of params.entries()) {
-        result[key] = value;
-      }
-      return result;
-    }
-    
-    function formatearDiferencia(segundos) {
-      const aos = Math.floor(segundos / 31536000);
-      const meses = Math.floor((segundos % 31536000) / 2592000);
-      const dias = Math.floor((segundos % 2592000) / 86400);
-      const horas = Math.floor((segundos % 86400) / 3600);
-      const minutos = Math.floor((segundos % 3600) / 60);
-      const segs = segundos % 60;
-      
-      let texto = '';
-      if (aos > 0) texto += aos + ' año(s) ';
-      if (meses > 0) texto += meses + ' mes(es) ';
-      if (dias > 0) texto += dias + ' día(s) ';
-      if (horas > 0) texto += horas + 'h ';
-      if (minutos > 0) texto += minutos + 'm ';
-      if (segs > 0) texto += segs + 's';
-      return texto.trim() || '0s';
-    }
+        return decodeURIComponent(escape(atob(base64)));
+      } catch { return str; }
+    };
 
-    function limpiarCategoria(cat) {
-      return String(cat).replace(/ [🔒🌐🛡️✅]$/, '').trim();
-    }
+    const esEncodeURIComponentValido = (str) => {
+      if (!str) return false;
+      try {
+        return encodeURIComponent(decodeURIComponent(str)) === str;
+      } catch { return false; }
+    };
+
+    const getURLParams = () => Object.fromEntries(new URLSearchParams(window.location.search));
+
+    const formatearDiferencia = (segundos) => {
+      const unidades = [
+        [31536000, 'año(s)'], [2592000, 'mes(es)'], [86400, 'día(s)'],
+        [3600, 'h'], [60, 'm'], [1, 's']
+      ];
+      let restante = segundos;
+      const partes = [];
+      for (const [seg, label] of unidades) {
+        const val = Math.floor(restante / seg);
+        if (val > 0) { partes.push(`${val}${label === 'h' || label === 'm' || label === 's' ? label : ' ' + label + ' '}`); restante %= seg; }
+      }
+      return partes.join('').trim() || '0s';
+    };
+
+    const limpiarCategoria = (cat) => String(cat).replace(/ [🔒🌐🛡️✅]$/, '').trim();
 
     // ============================================
     // ESTADO GLOBAL
     // ============================================
     const state = {
       categoriaInicial: '',
-      accionInicial: '',
       timestamp: '',
       emailsArray: [],
-      categoriaSeleccionada: '',
-      accionSeleccionada: '',
       currentUser: null,
-      todasLasCategorias: {},
       misCategorias: [],
       cacheCategorias: new Map(),
       esMultiEmail: false,
+      autorizado: false,
       baseUrl: window.location.origin + window.location.pathname.replace(/\/$/, '')
     };
 
     // ============================================
     // INICIO
     // ============================================
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', () => {
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
-      
       const params = getURLParams();
-      
-      state.categoriaInicial = decodeBase64WebSafe(params.categoria || params.category || params.param1 || '');
-      state.accionInicial = params.accion || params.action || params.param3 || '';
-      state.timestamp = decodeBase64WebSafe(params.id || params.timestamp || params.time || params.param4 || '');
-      
-      let rawEmail = decodeBase64WebSafe(params.email || params.mail || params.param2 || '');
-      if (rawEmail) {
-        if (rawEmail.includes(',')) {
-          state.emailsArray = rawEmail.split(',').map(e => e.trim()).filter(e => e.includes('@'));
-        } else if (rawEmail.includes('@')) {
-          state.emailsArray = [rawEmail.trim()];
-        }
+
+      const rawCategoria = params.categoria || params.category || params.param1 || '';
+      const rawEmail = params.email || params.mail || params.param2 || '';
+      const rawTimestamp = params.id || params.timestamp || params.time || params.param4 || '';
+
+      if (!rawCategoria || !rawEmail || !rawTimestamp) {
+        return mostrarError('🔑 Parámetros requeridos',
+          'Faltan parámetros obligatorios. El enlace debe incluir categoría, email e ID correctamente codificados con encodeURIComponent.');
+      }
+
+      const valido = [rawCategoria, rawEmail, rawTimestamp].every(esEncodeURIComponentValido);
+      if (!valido) {
+        return mostrarError('🔒 Formato de enlace inválido',
+          'Los parámetros del enlace no están correctamente codificados con encodeURIComponent. Por seguridad, el acceso ha sido bloqueado. Solicita un nuevo enlace al sistema.');
+      }
+
+      state.categoriaInicial = decodeBase64WebSafe(decodeURIComponent(rawCategoria));
+      state.timestamp = decodeBase64WebSafe(decodeURIComponent(rawTimestamp));
+
+      const decodedEmail = decodeBase64WebSafe(decodeURIComponent(rawEmail));
+      if (decodedEmail) {
+        state.emailsArray = decodedEmail.includes(',')
+          ? decodedEmail.split(',').map(e => e.trim()).filter(e => e.includes('@'))
+          : (decodedEmail.includes('@') ? [decodedEmail.trim()] : []);
       }
       state.esMultiEmail = state.emailsArray.length > 1;
-      
-      console.log('📥 Parámetros:', params);
-      console.log('📌 Categoría:', state.categoriaInicial);
-      console.log('📌 Emails:', state.emailsArray);
-      console.log('📌 Acción:', state.accionInicial);
-      console.log('📌 Timestamp:', state.timestamp);
-      
-      document.getElementById('subtitle').textContent = 
-        state.esMultiEmail ? 'Selecciona la categoría y acción a realizar' : 'Gestiona tu pertenencia a las categorías';
-      
-      // Validar timestamp
-      if (!state.timestamp) {
-        return mostrarError('🔑 ID requerido', 'No se ha proporcionado un ID válido.');
-      }
-      
+
+      document.getElementById('subtitle').textContent = state.esMultiEmail
+        ? 'Selecciona la categoría y acción a realizar'
+        : 'Gestiona tu pertenencia a las categorías';
+
+      if (!state.timestamp) return mostrarError('🔑 ID requerido', 'No se ha proporcionado un ID válido.');
       const timestampNum = parseInt(state.timestamp);
-      if (isNaN(timestampNum) || timestampNum <= 0) {
-        return mostrarError('❌ ID inválido', '"' + state.timestamp + '" no es un ID válido.');
-      }
-      
-      const ahora = Math.floor(Date.now() / 1000);
-      const diferencia = ahora - timestampNum;
-      
-      if (diferencia < 0) {
-        return mostrarError('⏰ ID inválido', 'El ID no es válido, está configurado para funcionar en ' + formatearDiferencia(Math.abs(diferencia)) + '.');
-      }
-      
-      if (diferencia > 3600) {
-        return mostrarError('⏰ ID expirado', 'El ID expiró. Han pasado ' + formatearDiferencia(diferencia) + ' desde su generación. El ID tiene una vida útil de 1 hora.');
-      }
-      
-      if (state.emailsArray.length === 0) {
-        return mostrarError('❌ Email requerido', 'Debes proporcionar al menos un email válido con @.');
-      }
-      
+      if (isNaN(timestampNum) || timestampNum <= 0) return mostrarError('❌ ID inválido', `"${state.timestamp}" no es un ID válido.`);
+
+      const diferencia = Math.floor(Date.now() / 1000) - timestampNum;
+      if (diferencia < 0) return mostrarError('⏰ ID inválido', `El ID no es válido, está configurado para funcionar en ${formatearDiferencia(Math.abs(diferencia))}.`);
+      if (diferencia > 3600) return mostrarError('⏰ ID expirado', `El ID expiró. Han pasado ${formatearDiferencia(diferencia)} desde su generación. El ID tiene una vida útil de 1 hora.`);
+      if (state.emailsArray.length === 0) return mostrarError('❌ Email requerido', 'Debes proporcionar al menos un email válido con @.');
+
       initUI(auth);
     });
 
@@ -474,12 +454,13 @@
     // MOSTRAR ERROR
     // ============================================
     function mostrarError(titulo, detalle) {
-      const icono = titulo.includes('expirado') ? '⏰' : '❌';
       const esTimestamp = titulo.includes('ID');
-      const colorBorde = esTimestamp ? '#ed8936' : '#f56565';
+      const esBloqueo = titulo.includes('Formato') || titulo.includes('bloqueado');
+      const icono = titulo.includes('expirado') ? '⏰' : esBloqueo ? '🔒' : '❌';
+      const colorBorde = esTimestamp ? '#ed8936' : esBloqueo ? '#e53e3e' : '#f56565';
       const bgColor = esTimestamp ? '#fffbeb' : '#fff5f5';
       const textColor = esTimestamp ? '#975a16' : '#c53030';
-      
+
       document.body.innerHTML = `
         <div class="card" style="text-align:center;">
           <div style="font-size:70px;margin-bottom:15px;">${icono}</div>
@@ -491,185 +472,147 @@
             <a href="https://panel.grouvex.com" class="btn btn-secondary">🏠 Panel</a>
             <a href="https://grouvex.com" class="btn btn-secondary">🌐 Web Oficial</a>
           </div>
-        </div>
-      `;
+        </div>`;
     }
 
     // ============================================
     // INIT UI
     // ============================================
     function initUI(auth) {
-      const authStatus = document.getElementById('authStatus');
-      const authStatusText = document.getElementById('authStatusText');
-      const loginSection = document.getElementById('loginSection');
-      const googleSignInBtn = document.getElementById('googleSignInBtn');
-      const emailSignInBtn = document.getElementById('emailSignInBtn');
-      const emailLoginInput = document.getElementById('emailLoginInput');
-      const passwordLoginInput = document.getElementById('passwordLoginInput');
-      const loginErrorMessage = document.getElementById('loginErrorMessage');
-      const authenticatedSection = document.getElementById('authenticatedSection');
-      const emailInput = document.getElementById('emailInput');
-      const verifyLink = document.getElementById('verifyLink');
-      const errorMessage = document.getElementById('errorMessage');
-      const successMessage = document.getElementById('successMessage');
-      const signOutBtn = document.getElementById('signOutBtn');
-      const categoriaSelector = document.getElementById('categoriaSelector');
-      const misCategoriasContainer = document.getElementById('misCategoriasContainer');
-      const misCategoriasList = document.getElementById('misCategoriasList');
+      // ---- Referencias DOM (una sola vez) ----
+      const $ = (id) => document.getElementById(id);
+      const dom = {
+        authStatus: $('authStatus'), authStatusText: $('authStatusText'),
+        loginSection: $('loginSection'), googleSignInBtn: $('googleSignInBtn'),
+        emailSignInBtn: $('emailSignInBtn'), emailLoginInput: $('emailLoginInput'),
+        passwordLoginInput: $('passwordLoginInput'), loginErrorMessage: $('loginErrorMessage'),
+        authenticatedSection: $('authenticatedSection'), emailInput: $('emailInput'),
+        errorMessage: $('errorMessage'), successMessage: $('successMessage'),
+        signOutBtn: $('signOutBtn'), categoriaSelector: $('categoriaSelector'),
+        misCategoriasContainer: $('misCategoriasContainer'), misCategoriasList: $('misCategoriasList'),
+        btnAccionPrincipal: $('btnAccionPrincipal'), btnAccionSecundario: $('btnAccionSecundario')
+      };
+
+      // ---- Helpers UI ----
+      const setMensaje = (msg, tipo, texto) => {
+        const el = tipo === 'error' ? dom.errorMessage : dom.successMessage;
+        const otro = tipo === 'error' ? dom.successMessage : dom.errorMessage;
+        otro.classList.remove('show');
+        if (texto) { el.textContent = texto; el.classList.add('show'); }
+        else el.classList.remove('show');
+      };
+
+      const setBotonPrincipal = (texto, clase, href) => {
+        dom.btnAccionPrincipal.textContent = texto;
+        dom.btnAccionPrincipal.className = 'btn-accion-principal ' + clase;
+        if (href) dom.btnAccionPrincipal.href = href;
+        else dom.btnAccionPrincipal.removeAttribute('href');
+      };
+
+      const setBotonSecundario = (texto, clase, href, oculto) => {
+        dom.btnAccionSecundario.textContent = texto;
+        dom.btnAccionSecundario.className = 'btn-accion-secundario ' + clase;
+        if (href) dom.btnAccionSecundario.href = href;
+        else dom.btnAccionSecundario.removeAttribute('href');
+        dom.btnAccionSecundario.classList.toggle('hidden', oculto);
+      };
+
+      const buildURL = (cat, accion, extra) =>
+        `${state.baseUrl}?categoria=${encodeURIComponent(cat)}&email=${encodeURIComponent(state.currentUser.email)}&accion=${accion}&id=${encodeURIComponent(state.timestamp)}&verified=true${extra || ''}`;
+
+      const setBotonesBloqueados = (bloqueado) => {
+        [dom.btnAccionPrincipal, dom.btnAccionSecundario].forEach(btn => {
+          btn.classList.toggle('bloqueado', bloqueado);
+          if (bloqueado) btn.removeAttribute('href');
+        });
+      };
 
       // ==========================================
       // OBTENER CATEGORÍAS DE UN EMAIL (CON CACHÉ)
       // ==========================================
       function obtenerCategoriasDeEmail(email) {
         return new Promise((resolve, reject) => {
-          if (!email) { resolve([]); return; }
-          
-          const emailLower = email.toLowerCase().trim();
-          
-          if (state.cacheCategorias.has(emailLower)) {
-            resolve(state.cacheCategorias.get(emailLower));
-            return;
-          }
-          
+          if (!email) return resolve([]);
+          const key = email.toLowerCase().trim();
+          if (state.cacheCategorias.has(key)) return resolve(state.cacheCategorias.get(key));
+
           google.script.run
-            .withSuccessHandler(function(resultado) {
+            .withSuccessHandler((resultado) => {
               let categorias = [];
               if (typeof resultado === 'string' && !resultado.startsWith('❌')) {
-                categorias = resultado.split(',').map(c => limpiarCategoria(c)).filter(c => c);
+                categorias = resultado.split(',').map(limpiarCategoria).filter(Boolean);
               } else if (Array.isArray(resultado)) {
-                categorias = resultado.map(c => limpiarCategoria(c)).filter(c => c);
+                categorias = resultado.map(limpiarCategoria).filter(Boolean);
               }
-              console.log('📧 Categorías de', email, ':', categorias);
-              state.cacheCategorias.set(emailLower, categorias);
+              state.cacheCategorias.set(key, categorias);
               resolve(categorias);
             })
-            .withFailureHandler(function(error) {
-              console.error('Error obteniendo categorías:', error);
-              reject(error);
-            })
+            .withFailureHandler(reject)
             .getMailbox(null, email);
         });
       }
 
       // ==========================================
-      // CARGAR CATEGORÍAS CON ESTADO
+      // RENDERIZAR CATEGORÍAS (unificado)
       // ==========================================
-      function cargarCategoriasConEstado(email) {
-        if (!email) return cargarCategoriasDisponiblesSinEstado();
-        
-        categoriaSelector.innerHTML = '<option value="">⏳ Cargando categorías...</option>';
-        
-        google.script.run
-          .withSuccessHandler(function(resultado) {
-            if (typeof resultado === 'object' && resultado !== null) {
-              state.todasLasCategorias = resultado;
-              
-              obtenerCategoriasDeEmail(email).then(function(cats) {
-                state.misCategorias = cats;
-                const categoriasSet = new Set(cats.map(c => c.toLowerCase().trim()));
-                const categorias = Object.keys(resultado);
-                
-                if (categorias.length === 0) {
-                  categoriaSelector.innerHTML = '<option value="">-- Sin categorías --</option>';
-                  return;
-                }
-                
-                categoriaSelector.innerHTML = '<option value="">-- Seleccionar categoría --</option>';
-                
-                categorias.forEach(function(cat) {
-                  const option = document.createElement('option');
-                  option.value = cat;
-                  const data = resultado[cat] || {};
-                  const emailsStr = data.emails || '';
-                  const estado = data.estado || 'Público';
-                  const count = emailsStr ? emailsStr.split(',').filter(e => e.trim()).length : 0;
-                  const icono = estado === 'Privado' ? '🔒' : estado === 'Protegido' ? '🛡️' : '🌐';
-                  const estoy = categoriasSet.has(cat.toLowerCase().trim());
-                  
-                  option.textContent = (estoy ? '✅ ' : '') + icono + ' ' + cat + ' (' + count + ' emails)';
-                  option.className = estoy ? 'estoy' : 'no-estoy';
-                  option.dataset.estado = estado;
-                  option.dataset.estoy = estoy;
-                  categoriaSelector.appendChild(option);
-                });
-                
-                actualizarMisCategoriasUI(cats);
-                
-                if (state.categoriaInicial) {
-                  for (let i = 0; i < categoriaSelector.options.length; i++) {
-                    if (categoriaSelector.options[i].value === state.categoriaInicial) {
-                      categoriaSelector.selectedIndex = i;
-                      state.categoriaSeleccionada = state.categoriaInicial;
-                      break;
-                    }
-                  }
-                }
-                
-                actualizarEstadoVerificacion();
-              }).catch(function() {
-                cargarCategoriasDisponiblesSinEstado();
-              });
-            }
-          })
-          .withFailureHandler(function(error) {
-            console.error('Error cargando categorías:', error);
-            categoriaSelector.innerHTML = '<option value="">-- Error al cargar --</option>';
-          })
-          .getMailbox();
+      function renderizarCategorias(resultado, conEstado) {
+        state.todasLasCategorias = resultado;
+        const categorias = Object.keys(resultado);
+        const set = conEstado ? new Set(state.misCategorias.map(c => c.toLowerCase().trim())) : new Set();
+
+        dom.categoriaSelector.innerHTML = categorias.length === 0
+          ? '<option value="">-- Sin categorías --</option>'
+          : '<option value="">-- Seleccionar categoría --</option>';
+
+        categorias.forEach((cat) => {
+          const data = resultado[cat] || {};
+          const estado = data.estado || 'Público';
+          const count = data.emails ? data.emails.split(',').filter(e => e.trim()).length : 0;
+          const icono = estado === 'Privado' ? '🔒' : estado === 'Protegido' ? '🛡️' : '🌐';
+          const estoy = conEstado && set.has(cat.toLowerCase().trim());
+
+          const option = document.createElement('option');
+          option.value = cat;
+          option.textContent = `${estoy ? '✅ ' : ''}${icono} ${cat} (${count} emails)`;
+          option.className = estoy ? 'estoy' : 'no-estoy';
+          option.dataset.estado = estado;
+          option.dataset.estoy = estoy;
+          dom.categoriaSelector.appendChild(option);
+        });
+
+        if (state.categoriaInicial) {
+          const opt = [...dom.categoriaSelector.options].find(o => o.value === state.categoriaInicial);
+          if (opt) dom.categoriaSelector.value = state.categoriaInicial;
+        }
+
+        if (conEstado) actualizarMisCategoriasUI(state.misCategorias);
+        actualizarBotonAccion();
       }
 
       // ==========================================
-      // CARGAR CATEGORÍAS SIN ESTADO
+      // CARGAR CATEGORÍAS
       // ==========================================
-      function cargarCategoriasDisponiblesSinEstado() {
+      function cargarCategorias(email) {
+        if (!email) return cargarCategoriasSinEstado();
+        dom.categoriaSelector.innerHTML = '<option value="">⏳ Cargando categorías...</option>';
+
         google.script.run
-          .withSuccessHandler(function(resultado) {
-            if (typeof resultado === 'object' && resultado !== null) {
-              state.todasLasCategorias = resultado;
-              const categorias = Object.keys(resultado);
-              
-              categoriaSelector.innerHTML = '';
-              
-              if (categorias.length === 0) {
-                categoriaSelector.innerHTML = '<option value="">-- Sin categorías --</option>';
-                return;
-              }
-              
-              categoriaSelector.innerHTML = '<option value="">-- Seleccionar categoría --</option>';
-              
-              categorias.forEach(function(cat) {
-                const option = document.createElement('option');
-                option.value = cat;
-                const data = resultado[cat] || {};
-                const emailsStr = data.emails || '';
-                const estado = data.estado || 'Público';
-                const count = emailsStr ? emailsStr.split(',').filter(e => e.trim()).length : 0;
-                const icono = estado === 'Privado' ? '🔒' : estado === 'Protegido' ? '🛡️' : '🌐';
-                
-                option.textContent = icono + ' ' + cat + ' (' + count + ' emails)';
-                option.className = 'no-estoy';
-                option.dataset.estado = estado;
-                option.dataset.estoy = false;
-                categoriaSelector.appendChild(option);
-              });
-              
-              if (state.categoriaInicial) {
-                for (let i = 0; i < categoriaSelector.options.length; i++) {
-                  if (categoriaSelector.options[i].value === state.categoriaInicial) {
-                    categoriaSelector.selectedIndex = i;
-                    state.categoriaSeleccionada = state.categoriaInicial;
-                    break;
-                  }
-                }
-              }
-              
-              actualizarEstadoVerificacion();
-            }
+          .withSuccessHandler((resultado) => {
+            if (typeof resultado !== 'object' || resultado === null) return;
+            obtenerCategoriasDeEmail(email)
+              .then((cats) => { state.misCategorias = cats; renderizarCategorias(resultado, true); })
+              .catch(() => cargarCategoriasSinEstado());
           })
-          .withFailureHandler(function(error) {
-            console.error('Error cargando categorías:', error);
-            categoriaSelector.innerHTML = '<option value="">-- Error al cargar --</option>';
+          .withFailureHandler(() => { dom.categoriaSelector.innerHTML = '<option value="">-- Error al cargar --</option>'; })
+          .getMailbox();
+      }
+
+      function cargarCategoriasSinEstado() {
+        google.script.run
+          .withSuccessHandler((resultado) => {
+            if (typeof resultado === 'object' && resultado !== null) renderizarCategorias(resultado, false);
           })
+          .withFailureHandler(() => { dom.categoriaSelector.innerHTML = '<option value="">-- Error al cargar --</option>'; })
           .getMailbox();
       }
 
@@ -678,167 +621,87 @@
       // ==========================================
       function actualizarMisCategoriasUI(categorias) {
         state.misCategorias = categorias;
-        
-        if (categorias.length > 0) {
-          misCategoriasContainer.style.display = 'block';
-          misCategoriasList.innerHTML = categorias.map(function(cat) {
-            return '<span class="categoria-tag"><span class="icon">📁</span> ' + cat + '</span>';
-          }).join('');
-        } else {
-          misCategoriasContainer.style.display = 'block';
-          misCategoriasList.innerHTML = '<span class="empty-msg">No estás registrado en ninguna categoría.</span>';
-        }
+        dom.misCategoriasContainer.style.display = 'block';
+        dom.misCategoriasList.innerHTML = categorias.length > 0
+          ? categorias.map(cat => `<span class="categoria-tag"><span class="icon">📁</span> ${cat}</span>`).join('')
+          : '<span class="empty-msg">No estás registrado en ninguna categoría.</span>';
+        actualizarBotonAccion();
       }
 
       // ==========================================
-      // SELECCIONAR ACCIÓN
+      // ACTUALIZAR BOTÓN PRINCIPAL Y SECUNDARIO
       // ==========================================
-      window.seleccionarAccion = function(accion) {
-        state.accionSeleccionada = accion;
-        
-        document.querySelectorAll('.btn-accion').forEach(function(btn) {
-          btn.classList.remove('selected');
-        });
-        
-        const btn = document.querySelector('.btn-accion[data-accion="' + accion + '"]');
-        if (btn) btn.classList.add('selected');
-        
-        actualizarEstadoVerificacion();
-      };
-
-      // ==========================================
-      // ACTUALIZAR ESTADO DE VERIFICACIÓN
-      // ==========================================
-      function actualizarEstadoVerificacion() {
-        const email = state.currentUser ? state.currentUser.email : '';
-        const categoria = categoriaSelector.value;
-        
-        if (!email || !categoria) {
-          verifyLink.className = 'btn-verificar disabled';
-          verifyLink.textContent = '⏳ Selecciona una categoría';
-          verifyLink.href = '#';
-          errorMessage.classList.remove('show');
-          successMessage.classList.remove('show');
+      function actualizarBotonAccion() {
+        // Sin autorización
+        if (!state.autorizado) {
+          setBotonesBloqueados(true);
+          setBotonPrincipal('🔒 No autorizado', 'add bloqueado');
+          setBotonSecundario('', '', null, true);
+          setMensaje('', 'error'); setMensaje('', 'success');
           return;
         }
-        
-        const option = categoriaSelector.querySelector('option[value="' + categoria + '"]');
-        const estoy = option ? option.dataset.estoy === 'true' : false;
-        const estado = option ? option.dataset.estado : 'Público';
-        const categoriaLimpia = limpiarCategoria(categoria);
-        
-        if (state.accionSeleccionada === 'add') {
-          if (estoy) {
-            successMessage.textContent = '✅ Ya estás registrado en "' + categoria + '".';
-            successMessage.classList.add('show');
-            errorMessage.classList.remove('show');
-            verifyLink.className = 'btn-verificar disabled';
-            verifyLink.href = '#';
-            verifyLink.textContent = '⏳ Ya estás aquí';
-          } else if (estado === 'Protegido') {
-            errorMessage.textContent = '🛡️ La categoría "' + categoria + '" está PROTEGIDA. No puedes agregarte.';
-            errorMessage.classList.add('show');
-            successMessage.classList.remove('show');
-            verifyLink.className = 'btn-verificar disabled';
-            verifyLink.href = '#';
-            verifyLink.textContent = '⛔ Categoría Protegida';
-          } else if (estado === 'Privado') {
-            errorMessage.textContent = '🔒 La categoría "' + categoria + '" es PRIVADA. No puedes agregarte, solo eliminarte.';
-            errorMessage.classList.add('show');
-            successMessage.classList.remove('show');
-            verifyLink.className = 'btn-verificar disabled';
-            verifyLink.href = '#';
-            verifyLink.textContent = '⛔ Categoría Privada';
-          } else {
-            successMessage.textContent = '✅ Puedes agregarte a "' + categoria + '".';
-            successMessage.classList.add('show');
-            errorMessage.classList.remove('show');
-            verifyLink.href = state.baseUrl + 
-                    '?categoria=' + encodeURIComponent(categoriaLimpia) +
-                    '&email=' + encodeURIComponent(email) +
-                    '&accion=add' +
-                    '&id=' + encodeURIComponent(state.timestamp) +
-                    '&verified=true';
-            verifyLink.textContent = '➕ Agregarme a "' + categoriaLimpia + '"';
-            verifyLink.className = 'btn-verificar';
-          }
-        } else if (state.accionSeleccionada === 'remove') {
+
+        const email = state.currentUser?.email || '';
+        const categoria = dom.categoriaSelector.value;
+
+        if (!email || !categoria) {
+          setBotonesBloqueados(true);
+          setBotonPrincipal('⏳ Selecciona una categoría', 'add bloqueado');
+          setBotonSecundario('', '', null, true);
+          setMensaje('', 'error'); setMensaje('', 'success');
+          return;
+        }
+
+        const option = dom.categoriaSelector.querySelector(`option[value="${CSS.escape(categoria)}"]`);
+        const estoy = option?.dataset.estoy === 'true';
+        const estado = option?.dataset.estado || 'Público';
+        const catLimpia = limpiarCategoria(categoria);
+
+        setBotonesBloqueados(false);
+
+        // ====== BOTÓN PRINCIPAL ======
+        if (estoy) {
           if (estado === 'Protegido') {
-            errorMessage.textContent = '🛡️ La categoría "' + categoria + '" está PROTEGIDA. No puedes eliminarte.';
-            errorMessage.classList.add('show');
-            successMessage.classList.remove('show');
-            verifyLink.className = 'btn-verificar disabled';
-            verifyLink.href = '#';
-            verifyLink.textContent = '⛔ Categoría Protegida';
-          } else if (estoy) {
-            successMessage.textContent = '✅ Puedes eliminarte de "' + categoria + '".';
-            successMessage.classList.add('show');
-            errorMessage.classList.remove('show');
-            verifyLink.href = state.baseUrl + 
-                    '?categoria=' + encodeURIComponent(categoriaLimpia) +
-                    '&email=' + encodeURIComponent(email) +
-                    '&accion=remove' +
-                    '&id=' + encodeURIComponent(state.timestamp) +
-                    '&verified=true';
-            verifyLink.textContent = '➖ Eliminarme de "' + categoriaLimpia + '"';
-            verifyLink.className = 'btn-verificar';
+            setBotonPrincipal('🛡️ Categoría Protegida', 'bloqueado');
+            setMensaje('error', null, `🛡️ La categoría "${categoria}" está PROTEGIDA. No puedes modificarla.`);
           } else {
-            errorMessage.textContent = '❌ No estás registrado en "' + categoria + '".';
-            errorMessage.classList.add('show');
-            successMessage.classList.remove('show');
-            verifyLink.className = 'btn-verificar disabled';
-            verifyLink.href = '#';
-            verifyLink.textContent = '⛔ No estás aquí';
+            setBotonPrincipal(`➖ Eliminarme de "${catLimpia}"`, 'remove', buildURL(catLimpia, 'remove'));
+            setMensaje('success', null, `✅ Puedes eliminarte de "${categoria}".`);
           }
-        } else if (state.accionSeleccionada === 'remove-all') {
-          const tieneProtegidas = state.misCategorias.some(function(cat) {
-            const opt = categoriaSelector.querySelector('option[value="' + cat + '"]');
-            return opt && opt.dataset.estado === 'Protegido';
-          });
-          
-          if (state.misCategorias.length === 0) {
-            errorMessage.textContent = '❌ No estás registrado en ninguna categoría.';
-            errorMessage.classList.add('show');
-            successMessage.classList.remove('show');
-            verifyLink.className = 'btn-verificar disabled';
-            verifyLink.href = '#';
-            verifyLink.textContent = '⛔ Sin categorías';
+        } else {
+          if (estado === 'Protegido') {
+            setBotonPrincipal('🛡️ Categoría Protegida', 'bloqueado');
+            setMensaje('error', null, `🛡️ La categoría "${categoria}" está PROTEGIDA. No puedes agregarte.`);
+          } else if (estado === 'Privado') {
+            setBotonPrincipal('🔒 Categoría Privada', 'bloqueado');
+            setMensaje('error', null, `🔒 La categoría "${categoria}" es PRIVADA. No puedes agregarte, solo eliminarte.`);
           } else {
-            let categoriasEliminables = state.misCategorias;
-            if (tieneProtegidas) {
-              categoriasEliminables = state.misCategorias.filter(function(cat) {
-                const opt = categoriaSelector.querySelector('option[value="' + cat + '"]');
-                return opt && opt.dataset.estado !== 'Protegido';
-              });
-            }
-            
-            if (categoriasEliminables.length === 0) {
-              errorMessage.textContent = '🛡️ Todas tus categorías están PROTEGIDAS. No puedes eliminarte de ninguna.';
-              errorMessage.classList.add('show');
-              successMessage.classList.remove('show');
-              verifyLink.className = 'btn-verificar disabled';
-              verifyLink.href = '#';
-              verifyLink.textContent = '⛔ Solo categorías protegidas';
-            } else {
-              const categoriasLimpias = categoriasEliminables.map(cat => limpiarCategoria(cat));
-              const categoriasParaEliminar = categoriasLimpias.join(',');
-              
-              successMessage.textContent = tieneProtegidas 
-                ? '⚠️ Te quitarás de ' + categoriasEliminables.length + ' categoría(s). Las protegidas se mantendrán.'
-                : '✅ Te quitarás de ' + categoriasEliminables.length + ' categoría(s).';
-              successMessage.classList.add('show');
-              errorMessage.classList.remove('show');
-              
-              verifyLink.href = state.baseUrl + 
-                      '?categoria=' + encodeURIComponent(categoriasParaEliminar) +
-                      '&email=' + encodeURIComponent(email) +
-                      '&accion=remove' +
-                      '&id=' + encodeURIComponent(state.timestamp) +
-                      '&verified=true&remove-all=true';
-              verifyLink.textContent = '🚫 Quitarme de ' + categoriasEliminables.length + ' categorías';
-              verifyLink.className = 'btn-verificar';
-            }
+            setBotonPrincipal(`➕ Agregarme a "${catLimpia}"`, 'add', buildURL(catLimpia, 'add'));
+            setMensaje('success', null, `✅ Puedes agregarte a "${categoria}".`);
           }
+        }
+
+        // ====== BOTÓN SECUNDARIO ======
+        if (state.misCategorias.length === 0) {
+          setBotonSecundario('', '', null, true);
+          return;
+        }
+
+        const eliminables = state.misCategorias.filter((cat) => {
+          const opt = dom.categoriaSelector.querySelector(`option[value="${CSS.escape(cat)}"]`);
+          return opt && opt.dataset.estado !== 'Protegido';
+        });
+
+        if (eliminables.length === 0) {
+          setBotonSecundario('🛡️ Solo protegidas', 'bloqueado', null, false);
+        } else {
+          const catsLimpias = eliminables.map(limpiarCategoria).join(',');
+          setBotonSecundario(
+            `🚫 Quitarme de todas (${eliminables.length})`,
+            '',
+            buildURL(catsLimpias, 'remove', '&remove-all=true'),
+            false
+          );
         }
       }
 
@@ -847,164 +710,134 @@
       // ==========================================
       function updateUI(user) {
         state.currentUser = user;
-        if (user) {
-          const email = user.email || '';
-          authStatusText.innerHTML = '✅ Autenticado como: <span class="user-email">' + email + '</span> <span class="status-badge authenticated">Autenticado</span>';
-          authStatus.style.background = '#f0fff4';
-          authStatus.style.border = '1px solid #c6f6d5';
-          loginSection.classList.add('hidden');
-          authenticatedSection.classList.remove('hidden');
-          
-          if (email) {
-            emailInput.value = email;
-            
-            let autorizado = true;
-            if (state.esMultiEmail) {
-              const emailLower = email.toLowerCase().trim();
-              autorizado = state.emailsArray.some(function(e) { 
-                return String(e).toLowerCase().trim() === emailLower; 
-              });
-            }
-            
-            if (autorizado) {
-              emailInput.classList.add('success');
-              emailInput.classList.remove('error');
-              
-              const emailLower = email.toLowerCase().trim();
-              state.cacheCategorias.delete(emailLower);
-              
-              cargarCategoriasConEstado(email);
-            } else {
-              errorMessage.textContent = '❌ Tu email no está en la lista de destinatarios autorizados.';
-              errorMessage.classList.add('show');
-              emailInput.classList.add('error');
-              verifyLink.className = 'btn-verificar disabled';
-              verifyLink.href = '#';
-              verifyLink.textContent = '⛔ No autorizado';
-              misCategoriasContainer.style.display = 'none';
-              cargarCategoriasDisponiblesSinEstado();
-            }
-          }
+
+        if (!user) {
+          state.autorizado = false;
+          dom.authStatusText.innerHTML = '🔓 No autenticado <span class="status-badge unauthenticated">Sin sesión</span>';
+          dom.authStatus.style.background = '#fff5f5';
+          dom.authStatus.style.border = '1px solid #fed7d7';
+          dom.loginSection.classList.remove('hidden');
+          dom.authenticatedSection.classList.add('hidden');
+          dom.emailInput.value = '';
+          dom.emailInput.classList.remove('success', 'error');
+          dom.loginErrorMessage.classList.remove('show');
+          setMensaje('', 'error'); setMensaje('', 'success');
+          dom.misCategoriasContainer.style.display = 'none';
+          setBotonesBloqueados(true);
+          setBotonPrincipal('🔒 Inicia sesión', 'add bloqueado');
+          setBotonSecundario('', '', null, true);
+          cargarCategoriasSinEstado();
+          return;
+        }
+
+        const email = user.email || '';
+        dom.authStatusText.innerHTML = `✅ Autenticado como: <span class="user-email">${email}</span> <span class="status-badge authenticated">Autenticado</span>`;
+        dom.authStatus.style.background = '#f0fff4';
+        dom.authStatus.style.border = '1px solid #c6f6d5';
+        dom.loginSection.classList.add('hidden');
+        dom.authenticatedSection.classList.remove('hidden');
+        dom.emailInput.value = email;
+
+        const emailLower = email.toLowerCase().trim();
+        const autorizado = !state.esMultiEmail || state.emailsArray.some(e => e.toLowerCase().trim() === emailLower);
+
+        if (autorizado) {
+          state.autorizado = true;
+          dom.emailInput.classList.add('success');
+          dom.emailInput.classList.remove('error');
+          state.cacheCategorias.delete(emailLower);
+          cargarCategorias(email);
         } else {
-          authStatusText.innerHTML = '🔓 No autenticado <span class="status-badge unauthenticated">Sin sesión</span>';
-          authStatus.style.background = '#fff5f5';
-          authStatus.style.border = '1px solid #fed7d7';
-          loginSection.classList.remove('hidden');
-          authenticatedSection.classList.add('hidden');
-          emailInput.value = '';
-          emailInput.classList.remove('success', 'error');
-          loginErrorMessage.classList.remove('show');
-          errorMessage.classList.remove('show');
-          successMessage.classList.remove('show');
-          verifyLink.href = '#';
-          verifyLink.textContent = '⏳ Inicia sesión para continuar';
-          verifyLink.className = 'btn-verificar disabled';
-          misCategoriasContainer.style.display = 'none';
-          cargarCategoriasDisponiblesSinEstado();
+          state.autorizado = false;
+          setMensaje('error', null, '❌ Tu email no está en la lista de destinatarios autorizados.');
+          dom.emailInput.classList.add('error');
+          dom.emailInput.classList.remove('success');
+          dom.misCategoriasContainer.style.display = 'none';
+          setBotonesBloqueados(true);
+          setBotonPrincipal('🔒 No autorizado', 'add bloqueado');
+          setBotonSecundario('', '', null, true);
+          cargarCategoriasSinEstado();
         }
       }
 
       // ==========================================
       // EVENTOS
       // ==========================================
-      categoriaSelector.addEventListener('change', function() {
-        state.categoriaSeleccionada = this.value;
-        actualizarEstadoVerificacion();
-      });
-      
-      googleSignInBtn.addEventListener('click', function() {
+      dom.categoriaSelector.addEventListener('change', actualizarBotonAccion);
+
+      dom.googleSignInBtn.addEventListener('click', () => {
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         auth.signInWithPopup(provider)
-          .then(function(result) {
-            console.log('✅ Login con Google:', result.user.email);
-            updateUI(result.user);
-          })
-          .catch(function(error) {
-            console.error('Error:', error);
-            loginErrorMessage.textContent = '❌ Error: ' + error.message;
-            loginErrorMessage.classList.add('show');
+          .then((result) => updateUI(result.user))
+          .catch((error) => {
+            dom.loginErrorMessage.textContent = '❌ Error: ' + error.message;
+            dom.loginErrorMessage.classList.add('show');
           });
       });
-      
-      emailSignInBtn.addEventListener('click', function() {
-        const email = emailLoginInput.value.trim();
-        const password = passwordLoginInput.value;
+
+      dom.emailSignInBtn.addEventListener('click', () => {
+        const email = dom.emailLoginInput.value.trim();
+        const password = dom.passwordLoginInput.value;
+
         if (!email) {
-          loginErrorMessage.textContent = '❌ Ingresa tu correo.';
-          loginErrorMessage.classList.add('show');
+          dom.loginErrorMessage.textContent = '❌ Ingresa tu correo.';
+          dom.loginErrorMessage.classList.add('show');
           return;
         }
         if (!password || password.length < 6) {
-          loginErrorMessage.textContent = '❌ La contraseña debe tener al menos 6 caracteres.';
-          loginErrorMessage.classList.add('show');
+          dom.loginErrorMessage.textContent = '❌ La contraseña debe tener al menos 6 caracteres.';
+          dom.loginErrorMessage.classList.add('show');
           return;
         }
-        emailSignInBtn.disabled = true;
-        emailSignInBtn.textContent = '⏳ Iniciando...';
-        loginErrorMessage.classList.remove('show');
+
+        dom.emailSignInBtn.disabled = true;
+        dom.emailSignInBtn.textContent = '⏳ Iniciando...';
+        dom.loginErrorMessage.classList.remove('show');
+
         auth.signInWithEmailAndPassword(email, password)
-          .then(function(result) {
-            emailSignInBtn.disabled = false;
-            emailSignInBtn.textContent = '📧 Iniciar sesión con correo';
+          .then((result) => {
+            dom.emailSignInBtn.disabled = false;
+            dom.emailSignInBtn.textContent = '📧 Iniciar sesión con correo';
             updateUI(result.user);
           })
-          .catch(function(error) {
-            emailSignInBtn.disabled = false;
-            emailSignInBtn.textContent = '📧 Iniciar sesión con correo';
-            let mensajeError = '❌ Error: ';
-            switch (error.code) {
-              case 'auth/user-not-found': mensajeError += 'Cuenta no encontrada.'; break;
-              case 'auth/wrong-password': mensajeError += 'Contraseña incorrecta.'; break;
-              case 'auth/invalid-email': mensajeError += 'Email inválido.'; break;
-              case 'auth/user-disabled': mensajeError += 'Cuenta deshabilitada.'; break;
-              case 'auth/too-many-requests': mensajeError += 'Demasiados intentos.'; break;
-              default: mensajeError += error.message;
-            }
-            loginErrorMessage.textContent = mensajeError;
-            loginErrorMessage.classList.add('show');
+          .catch((error) => {
+            dom.emailSignInBtn.disabled = false;
+            dom.emailSignInBtn.textContent = '📧 Iniciar sesión con correo';
+            const errores = {
+              'auth/user-not-found': 'Cuenta no encontrada.',
+              'auth/wrong-password': 'Contraseña incorrecta.',
+              'auth/invalid-email': 'Email inválido.',
+              'auth/user-disabled': 'Cuenta deshabilitada.',
+              'auth/too-many-requests': 'Demasiados intentos.'
+            };
+            dom.loginErrorMessage.textContent = '❌ Error: ' + (errores[error.code] || error.message);
+            dom.loginErrorMessage.classList.add('show');
           });
       });
-      
-      emailLoginInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') passwordLoginInput.focus();
-      });
-      passwordLoginInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') emailSignInBtn.click();
-      });
-      
-      signOutBtn.addEventListener('click', function() {
-        auth.signOut().then(function() {
-          console.log('✅ Sesión cerrada');
+
+      dom.emailLoginInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') dom.passwordLoginInput.focus(); });
+      dom.passwordLoginInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') dom.emailSignInBtn.click(); });
+
+      dom.signOutBtn.addEventListener('click', () => {
+        auth.signOut().then(() => {
           updateUI(null);
-          emailLoginInput.value = '';
-          passwordLoginInput.value = '';
-          state.categoriaSeleccionada = '';
-          state.accionSeleccionada = '';
+          dom.emailLoginInput.value = '';
+          dom.passwordLoginInput.value = '';
           state.misCategorias = [];
           state.cacheCategorias.clear();
-          document.querySelectorAll('.btn-accion').forEach(function(btn) {
-            btn.classList.remove('selected');
-          });
-          misCategoriasContainer.style.display = 'none';
-        }).catch(function(error) {
-          console.error('Error:', error);
         });
       });
-      
-      auth.onAuthStateChanged(function(user) {
-        console.log('🔄 Estado cambiado:', user ? user.email : 'null');
-        updateUI(user);
-      });
-      
+
+      auth.onAuthStateChanged(updateUI);
+
       // ==========================================
       // INICIALIZACIÓN
       // ==========================================
-      cargarCategoriasDisponiblesSinEstado();
-      
-      if (state.accionInicial) {
-        window.seleccionarAccion(state.accionInicial);
-      }
+      cargarCategoriasSinEstado();
+      setBotonesBloqueados(true);
+      setBotonPrincipal('🔒 Inicia sesión', 'add bloqueado');
+      setBotonSecundario('', '', null, true);
     }
   </script>
 </body>
