@@ -3420,12 +3420,22 @@
                   resetSessionTimer();
                   setupActivityListeners();
                   const currentUrl = window.location.href;
-                  gs_fireID = `GS-${user.uid}`;
+                  gs_fireID = user?.uid ? `GS-${user.uid}` : null;
                   const params = new URLSearchParams(window.location.search);
-                  gs_id = params.get('id');
-                  urlTargetId = params.get('targetId');
-                  isViewingOtherProfile = gs_id !== null && gs_id !== gs_fireID;
-                  mostrarId = isViewingOtherProfile && urlTargetId ? urlTargetId : gs_id;
+                  gs_id = params.get('id') || null;
+                  urlTargetId = params.get('targetId') || null;
+                  isViewingOtherProfile = Boolean(
+                    urlTargetId && 
+                    gs_fireID && 
+                    urlTargetId !== gs_fireID
+                  );
+                  if (isViewingOtherProfile) {
+                    mostrarId = urlTargetId;
+                  } else if (gs_id) {
+                    mostrarId = gs_id;
+                  } else {
+                    mostrarId = gs_fireID;
+                  }
                   document.querySelectorAll('.mostrarId').forEach(el => {
                         el.textContent = mostrarId;
                   });
