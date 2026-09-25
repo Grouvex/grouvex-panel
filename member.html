@@ -3438,7 +3438,7 @@
                         isVerifiedTeam = Array.isArray(data.insignias) && data.insignias.some(insignia => 
                             insigniasVerificadas.includes(insignia.name)
                         );
-                        if(isStaff) {staffInsignia = true; staffaccessValidate == true;staffBlockValidate == true;
+                        if(isStaff) {staffInsignia = true; staffaccessValidate == true;staffBlockValidate == true};
                         console.log('Es staff verificado?:', isVerifiedTeam)
                   }).withFailureHandler(function(error) {}).getArtistData(mostrarId);
                   const userAvatar = document.getElementById('user-avatar');
