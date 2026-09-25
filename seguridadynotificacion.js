@@ -261,13 +261,12 @@ const PERMISOS_FUNCIONES = {
   }
 };
 
-function showNotification(message, type = 'info', duration = 10000) {
-  // 1. Inicializar el almacenamiento interno de la función si no existe
-  showNotification.maxVisible = 5;
-  showNotification.active = showNotification.active || [];
-  showNotification.queue = showNotification.queue || [];
+// Usamos un Closure para proteger el estado de la cola y activos
+const showNotification = (() => {
+  const maxVisible = 5;
+  let active = [];
+  let queue = [];
 
-  // Configuración de estilos y tipografías por cada tipo
   const typesConfig = {
     success:   { bg: '#28a745', icon: 'fa-check-circle' },
     error:     { bg: '#dc3545', icon: 'fa-exclamation-circle' },
@@ -279,9 +278,7 @@ function showNotification(message, type = 'info', duration = 10000) {
     loading:   { bg: '#6c757d', icon: 'fa-spinner fa-spin' }
   };
 
-  // 2. Función interna que se encarga de crear y renderizar el DOM
-  const render = (msg, t, dur) => {
-    // Asegurar que exista el contenedor de la pila
+  function render(msg, t, dur) {
     let container = document.getElementById('notification-stack-container');
     if (!container) {
       container = document.createElement('div');
@@ -302,8 +299,6 @@ function showNotification(message, type = 'info', duration = 10000) {
 
     const config = typesConfig[t] || typesConfig.info;
     const notification = document.createElement('div');
-    
-    // Generador de ID único ultra seguro e independiente del reloj del sistema
     const id = 'notif_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now();
 
     notification.style.cssText = `
@@ -338,45 +333,43 @@ function showNotification(message, type = 'info', duration = 10000) {
     `;
     
     container.appendChild(notification);
-    showNotification.active.push({ id, element: notification });
+    active.push({ id, element: notification });
 
-    // Corrección de la barra de progreso: Forzar layout síncrono antes de mutar la propiedad CSS
     requestAnimationFrame(() => {
       const bar = notification.querySelector('.notification-progress-bar');
       if (bar) {
-        // Forzamos un reflow/layout del DOM de forma explícita leyendo offsetWidth
         void bar.offsetWidth; 
         bar.style.transform = 'scaleX(0)';
       }
     });
 
-    // Manejar el tiempo de vida de forma aislada
     const lifeTimer = setTimeout(() => {
       notification.style.animation = 'slideOut 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards';
       
       setTimeout(() => {
         notification.remove();
-        showNotification.active = showNotification.active.filter(n => n.id !== id);
+        // Al estar encapsulado en el closure, 'active' y 'queue' siempre existen de forma segura
+        active = active.filter(n => n.id !== id);
         
-        // Si hay elementos esperando en la cola, procesamos el siguiente de manera limpia
-        if (showNotification.queue.length > 0) {
-          const next = showNotification.queue.shift();
+        if (queue.length > 0) {
+          const next = queue.shift();
           render(next.message, next.type, next.duration);
         }
       }, 300);
     }, dur);
 
-    // Guardamos el timer de vida para evitar colisiones en limpiezas asíncronas masivas
     notification.dataset.timerId = lifeTimer;
-  };
-
-  // 3. Lógica de control de flujo (Pila / Cola)
-  if (showNotification.active.length < showNotification.maxVisible) {
-    render(message, type, duration);
-  } else {
-    showNotification.queue.push({ message, type, duration });
   }
-}
+
+  // La función pública que invocarás en tu aplicación:
+  return function(message, type = 'info', duration = 10000) {
+    if (active.length < maxVisible) {
+      render(message, type, duration);
+    } else {
+      queue.push({ message, type, duration });
+    }
+  };
+})();
 
 function verificadoPermisos(nombreFuncion) {
   // Si no se le pasa ningún nombre, lo detecta automáticamente usando el stack trace
