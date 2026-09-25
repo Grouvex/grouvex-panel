@@ -3395,6 +3395,8 @@
       
       // State variables
       let isStaff = false;
+      let staffBlockValidate = false;
+      let staffaccessValidate = false;
       let mostrarUserName = null;
       let mostrarUserNameTarget = null;
       let isVerifiedTeam = false;
@@ -3429,12 +3431,15 @@
                   });
                   google.script.run.withSuccessHandler(function(data) {
                         isStaff = data.isStaff;
+                        console.log("Es staff?: isStaff)
                         const insigniasVerificadas = ['verified-employee', 'verified-moderator', 'sistema', 'ownerRecords', 'ownerDesigns', 'ownerGames', 'ownerAnimations', 'owner', 'GROUVEX%20Studios%20GCO'];
 
                         // Comprueba si alguna insignia del array 'data.insignias' tiene un 'name' incluido en la lista
                         isVerifiedTeam = Array.isArray(data.insignias) && data.insignias.some(insignia => 
                             insigniasVerificadas.includes(insignia.name)
                         );
+                        if(isStaff) {staffInsignia = true; staffaccessValidate == true;staffBlockValidate == true;
+                        console.log("Es staff verificado?: isVerifiedTeam)
                   }).withFailureHandler(function(error) {}).getArtistData(mostrarId);
                   const userAvatar = document.getElementById('user-avatar');
                   const userAvatarTIGS = document.getElementById('user-avatarTIGS');
@@ -3551,9 +3556,6 @@
                   console.log('Target ID:', urlTargetId);
                   console.log('ID a mostrar:', mostrarId);
                   console.log(isStaff);
-                  document.getElementById('crUserId').value = gs_id;
-                  document.getElementById('gs-user-id').value = gs_fireID;
-                  document.getElementById(`gsrecordsUserId`).value = mostrarId || urlTargetId || gs_id || gs_fireID || '';
                   // Check if user is staff or verified team
                   try {
                         // Update UI
@@ -3565,8 +3567,8 @@
                             if (staffBadge) staffBadge.classList.remove('hidden');
                         }
                         if (staffInsignia) staffInsignia.classList.remove('hidden');
-                        if (staffaccess) staffaccess.classList.remove('hidden');
-                        if (staffBlock) staffBlock.classList.remove('hidden');
+                        if (staffaccess && staffaccessValidate) staffaccess.classList.remove('hidden');
+                        if (staffBlock && staffBlockValidate) staffBlock.classList.remove('hidden');
                         // Show dashboard
                         loginForm.classList.add('hidden');
                         userDashboard.classList.remove('hidden');
@@ -4363,6 +4365,10 @@
       });
     }
 
+      document.getElementById('crUserId').value = gs_id;
+      document.getElementById('gs-user-id').value = gs_fireID;
+      document.getElementById(`gsrecordsUserId`).value = mostrarId || urlTargetId || gs_id || gs_fireID || '';
+          
     });
 
     // ============================================================
