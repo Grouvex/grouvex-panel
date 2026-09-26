@@ -3447,7 +3447,7 @@
                         isVerifiedTeam = Array.isArray(data.insignias) && data.insignias.some(insignia => 
                             insigniasVerificadas.includes(insignia.name)
                         );
-                        if(isStaff) {staffaccessValidate == true;staffBlockValidate == true};
+                        if(isStaff) {staffaccessValidate = true;staffBlockValidate = true};
                         console.log('Es staff data?:', data.isStaff);
                         console.log('Es staff?:', isStaff);
                         console.log('Es staff verificado?:', isVerifiedTeam);
@@ -3579,6 +3579,7 @@
                         if (staffInsignia) staffInsignia.classList.remove('hidden');
                         console.log('Es staffaccessValidate?:', staffaccessValidate);
                         console.log('Es staffaccess?:', staffaccess);
+                        console.log('Es staff 2?:', isStaff);
                         if (staffaccess && staffaccessValidate) staffaccess.classList.remove('hidden');
                         if (staffBlock && staffBlockValidate) staffBlock.classList.remove('hidden');
                         // Show dashboard
