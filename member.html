@@ -3448,6 +3448,9 @@
                             insigniasVerificadas.includes(insignia.name)
                         );
                         if(isStaff) {staffaccessValidate == true;staffBlockValidate == true};
+                        console.log('Es staff data?:', data.isStaff);
+                        console.log('Es staff?:', isStaff);
+                        console.log('Es staff verificado?:', isVerifiedTeam);
                   }).withFailureHandler(function(error) {}).getArtistData(gs_fireID);
                   const userAvatar = document.getElementById('user-avatar');
                   const userAvatarTIGS = document.getElementById('user-avatarTIGS');
@@ -3563,8 +3566,6 @@
                   console.log('URL ID:', gs_id);
                   console.log('Target ID:', urlTargetId);
                   console.log('ID a mostrar:', mostrarId);
-                  console.log('Es staff?:', isStaff);
-                  console.log('Es staff verificado?:', isVerifiedTeam)
                   // Check if user is staff or verified team
                   try {
                         // Update UI
