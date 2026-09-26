@@ -3439,19 +3439,35 @@
                   document.querySelectorAll('.mostrarId').forEach(el => {
                         el.textContent = mostrarId;
                   });
-                  google.script.run.withSuccessHandler(function(data) {
+                  try {
+                        // El await pausa la ejecución aquí hasta que la API responde
+                        const data = await google.script.run.getArtistData(gs_fireID);
+                  
+                        // A partir de aquí los datos YA LLEGARON:
                         isStaff = data.isStaff;
-                        const insigniasVerificadas = ['verified-employee', 'verified-moderator', 'sistema', 'ownerRecords', 'ownerDesigns', 'ownerGames', 'ownerAnimations', 'owner', 'GROUVEX%20Studios%20GCO'];
-
-                        // Comprueba si alguna insignia del array 'data.insignias' tiene un 'name' incluido en la lista
+                  
+                        const insigniasVerificadas = [
+                          'verified-employee', 'verified-moderator', 'sistema', 
+                          'ownerRecords', 'ownerDesigns', 'ownerGames', 
+                          'ownerAnimations', 'owner', 'GROUVEX%20Studios%20GCO'
+                        ];
+                  
                         isVerifiedTeam = Array.isArray(data.insignias) && data.insignias.some(insignia => 
-                            insigniasVerificadas.includes(insignia.name)
+                          insigniasVerificadas.includes(insignia.name)
                         );
-                        if(isStaff) {staffaccessValidate = true;staffBlockValidate = true};
+                  
+                        if (isStaff) {
+                          staffaccessValidate = true;
+                          staffBlockValidate = true;
+                        }
+                  
                         console.log('Es staff data?:', data.isStaff);
                         console.log('Es staff?:', isStaff);
                         console.log('Es staff verificado?:', isVerifiedTeam);
-                  }).withFailureHandler(function(error) {}).getArtistData(gs_fireID);
+                  
+                      } catch (error) {
+                        console.error('Error al obtener datos del artista:', error);
+                      }
                   const userAvatar = document.getElementById('user-avatar');
                   const userAvatarTIGS = document.getElementById('user-avatarTIGS');
                   if (user.photoURL) {
