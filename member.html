@@ -3406,232 +3406,192 @@
       let gs_fireID = null;
       let mostrarId = null;
       // Auth state observer
-      auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                  showNotification("Inicio de sesión correcto", 'success');
-                  currentUser = user;
-                  console.log('Usuario autenticado:', user.uid);
-                  
-                  // Mostrar dashboard
-                  const dashboard = document.getElementById('userDashboard');
-                  if (dashboard) {
-                        dashboard.classList.remove('hidden');
-                  }
-                  resetSessionTimer();
-                  setupActivityListeners();
-                  const currentUrl = window.location.href;
-                  gs_fireID = user?.uid ? `GS-${user.uid}` : null;
-                  const params = new URLSearchParams(window.location.search);
-                  gs_id = params.get('id') || null;
-                  urlTargetId = params.get('targetId') || null;
-                  isViewingOtherProfile = Boolean(
-                    urlTargetId && 
-                    gs_fireID && 
-                    urlTargetId !== gs_fireID
-                  );
-                  if (isViewingOtherProfile) {
-                    mostrarId = urlTargetId;
-                  } else if (gs_id) {
-                    mostrarId = gs_id;
-                  } else {
-                    mostrarId = gs_fireID;
-                  }
-                  document.querySelectorAll('.mostrarId').forEach(el => {
-                        el.textContent = mostrarId;
-                  });
-                  try {
-                        // El await pausa la ejecución aquí hasta que la API responde
-                        const data = await google.script.run.getArtistData(gs_fireID);
-                  
-                        // A partir de aquí los datos YA LLEGARON:
-                        isStaff = data.isStaff;
-                  
-                        const insigniasVerificadas = [
-                          'verified-employee', 'verified-moderator', 'sistema', 
-                          'ownerRecords', 'ownerDesigns', 'ownerGames', 
-                          'ownerAnimations', 'owner', 'GROUVEX%20Studios%20GCO'
-                        ];
-                  
-                        isVerifiedTeam = Array.isArray(data.insignias) && data.insignias.some(insignia => 
-                          insigniasVerificadas.includes(insignia.name)
-                        );
-                  
-                        if (isStaff) {
-                          staffaccessValidate = true;
-                          staffBlockValidate = true;
-                        }
-                  
-                        console.log('Es staff data?:', data.isStaff);
-                        console.log('Es staff?:', isStaff);
-                        console.log('Es staff verificado?:', isVerifiedTeam);
-                  
-                      } catch (error) {
-                        console.error('Error al obtener datos del artista:', error);
-                      }
-                  const userAvatar = document.getElementById('user-avatar');
-                  const userAvatarTIGS = document.getElementById('user-avatarTIGS');
-                  if (user.photoURL) {
-                        console.log('🖼️ Imagen de perfil:', user.photoURL);
-                        userAvatar.src = user.photoURL;
-                        userAvatarTIGS.src = user.photoURL;
-                        userAvatarTIGS.style.display = 'block';
-                        userAvatar.style.display = 'block';
-                  } else {
-                        console.log('📸 No hay imagen de perfil');
-                        userAvatar.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png';
-                        userAvatarTIGS.src = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png';
-                        userAvatar.style.display = 'block';
-                        userAvatarTIGS.style.display = 'block';
-                  }
-                  
-                  // Mostrar nombre de usuario
-                  const userName = document.getElementById('user-name');
-                  if (user.displayName) {
-                        console.log('👤 Nombre:', user.displayName);
-                        userName.textContent = user.displayName;
-                  } else {
-                        userName.textContent = user.email;
-                  }
-                  // Mostrar si el email está verificado
-                  const emailVerified = document.getElementById('email-verified');
-                  const emailVerifiedX = document.getElementById('email-verified-x');
-                  if (user.emailVerified) {
-                        console.log('✅ Email verificado');
-                        emailVerified.style.display = 'inline';
-                        emailVerifiedX.style.display = 'none';
-                  } else {
-                        console.log('⚠️ Email no verificado');
-                        emailVerified.style.display = 'none';
-                        emailVerifiedX.style.display = 'inline';
-                  }
-                  const userLastSing = document.getElementById('userlastsing');
-                  if (user.metadata.lastSignInTime) {
-                        console.log('✅ Time verificado');
-                        userLastSing.textContent = user.metadata.lastSignInTime;
-                  } else {
-                        console.log('⚠️ Time no defined');
-                        userName.textContent = "Not Defined";
-                  }
-                  
-                  if (gs_id && gs_id !== gs_fireID) {
-                        console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
-                        gs_id = null;
-                        gs_fireID = null;
-                        mostrarId = null;
-                        auth.signOut().then(() => {
-                              initSessionTimeout();
-                              removeActivityListeners();
-                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                        });
-                  } else if (!gs_id || !gs_fireID) {
-                        console.log('No hay ID en la URL o no hay fireID');
-                        gs_id = null;
-                        gs_fireID = null;
-                        mostrarId = null;
-                        auth.signOut().then(() => {
-                              initSessionTimeout();
-                              removeActivityListeners();
-                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                        });
-                  } else {
-                        console.log('El ID en la URL coincide con el usuario autenticado');
-                  }
-                  // Usuario normal intentando ver perfil ajeno
-                  if (!isStaff && gs_id && gs_id !== gs_fireID) {
-                        showIdMismatchOverlay();
-                        gs_id = null;
-                        gs_fireID = null;
-                        mostrarId = null;
-                        auth.signOut().then(() => {
-                              initSessionTimeout();
-                              removeActivityListeners();
-                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                        });
-                  }
-                  // Staff intentando ver perfil ajeno sin parámetros correctos
-                  if (isStaff && gs_id && gs_id !== gs_fireID) {
-                        showIdMismatchOverlayStaff();
-                        gs_id = null;
-                        gs_fireID = null;
-                        mostrarId = null;
-                        auth.signOut().then(() => {
-                              initSessionTimeout();
-                              removeActivityListeners();
-                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                        });
-                  }
-                  if (!gs_fireID || !gs_id) {
-                        showLoginRequiredOverlay();
-                        gs_id = null;
-                        gs_fireID = null;
-                        mostrarId = null;
-                        auth.signOut().then(() => {
-                              initSessionTimeout();
-                              removeActivityListeners();
-                              if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
-                        });
-                  }
-                  await inicializarSeguridadUI();
-                  // Cargar datos
-                  loadUserData(user);
-                  loadUserDataTarget(user);
-                  setTimeout(loadRelatedProfiles, 500);
-                  setTimeout(loadUserCustomization, 1000);
-                  console.log('🔍 URL completa:', currentUrl);
-                  console.log('Firebase UID:', gs_fireID);
-                  console.log('URL ID:', gs_id);
-                  console.log('Target ID:', urlTargetId);
-                  console.log('ID a mostrar:', mostrarId);
-                  // Check if user is staff or verified team
-                  try {
-                        // Update UI
-                        userEmail.textContent = user.email;
-                        // Show appropriate badge based on role
-                        if (isVerifiedTeam) {
-                            if (verifiedTeamBadge) verifiedTeamBadge.classList.remove('hidden');
-                        } else if (isStaff) {
-                            if (staffBadge) staffBadge.classList.remove('hidden');
-                        }
-                        if (staffInsignia) staffInsignia.classList.remove('hidden');
-                        console.log('Es staffaccessValidate?:', staffaccessValidate);
-                        console.log('Es staffaccess?:', staffaccess);
-                        console.log('Es staff 2?:', isStaff);
-                        if (staffaccess && staffaccessValidate) staffaccess.classList.remove('hidden');
-                        if (staffBlock && staffBlockValidate) staffBlock.classList.remove('hidden');
-                        // Show dashboard
-                        loginForm.classList.add('hidden');
-                        userDashboard.classList.remove('hidden');
-                        logoutBtn.classList.remove('hidden');
-                        resetPasswordBtn.classList.remove('hidden');
-                  } catch (error) {
-                        console.error("Error checking user role:", error);
-                        showError(emailError, "Error al verificar tu cuenta. Intenta nuevamente.");
-                  }
-            } else {
-                  showNotification("Inicio de sesión incorrecto", 'error');
-                  // No user signed in
-                  gs_id = null;
-                  urlTargetId = null;
-                  isViewingOtherProfile = null;
-                  gs_fireID = null;
-                  currentUser = null;
-                  isStaff = false;
-                  isVerifiedTeam = false;
-                  loginForm.classList.remove('hidden');
-                  userDashboard.classList.add('hidden');
-                  logoutBtn.classList.add('hidden');
-                  resetPasswordBtn.classList.add('hidden');
-                  const dashboard = document.getElementById('userDashboard');
-                  if (dashboard) {
-                        dashboard.classList.add('hidden');
-                  }
-                  // Clear inputs
-                  emailInput.value = '';
-                  passwordInput.value = '';
-                  initSessionTimeout();
-                  removeActivityListeners();
-            }
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          showNotification("Inicio de sesión correcto", 'success');
+          currentUser = user;
+          console.log('Usuario autenticado:', user.uid);
+      
+          resetSessionTimer();
+          setupActivityListeners();
+          const currentUrl = window.location.href;
+          gs_fireID = user?.uid ? `GS-${user.uid}` : null;
+          const params = new URLSearchParams(window.location.search);
+          gs_id = params.get('id') || null;
+          urlTargetId = params.get('targetId') || null;
+      
+          isViewingOtherProfile = Boolean(
+            urlTargetId && 
+            gs_fireID && 
+            urlTargetId !== gs_fireID
+          );
+      
+          if (isViewingOtherProfile) {
+            mostrarId = urlTargetId;
+          } else if (gs_id) {
+            mostrarId = gs_id;
+          } else {
+            mostrarId = gs_fireID;
+          }
+      
+          document.querySelectorAll('.mostrarId').forEach(el => {
+            el.textContent = mostrarId;
+          });
+      
+          // Cargar datos estáticos básicos
+          const userAvatar = document.getElementById('user-avatar');
+          const userAvatarTIGS = document.getElementById('user-avatarTIGS');
+          if (user.photoURL) {
+            if (userAvatar) userAvatar.src = user.photoURL;
+            if (userAvatarTIGS) userAvatarTIGS.src = user.photoURL;
+          } else {
+            const defaultImg = 'https://raw.githubusercontent.com/Grouvex/grouvex.github.io/refs/heads/main/priv/arch/imagen/isede/Grouvex%20Studios%20Logo.png';
+            if (userAvatar) userAvatar.src = defaultImg;
+            if (userAvatarTIGS) userAvatarTIGS.src = defaultImg;
+          }
+          if (userAvatar) userAvatar.style.display = 'block';
+          if (userAvatarTIGS) userAvatarTIGS.style.display = 'block';
+      
+          const userName = document.getElementById('user-name');
+          if (userName) userName.textContent = user.displayName || user.email;
+      
+          const emailVerified = document.getElementById('email-verified');
+          const emailVerifiedX = document.getElementById('email-verified-x');
+          if (user.emailVerified) {
+            if (emailVerified) emailVerified.style.display = 'inline';
+            if (emailVerifiedX) emailVerifiedX.style.display = 'none';
+          } else {
+            if (emailVerified) emailVerified.style.display = 'none';
+            if (emailVerifiedX) emailVerifiedX.style.display = 'inline';
+          }
+      
+          const userLastSing = document.getElementById('userlastsing');
+          if (userLastSing) {
+            userLastSing.textContent = user.metadata?.lastSignInTime || "Not Defined";
+          }
+      
+          // CONSULTA Y VALIDACIÓN ASÍNCRONA
+          google.script.run
+            .withSuccessHandler(function(data) {
+              // 1. EVALUAR ROL PRIMERO
+              isStaff = data ? Boolean(data.isStaff) : false;
+              const insigniasVerificadas = [
+                'verified-employee', 'verified-moderator', 'sistema', 
+                'ownerRecords', 'ownerDesigns', 'ownerGames', 
+                'ownerAnimations', 'owner', 'GROUVEX%20Studios%20GCO'
+              ];
+      
+              isVerifiedTeam = Array.isArray(data?.insignias) && data.insignias.some(insignia => 
+                insigniasVerificadas.includes(insignia.name)
+              );
+      
+              // 2. FILTRO DE SEGURIDAD (Si falla alguna condición, CIERRA Y CORTA CON return)
+              if (!gs_fireID || !gs_id) {
+                showLoginRequiredOverlay();
+                cerrarSesionYLimpiar();
+                return; // <--- Corta la ejecución, NO activa variables de Staff ni muestra UI
+              }
+      
+              if (gs_id !== gs_fireID) {
+                console.log('Advertencia: El ID en la URL no coincide con el usuario autenticado');
+                if (!isStaff) {
+                  showIdMismatchOverlay();
+                  cerrarSesionYLimpiar();
+                  return; // <--- Cancela todo para usuario normal
+                } else if (!urlTargetId) {
+                  showIdMismatchOverlayStaff();
+                  cerrarSesionYLimpiar();
+                  return; // <--- Cancela todo para staff si no especifica el objetivo
+                }
+              }
+      
+              // 3. SI PASÓ LAS VALIDACIONES: ACTIVAR PERMISOS DE STAFF Y MOSTRAR DASHBOARD
+              if (isStaff) {
+                staffaccessValidate = true;
+                staffBlockValidate = true;
+              }
+      
+              if (typeof inicializarSeguridadUI === 'function') inicializarSeguridadUI();
+      
+              // Cargar datos
+              loadUserData(user);
+              loadUserDataTarget(user);
+              setTimeout(loadRelatedProfiles, 500);
+              setTimeout(loadUserCustomization, 1000);
+      
+              try {
+                if (typeof userEmail !== 'undefined' && userEmail) userEmail.textContent = user.email;
+      
+                if (isVerifiedTeam) {
+                  if (typeof verifiedTeamBadge !== 'undefined' && verifiedTeamBadge) verifiedTeamBadge.classList.remove('hidden');
+                } else if (isStaff) {
+                  if (typeof staffBadge !== 'undefined' && staffBadge) staffBadge.classList.remove('hidden');
+                }
+      
+                if (typeof staffInsignia !== 'undefined' && staffInsignia) staffInsignia.classList.remove('hidden');
+      
+                // Desbloquear secciones de Staff únicamente si pasó el control de seguridad
+                if (typeof staffaccess !== 'undefined' && staffaccess && staffaccessValidate) staffaccess.classList.remove('hidden');
+                if (typeof staffBlock !== 'undefined' && staffBlock && staffBlockValidate) staffBlock.classList.remove('hidden');
+      
+                // Mostrar dashboard
+                const dashboard = document.getElementById('userDashboard');
+                if (dashboard) dashboard.classList.remove('hidden');
+                if (typeof loginForm !== 'undefined' && loginForm) loginForm.classList.add('hidden');
+                if (typeof userDashboard !== 'undefined' && userDashboard) userDashboard.classList.remove('hidden');
+                if (typeof logoutBtn !== 'undefined' && logoutBtn) logoutBtn.classList.remove('hidden');
+                if (typeof resetPasswordBtn !== 'undefined' && resetPasswordBtn) resetPasswordBtn.classList.remove('hidden');
+      
+              } catch (error) {
+                console.error("Error checking user role:", error);
+                if (typeof showError === 'function' && typeof emailError !== 'undefined') {
+                  showError(emailError, "Error al verificar tu cuenta. Intenta nuevamente.");
+                }
+              }
+            })
+            .withFailureHandler(function(error) {
+              console.error("Error al obtener datos del servidor:", error);
+            })
+            .getArtistData(gs_fireID);
+      
+        } else {
+          // SIN USUARIO AUTENTICADO
+          showNotification("Inicio de sesión incorrecto", 'error');
+          
+          gs_id = null;
+          urlTargetId = null;
+          isViewingOtherProfile = null;
+          gs_fireID = null;
+          currentUser = null;
+          isStaff = false;
+          isVerifiedTeam = false;
+      
+          if (typeof loginForm !== 'undefined' && loginForm) loginForm.classList.remove('hidden');
+          if (typeof userDashboard !== 'undefined' && userDashboard) userDashboard.classList.add('hidden');
+          if (typeof logoutBtn !== 'undefined' && logoutBtn) logoutBtn.classList.add('hidden');
+          if (typeof resetPasswordBtn !== 'undefined' && resetPasswordBtn) resetPasswordBtn.classList.add('hidden');
+      
+          const dashboard = document.getElementById('userDashboard');
+          if (dashboard) dashboard.classList.add('hidden');
+      
+          if (typeof emailInput !== 'undefined' && emailInput) emailInput.value = '';
+          if (typeof passwordInput !== 'undefined' && passwordInput) passwordInput.value = '';
+      
+          initSessionTimeout();
+          removeActivityListeners();
+        }
       });
+      
+      function cerrarSesionYLimpiar() {
+        gs_id = null;
+        gs_fireID = null;
+        mostrarId = null;
+        auth.signOut().then(() => {
+          initSessionTimeout();
+          removeActivityListeners();
+          if (typeof procesarBloqueosVisuales === 'function') procesarBloqueosVisuales([]);
+        });
+      }
           
       // Función helper para asignar valor solo si el elemento existe
       const setInputValue = (id, val) => {
