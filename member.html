@@ -5298,7 +5298,7 @@
 
           // Función para cargar campos editables
           function loadEditableFields() {
-            const userId = document.getElementById('crUserId').value;
+            const userId = mostrarId || gs_id || gs_fireID || null;
             const requestType = document.getElementById('requestType').value;
             
             google.script.run
@@ -5467,7 +5467,7 @@
           // Actualizar valor actual cuando se selecciona un campo
           function updateCurrentValue(changeId) {
             const field = document.getElementById(`fieldToModify${changeId}`).value;
-            const userId = document.getElementById('crUserId').value;
+            const userId = mostrarId || gs_id || gs_fireID || null;
             const requestType = document.getElementById('requestType').value;
             const relatedId = document.getElementById('relatedId').value;
             
@@ -5567,7 +5567,7 @@
             
             // Preparar datos para enviar
             const requestData = {
-              userId: document.getElementById('crUserId').value,
+              userId: mostrarId || gs_id || gs_fireID || null,
               requestType: requestType,
               changes: changes,
               relatedId: relatedId || null
