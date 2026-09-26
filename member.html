@@ -3613,6 +3613,19 @@
             }
       });
           
+      // Función helper para asignar valor solo si el elemento existe
+      const setInputValue = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.value = val ?? '';
+        }
+      };
+      
+      // Uso limpio:
+      setInputValue('crUserId', mostrarId);
+      setInputValue('gs-user-id', gs_fireID);
+      setInputValue('gsrecordsUserId', mostrarId || urlTargetId || gs_id || gs_fireID);
+          
     let gs_estado = null;
     let gs_razon = null;
     let gsrecords_estado = null;
@@ -3985,7 +3998,7 @@
     function loadRelatedProfiles() {
       if (!currentUser) return;
       
-      const gs_fireID = `GS-${currentUser.uid}`;
+      const gs_fireID = gs_fireID;
       const profilesList = document.getElementById('relatedProfilesList');
       if (!profilesList) return;
       
@@ -4373,10 +4386,6 @@
         }
       });
     }
-
-      document.getElementById('crUserId').value = gs_id;
-      document.getElementById('gs-user-id').value = gs_fireID;
-      document.getElementById(`gsrecordsUserId`).value = mostrarId || urlTargetId || gs_id || gs_fireID || '';
           
     });
 
