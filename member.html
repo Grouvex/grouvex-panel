@@ -3998,7 +3998,7 @@
     function loadRelatedProfiles() {
       if (!currentUser) return;
       
-      const gs_fireID = gs_fireID;
+      const gs_fireID = `GS-${currentUser.uid}`;
       const profilesList = document.getElementById('relatedProfilesList');
       if (!profilesList) return;
       
