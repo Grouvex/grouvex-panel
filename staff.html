@@ -2145,14 +2145,14 @@ function searchProfiles() {
   console.log('ID 1 :', gs_fireID);
   google.script.run
     .withSuccessHandler(function(profiles) {
-      displaySearchResults(profiles, searchTerm);
+      displaySearchResultsEquals(profiles, searchTerm);
     })
     .withFailureHandler(showError)
     .getRelatedArtistIds(gs_fireID);
 }
 
 // Función para mostrar resultados de búsqueda
-function displaySearchResults(profiles, searchTerm) {
+function displaySearchResultsEquals(profiles, searchTerm) {
   const resultsContainer = document.getElementById('relatedProfilesResults');
   const currentProfiles = document.getElementById('currentRelatedProfiles');
   
@@ -15227,6 +15227,38 @@ function displaySearchResults(response) {
     const username = user.data['Nombre de Usuario'] || 'N/A';
     const status = user.data['Estado del Contrato'] || 'N/A';
     
+    // 1. Obtener las URLs de las insignias tal cual vienen en la respuesta
+    const rawInsignia = user.data['Insignia'] || '';
+    
+    // Separar por comas o saltos de línea si vienen múltiples enlaces
+    const badgeUrls = rawInsignia
+      .toString()
+      .split(/[\n,]+/)
+      .map(url => url.trim())
+      .filter(url => url.length > 0);
+
+    // 2. Generar el bloque HTML con los enlaces recibidos
+    let badgesHtml = '';
+    if (badgeUrls.length > 0) {
+      badgesHtml = '<div class="user-badges" style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center;">';
+      
+      badgeUrls.forEach(url => {
+        // Extraer el nombre del archivo para usarlo en el atributo title y alt
+        const name = url.split('/').pop().split('?')[0] || 'Insignia';
+
+        badgesHtml += `
+          <img src="${url}" 
+               alt="Insignia" 
+               title="${name}" 
+               style="height: 20px; width: auto; object-fit: contain; border-radius: 4px; background: rgba(255,255,255,0.05); padding: 2px; border: 1px solid rgba(255,255,255,0.1);" 
+               onerror="this.style.display='none';" />
+        `;
+      });
+      
+      badgesHtml += '</div>';
+    }
+
+    // 3. Construir la tarjeta
     html += `
       <div class="user-item">
         <div class="user-header">
@@ -15237,6 +15269,7 @@ function displaySearchResults(response) {
               <small>Email: ${email}</small> | 
               <small>Estado: ${status}</small>
             </div>
+            ${badgesHtml}
           </div>
           <div class="user-actions">
             <button class="btn-action btn-view cCierreHora-cDisabled" onclick="viewUserProfile('${userId}')">
@@ -15253,7 +15286,6 @@ function displaySearchResults(response) {
 
   usersList.innerHTML = html;
   
-  // Mostrar indicador de cache si aplica
   if (response.cached) {
     showCacheIndicator();
   }
