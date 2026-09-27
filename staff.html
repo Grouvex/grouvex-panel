@@ -12598,7 +12598,7 @@ function adminToggleUserStatus(uid, enable) {
   };
 
   // Suponiendo que tienes un identificador de staff disponible o puedes pasar null/vacío según tu backend
-  const staffId = typeof currentStaffId !== 'undefined' ? currentStaffId : '';
+  const staffId = gs_id || gs_fireID || '';
 
   google.script.run
     .withSuccessHandler(function(response) {
