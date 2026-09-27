@@ -12949,8 +12949,8 @@ function openEditModal(user) {
         <div style="background: #34495e; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
           <h4 style="margin: 0 0 10px 0; color: #3498db;">Información del Sistema</h4>
           <div style="font-size: 12px;">
-            <div><strong>Creado:</strong> ${formatFirebaseTimestamp(user.createdAt)}</div>
-            <div><strong>Último Login:</strong> ${user.lastLoginAt ? formatFirebaseTimestamp(user.lastLoginAt) : 'Nunca'}</div>
+            <div><strong>Creado:</strong> ${user.createdAt}</div>
+            <div><strong>Último Login:</strong> ${user.lastLoginAt ? (user.lastLoginAt) : 'Nunca'}</div>
             ${user.providers && user.providers.length > 0 ? 
               `<div><strong>Proveedores:</strong> ${user.providers.map(p => p.providerId).join(', ')}</div>` : 
               ''}
