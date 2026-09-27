@@ -12465,7 +12465,7 @@ async function adminCreateNewUser() {
     return;
   }
   
-  const staffId = currentStaffId;
+  const staffId = gs_id || gs_fireID || '';
   
   showAdminResult('Creando usuario...', 'loading');
   
