@@ -1,287 +1,360 @@
 // ============================================
-// PUENTE HIGH-PERFORMANCE CON SWR, LOCALSTORAGE Y FLUENT EXTENSIONS
+// PUENTE HIGH-PERFORMANCE CON SWR, LOCALSTORAGE Y FLUENT EXTENSIONS (DIAGNOSTIC BUILD)
 // ============================================
 (function(global) {
-  'use strict';
+  'use strict';
 
-  const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyx2ZKEOGThYPBLjDeavIn1EYF9tmcYieT-6mfvAZAeiR0-nO__NKiJTejXxjJGJCBaBA/exec';
-  const CACHE_PREFIX = 'GAS_SWR_';
+  const GAS_API_URL = 'https://grouvex-proxy.grouvex.workers.dev/';
+  const CACHE_PREFIX = 'GAS_SWR_';
 
-  const DEFAULTS = Object.freeze({
-    timeout: 25000,
-    retries: 3,
-    delay: 1000
-  });
+  const DEFAULTS = Object.freeze({
+    timeout: 25000,
+    retries: 3,
+    delay: 1000,
+    debug: true // Cambiar a false en producción si no deseas logs detallados
+  });
 
-  const FETCH_HEADERS = Object.freeze({ 'Content-Type': 'text/plain;charset=utf-8' });
-  const inFlightRequests = new Map();
+  const FETCH_HEADERS = Object.freeze({ 'Content-Type': 'application/json' });
+  const inFlightRequests = new Map();
 
-  function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms + (Math.random() * 150)));
-  }
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms + (Math.random() * 150)));
+  }
 
-  // --- MÓDULO DE STORAGE CON SWR ---
-  function getCachedItem(key) {
-    try {
-      const raw = localStorage.getItem(CACHE_PREFIX + key);
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch (_) {
-      return null;
-    }
-  }
+  // --- HELPER DE LOGS ESTRUCTURADOS ---
+  function log(level, source, message, data = null) {
+    const colors = {
+      CLIENT: 'color: #3b82f6; font-weight: bold;',  // Azul
+      PROXY: 'color: #f59e0b; font-weight: bold;',   // Naranja
+      GAS: 'color: #ef4444; font-weight: bold;',     // Rojo
+      CACHE: 'color: #10b981; font-weight: bold;'    // Verde
+    };
+    const prefix = `%c[${source}] %c${message}`;
+    const styleSource = colors[source] || 'font-weight: bold;';
+    const styleMsg = 'color: inherit;';
 
-  function setCachedItem(key, data, ttlMs) {
-    try {
-      const payload = {
-        data: data,
-        expiry: Date.now() + ttlMs,
-        hash: JSON.stringify(data)
-      };
-      localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(payload));
-    } catch (_) {}
-  }
+    if (level === 'error') {
+      console.error(prefix, styleSource, styleMsg, data ?? '');
+    } else if (level === 'warn') {
+      console.warn(prefix, styleSource, styleMsg, data ?? '');
+    } else {
+      console.log(prefix, styleSource, styleMsg, data ?? '');
+    }
+  }
 
-  /**
-   * Ejecutor con reintentos y lógica Stale-While-Revalidate
-   */
-  async function executeWithRetry(functionName, args, config) {
-    const maxRetries = config.retries ?? DEFAULTS.retries;
-    const baseDelay = config.retryDelay ?? DEFAULTS.delay;
-    const timeoutMs = config.timeout ?? DEFAULTS.timeout;
-    const ttlMs = config.swrTtl || config.ttl || 0;
-    const isSWR = Boolean(config.swrTtl);
-    const payloadArray = Array.isArray(args) ? args : [args];
+  // --- MÓDULO DE STORAGE CON SWR ---
+  function getCachedItem(key) {
+    try {
+      const raw = localStorage.getItem(CACHE_PREFIX + key);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (_) {
+      return null;
+    }
+  }
 
-    const cacheKey = `${functionName}:${JSON.stringify(payloadArray)}`;
-    const cachedEntry = ttlMs > 0 ? getCachedItem(cacheKey) : null;
-    const now = Date.now();
+  function setCachedItem(key, data, ttlMs) {
+    try {
+      const payload = {
+        data: data,
+        expiry: Date.now() + ttlMs,
+        hash: JSON.stringify(data)
+      };
+      localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(payload));
+    } catch (_) {}
+  }
 
-    // Helper para notificar estado de carga
-    const notifyLoading = (isLoading) => {
-      if (typeof config.onLoading === 'function') config.onLoading(isLoading);
-    };
+  /**
+   * Ejecutor con reintentos y lógica Stale-While-Revalidate
+   */
+  async function executeWithRetry(functionName, args, config) {
+    const isDebug = config.debug ?? DEFAULTS.debug;
 
-    // Helper para aplicar transformación a los datos
-    const applyTransform = (data) => {
-      return typeof config.transform === 'function' ? config.transform(data) : data;
-    };
+    // 1. VERIFICACIÓN DE SEGURIDAD EN EL CLIENTE
+    if (
+      !functionName || 
+      typeof functionName !== 'string' || 
+      functionName === 'undefined' || 
+      functionName === 'null' ||
+      functionName.trim() === ''
+    ) {
+      log('error', 'CLIENT', `Fallo de validación local: Nombre de función remoto no válido -> '${functionName}'`);
+      return Promise.reject(new Error(`[CLIENT] Función remota no válida: ${functionName}`));
+    }
 
-    // 0. ACTUALIZACIÓN OPTIMISTA (si está configurada)
-    if (config.optimisticData !== undefined && typeof config.optimisticFn === 'function') {
-      config.optimisticFn(config.optimisticData);
-    }
+    const cleanActionName = functionName.trim();
+    const maxRetries = config.retries ?? DEFAULTS.retries;
+    const baseDelay = config.retryDelay ?? DEFAULTS.delay;
+    const timeoutMs = config.timeout ?? DEFAULTS.timeout;
+    const ttlMs = config.swrTtl || config.ttl || 0;
+    const isSWR = Boolean(config.swrTtl);
+    const payloadArray = Array.isArray(args) ? args : [args];
 
-    notifyLoading(true);
+    const cacheKey = `${cleanActionName}:${JSON.stringify(payloadArray)}`;
+    const cachedEntry = ttlMs > 0 ? getCachedItem(cacheKey) : null;
+    const now = Date.now();
 
-    // 1. SI LA CACHÉ SIGUE FRESCA (DENTRO DEL TTL)
-    if (cachedEntry && now <= cachedEntry.expiry) {
-      console.log(`⚡ [Cache Hit Fresco] ${functionName}`);
-      notifyLoading(false);
-      const transformedData = applyTransform(cachedEntry.data);
-      if (typeof config.success === 'function') {
-        config.success(transformedData, config.userObj);
-      }
-      return transformedData;
-    }
+    if (isDebug) {
+      log('info', 'CLIENT', `Iniciando llamada remota: '${cleanActionName}'`, { args: payloadArray, config });
+    }
 
-    // 2. SI SWR ESTÁ ACTIVO Y TENEMOS DATOS CADUCADOS (STALE)
-    let staleDataReturned = false;
-    let staleTransformedData = null;
+    const notifyLoading = (isLoading) => {
+      if (typeof config.onLoading === 'function') config.onLoading(isLoading);
+    };
 
-    if (isSWR && cachedEntry) {
-      console.log(`📦 [SWR Stale] Entregando caché guardada para '${functionName}' mientras se actualiza...`);
-      staleDataReturned = true;
-      staleTransformedData = applyTransform(cachedEntry.data);
-      if (typeof config.success === 'function') {
-        config.success(staleTransformedData, config.userObj);
-      }
-    }
+    const applyTransform = (data) => {
+      return typeof config.transform === 'function' ? config.transform(data) : data;
+    };
 
-    // 3. DEDUPLICACIÓN DE PETICIONES EN VUELO
-    if (inFlightRequests.has(cacheKey)) {
-      const inFlightPromise = inFlightRequests.get(cacheKey);
-      return staleDataReturned ? staleTransformedData : inFlightPromise;
-    }
+    // 0. ACTUALIZACIÓN OPTIMISTA
+    if (config.optimisticData !== undefined && typeof config.optimisticFn === 'function') {
+      config.optimisticFn(config.optimisticData);
+    }
 
-    // 4. REVALIDACIÓN EN SEGUNDO PLANO (FETCH AL SERVIDOR)
-    const task = (async () => {
-      let lastError = null;
+    notifyLoading(true);
 
-      try {
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    // 1. SI LA CACHÉ SIGUE FRESCA (DENTRO DEL TTL)
+    if (cachedEntry && now <= cachedEntry.expiry) {
+      if (isDebug) log('info', 'CACHE', `Hit Fresco para '${cleanActionName}'`);
+      notifyLoading(false);
+      const transformedData = applyTransform(cachedEntry.data);
+      if (typeof config.success === 'function') {
+        config.success(transformedData, config.userObj);
+      }
+      return transformedData;
+    }
 
-          // Soporte para AbortSignal externo
-          if (config.signal) {
-            config.signal.addEventListener('abort', () => controller.abort());
-          }
+    // 2. SI SWR ESTÁ ACTIVO Y TENEMOS DATOS CADUCADOS (STALE)
+    let staleDataReturned = false;
+    let staleTransformedData = null;
 
-          try {
-            const response = await fetch(GAS_API_URL, {
-              method: 'POST',
-              mode: 'cors',
-              headers: FETCH_HEADERS,
-              body: JSON.stringify({ endpoint: functionName, payload: payloadArray }),
-              signal: controller.signal
-            });
+    if (isSWR && cachedEntry) {
+      if (isDebug) log('info', 'CACHE', `Entregando versión Stale para '${cleanActionName}' mientras revalida`);
+      staleDataReturned = true;
+      staleTransformedData = applyTransform(cachedEntry.data);
+      if (typeof config.success === 'function') {
+        config.success(staleTransformedData, config.userObj);
+      }
+    }
 
-            clearTimeout(timeoutId);
+    // 3. DEDUPLICACIÓN DE PETICIONES EN VUELO
+    if (inFlightRequests.has(cacheKey)) {
+      if (isDebug) log('info', 'CLIENT', `Reutilizando petición en vuelo para '${cleanActionName}'`);
+      const inFlightPromise = inFlightRequests.get(cacheKey);
+      return staleDataReturned ? staleTransformedData : inFlightPromise;
+    }
 
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    // 4. REVALIDACIÓN EN SEGUNDO PLANO (FETCH AL SERVIDOR)
+    const task = (async () => {
+      let lastError = null;
 
-            const text = await response.text();
-            let result;
-            try {
-              result = JSON.parse(text);
-            } catch (_) {
-              throw new Error("Respuesta no válida del servidor");
-            }
+      try {
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-            if (!result.success) throw new Error(result.error || "Error en el servidor");
+          if (config.signal) {
+            config.signal.addEventListener('abort', () => controller.abort());
+          }
 
-            const newData = result.data;
-            const newHash = JSON.stringify(newData);
-            const hasChanged = !cachedEntry || cachedEntry.hash !== newHash;
+          try {
+            const bodyPayload = JSON.stringify({ action: cleanActionName, args: payloadArray });
+            
+            if (isDebug) {
+              log('info', 'CLIENT', `Enviando Fetch (Intento ${attempt + 1}/${maxRetries + 1}) ->`, { bodyPayload });
+            }
 
-            // Guardar en caché si procede
-            if (ttlMs > 0) {
-              setCachedItem(cacheKey, newData, ttlMs);
-            }
+            const response = await fetch(GAS_API_URL, {
+              method: 'POST',
+              mode: 'cors',
+              headers: FETCH_HEADERS,
+              body: bodyPayload,
+              signal: controller.signal
+            });
 
-            // Invalidador automático de caché para patrones específicos
-            if (config.invalidates) {
-              global.google.script.clearCache(config.invalidates);
-            }
+            clearTimeout(timeoutId);
 
-            const transformedNewData = applyTransform(newData);
+            // LOG DE DIAGNÓSTICO HTTP (Cloudflare Proxy / Red)
+            if (!response.ok) {
+              const errText = await response.text();
+              log('error', 'PROXY', `Error HTTP ${response.status} devuelto por Cloudflare`, {
+                status: response.status,
+                statusText: response.statusText,
+                responseText: errText
+              });
+              throw new Error(`[PROXY_HTTP_${response.status}] ${errText}`);
+            }
 
-            // Manejo de SWR previo
-            if (staleDataReturned) {
-              if (hasChanged) {
-                console.log(`🔄 [SWR Update] ¡Los datos de '${functionName}' cambiaron! Actualizando UI...`);
-                if (typeof config.onUpdate === 'function') {
-                  config.onUpdate(transformedNewData, config.userObj);
-                } else if (typeof config.success === 'function') {
-                  config.success(transformedNewData, config.userObj);
-                }
-              } else {
-                console.log(`✅ [SWR Verified] Los datos de '${functionName}' no sufrieron cambios en el servidor.`);
-              }
-              return transformedNewData;
-            }
+            const text = await response.text();
+            let result;
 
-            if (typeof config.success === 'function') {
-              config.success(transformedNewData, config.userObj);
-            }
+            try {
+              result = JSON.parse(text);
+            } catch (jsonErr) {
+              log('error', 'PROXY', `Respuesta devuelta por el proxy no es un JSON válido`, { rawResponse: text });
+              throw new Error(`[PROXY_INVALID_JSON] La respuesta no es un JSON válido: ${text.substring(0, 100)}...`);
+            }
 
-            return transformedNewData;
+            // DIAGNÓSTICO DE RESPUESTA INTERNA (Google Apps Script)
+            if (!result.success) {
+              log('error', 'GAS', `Fallo reportado por la lógica de Apps Script`, { error: result.error, fullResult: result });
+              throw new Error(`[GAS_ERROR] ${result.error || "Error indeterminado en Apps Script"}`);
+            }
 
-          } catch (error) {
-            clearTimeout(timeoutId);
-            const isAbort = error.name === 'AbortError';
-            const isNetworkError = error instanceof TypeError || isAbort || error.message.includes('HTTP');
+            if (isDebug) {
+              log('info', 'GAS', `Respuesta exitosa recibida para '${cleanActionName}'`, result.data !== undefined && result.data !== null);
+            }
 
-            lastError = isAbort ? new Error(`Timeout (${timeoutMs}ms)`) : error;
-            if (!isNetworkError || attempt >= maxRetries) break;
+            const newData = result.data;
+            const newHash = JSON.stringify(newData);
+            const hasChanged = !cachedEntry || cachedEntry.hash !== newHash;
 
-            await wait(baseDelay * (1 << attempt));
-          }
-        }
+            if (ttlMs > 0) {
+              setCachedItem(cacheKey, newData, ttlMs);
+            }
 
-        const finalErrMsg = lastError ? lastError.message : "Error tras reintentos";
-        
-        if (staleDataReturned) {
-          console.warn(`⚠️ No se pudo revalidar '${functionName}', pero la UI mantendrá los datos en caché.`);
-          return staleTransformedData;
-        }
+            if (config.invalidates) {
+              global.google.script.clearCache(config.invalidates);
+            }
 
-        if (typeof config.failure === 'function') {
-          config.failure(finalErrMsg, config.userObj);
-        }
-        throw new Error(finalErrMsg);
+            const transformedNewData = applyTransform(newData);
 
-      } finally {
-        notifyLoading(false);
-      }
-    })();
+            if (staleDataReturned) {
+              if (hasChanged) {
+                if (isDebug) log('info', 'CACHE', `SWR detectó cambios en '${cleanActionName}'. Actualizando UI.`);
+                if (typeof config.onUpdate === 'function') {
+                  config.onUpdate(transformedNewData, config.userObj);
+                } else if (typeof config.success === 'function') {
+                  config.success(transformedNewData, config.userObj);
+                }
+              }
+              return transformedNewData;
+            }
 
-    inFlightRequests.set(cacheKey, task);
-    try {
-      const freshData = await task;
-      return staleDataReturned ? staleTransformedData : freshData;
-    } finally {
-      inFlightRequests.delete(cacheKey);
-    }
-  }
+            if (typeof config.success === 'function') {
+              config.success(transformedNewData, config.userObj);
+            }
 
-  // --- CLASS RUNNER FLUENT ---
-  class ScriptRunner {
-    constructor(config = {}) {
-      this._config = config;
+            return transformedNewData;
 
-      return new Proxy(this, {
-        get(target, prop) {
-          if (prop in target) return target[prop];
+          } catch (error) {
+            clearTimeout(timeoutId);
+            const isAbort = error.name === 'AbortError';
+            const isNetworkError = error instanceof TypeError || isAbort || error.message.includes('PROXY_HTTP');
 
-          // Callbacks estándar
-          if (prop === 'withSuccessHandler') return fn => new ScriptRunner({ ...target._config, success: fn });
-          if (prop === 'withFailureHandler') return fn => new ScriptRunner({ ...target._config, failure: fn });
-          if (prop === 'withUserObject') return obj => new ScriptRunner({ ...target._config, userObj: obj });
-          
-          // Tiempos y reintentos
-          if (prop === 'withTimeout') return ms => new ScriptRunner({ ...target._config, timeout: ms });
-          if (prop === 'withRetries') return (r, d) => new ScriptRunner({ ...target._config, retries: r, retryDelay: d });
-          
-          // Caché y SWR
-          if (prop === 'withCache') return ttlMs => new ScriptRunner({ ...target._config, ttl: ttlMs });
-          if (prop === 'withSWR') return ttlMs => new ScriptRunner({ ...target._config, swrTtl: ttlMs });
-          if (prop === 'onUpdate') return fn => new ScriptRunner({ ...target._config, onUpdate: fn });
+            lastError = isAbort ? new Error(`[CLIENT_TIMEOUT] Cancelado tras timeout de ${timeoutMs}ms`) : error;
 
-          // NUEVAS FUNCIONALIDADES
-          // 1. Invalida cachés según un patrón al completar con éxito
-          if (prop === 'invalidates') return pattern => new ScriptRunner({ ...target._config, invalidates: pattern });
+            log('warn', 'CLIENT', `Fallo en el intento ${attempt + 1}/${maxRetries + 1}: ${lastError.message}`);
 
-          // 2. Control de estado de carga (Spinner / Loading)
-          if (prop === 'withLoading') return fn => new ScriptRunner({ ...target._config, onLoading: fn });
+            if (!isNetworkError || attempt >= maxRetries) break;
 
-          // 3. Transformador de respuesta
-          if (prop === 'transform') return fn => new ScriptRunner({ ...target._config, transform: fn });
+            await wait(baseDelay * (1 << attempt));
+          }
+        }
 
-          // 4. Actualización optimista
-          if (prop === 'withOptimistic') return (data, updateFn) => new ScriptRunner({ ...target._config, optimisticData: data, optimisticFn: updateFn });
+        const finalErrMsg = lastError ? lastError.message : "Error desconocido tras reintentos";
+        
+        if (staleDataReturned) {
+          log('warn', 'CLIENT', `Fallo la revalidación de '${cleanActionName}'. Se mantiene el valor stale en UI.`);
+          return staleTransformedData;
+        }
 
-          // 5. Señal de cancelación (AbortSignal)
-          if (prop === 'withSignal') return signal => new ScriptRunner({ ...target._config, signal });
+        if (typeof config.failure === 'function') {
+          config.failure(finalErrMsg, config.userObj);
+        }
+        throw new Error(finalErrMsg);
 
-          return (...args) => executeWithRetry(prop, args, target._config);
-        }
-      });
-    }
-  }
+      } finally {
+        notifyLoading(false);
+      }
+    })();
 
-  global.google = global.google || {};
-  global.google.script = global.google.script || {};
-  global.google.script.run = new ScriptRunner();
+    inFlightRequests.set(cacheKey, task);
+    try {
+      const freshData = await task;
+      return staleDataReturned ? staleTransformedData : freshData;
+    } finally {
+      inFlightRequests.delete(cacheKey);
+    }
+  }
 
-  // Limpieza de caché
-  global.google.script.clearCache = function(pattern) {
-    try {
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith(CACHE_PREFIX)) {
-          if (!pattern || key.includes(pattern)) {
-            keysToRemove.push(key);
-          }
-        }
-      }
-      keysToRemove.forEach(k => localStorage.removeItem(k));
-      console.log(`🧹 Caché SWR eliminada (${keysToRemove.length} elementos)`);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // --- MAPA DE MÉTODOS FLUENT ---
+  const FLUENT_METHODS = {
+    withSuccessHandler: (cfg, fn) => ({ ...cfg, success: fn }),
+    withFailureHandler: (cfg, fn) => ({ ...cfg, failure: fn }),
+    withUserObject: (cfg, obj) => ({ ...cfg, userObj: obj }),
+    withTimeout: (cfg, ms) => ({ ...cfg, timeout: ms }),
+    withRetries: (cfg, r, d) => ({ ...cfg, retries: r, retryDelay: d }),
+    withCache: (cfg, ttlMs) => ({ ...cfg, ttl: ttlMs }),
+    withSWR: (cfg, ttlMs) => ({ ...cfg, swrTtl: ttlMs }),
+    onUpdate: (cfg, fn) => ({ ...cfg, onUpdate: fn }),
+    invalidates: (cfg, pattern) => ({ ...cfg, invalidates: pattern }),
+    withLoading: (cfg, fn) => ({ ...cfg, onLoading: fn }),
+    transform: (cfg, fn) => ({ ...cfg, transform: fn }),
+    withOptimistic: (cfg, data, updateFn) => ({ ...cfg, optimisticData: data, optimisticFn: updateFn }),
+    withSignal: (cfg, signal) => ({ ...cfg, signal }),
+    withDebug: (cfg, enabled = true) => ({ ...cfg, debug: enabled })
+  };
+
+  const IGNORED_PROPERTIES = new Set([
+    'then', 'catch', 'finally', 'toJSON', 'prototype', 'constructor',
+    'toString', 'valueOf', 'nodeType', 'length', '_jsonp', 'caller',
+    'bind', 'apply', 'call', 'name', 'arguments', 'inspect'
+  ]);
+
+  // --- CLASS RUNNER FLUENT ---
+  class ScriptRunner {
+    constructor(config = {}) {
+      this._config = Object.freeze({ ...config });
+  
+      return new Proxy(this, {
+        get: (target, prop) => {
+          if (
+            typeof prop !== 'string' ||
+            IGNORED_PROPERTIES.has(prop) ||
+            prop.startsWith('_') ||
+            prop.startsWith('@@')
+          ) {
+            return undefined;
+          }
+  
+          if (prop in target) {
+            return target[prop];
+          }
+  
+          if (Object.prototype.hasOwnProperty.call(FLUENT_METHODS, prop)) {
+            return (...args) => {
+              const nextConfig = FLUENT_METHODS[prop](target._config, ...args);
+              return new ScriptRunner(nextConfig);
+            };
+          }
+  
+          return (...args) => executeWithRetry(prop, args, target._config);
+        }
+      });
+    }
+  }
+
+  global.google = global.google || {};
+  global.google.script = global.google.script || {};
+  global.google.script.run = new ScriptRunner();
+
+  global.google.script.clearCache = function(pattern) {
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(CACHE_PREFIX)) {
+          if (!pattern || key.includes(pattern)) {
+            keysToRemove.push(key);
+          }
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      log('info', 'CACHE', `Caché SWR eliminada (${keysToRemove.length} elementos)`);
+    } catch (e) {
+      log('error', 'CLIENT', 'Error al borrar la caché de localStorage', e);
+    }
+  };
 
 })(typeof window !== 'undefined' ? window : this);
