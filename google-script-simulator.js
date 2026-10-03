@@ -202,7 +202,7 @@
             }
 
             if (isDebug) {
-              log('info', 'GAS', `Respuesta exitosa recibida para '${cleanActionName}'`, result.data !== undefined && result.data !== null);
+              log('info', 'GAS', `Respuesta exitosa recibida para '${cleanActionName}'`, result.data);
             }
 
             const newData = result.data;
