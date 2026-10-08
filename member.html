@@ -11484,6 +11484,24 @@ function restoreSaveButtonUI(buttonElement, originalContent) {
                   /* ============================================================
                     CARGA DE LANZAMIENTOS VÍA google.script.run
                     ============================================================ */
+                  function RcargarLanzamientosArtista() {
+                    // Verificación segura contra ReferenceError
+                    const idMostrar = typeof mostrarId !== 'undefined' ? mostrarId : null;
+                    const idGs = typeof gs_id !== 'undefined' ? gs_id : null;
+                    
+                    const userId = idMostrar || idGs || null;
+                  
+                    console.log('El id del usuario detectado es:', userId);
+                  
+                    if (!userId) {
+                      console.warn('RcargarLanzamientosArtista: No se pudo determinar el ID del usuario.');
+                      return;
+                    }
+                  
+                    // Ejecución segura
+                    cargarLanzamientosArtista(userId);
+                  }
+                        
                   function cargarLanzamientosArtista(userId) {
                     const grid = document.getElementById('lanzamientos-grid');
 
@@ -12130,6 +12148,7 @@ function restoreSaveButtonUI(buttonElement, originalContent) {
                       document.getElementById('lanzamientos-grid').innerHTML = `
                         <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #ef4444;">
                           No se ha detectado el ID del usuario.
+                          <button type="button" onclick="RcargarLanzamientosArtista()"> Reintentar Carga</button>
                         </div>`;
                       return;
                     }
